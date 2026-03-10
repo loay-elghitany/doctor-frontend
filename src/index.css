@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", system-ui, sans-serif;
+  background-color: #f9fafb;
+  color: #1f2937;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Utility classes */
+.btn-base {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply btn-base bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+}
+
+.btn-secondary {
+  @apply btn-base bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500;
+}
+
+.btn-danger {
+  @apply btn-base bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+.btn-success {
+  @apply btn-base bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
+}
+
+.input-base {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
+}
+
+.card {
+  @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
+}
+
+.badge {
+  @apply inline-block px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.badge-pending {
+  @apply badge bg-yellow-100 text-yellow-800;
+}
+
+.badge-confirmed {
+  @apply badge bg-green-100 text-green-800;
+}
+
+.badge-cancelled {
+  @apply badge bg-red-100 text-red-800;
+}
+
+.badge-reschedule-proposed {
+  @apply badge bg-yellow-100 text-yellow-800;
+}
