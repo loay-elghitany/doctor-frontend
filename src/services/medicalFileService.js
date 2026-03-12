@@ -1,13 +1,9 @@
 import api from "./api";
 
-const downloadFileWithAuth = (storedName, fileName) => {
+const openDownloadWindow = (downloadPath) => {
   const token = localStorage.getItem("token");
   const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
-  // Construct the URL with the token in the query string
-  const url = `${apiBase}/medical-files/download/${storedName}?token=${token}`;
-
-  // Open the URL in a new tab to let the browser handle the download
+  const url = `${apiBase}${downloadPath}?token=${token}`;
   window.open(url, "_blank");
 };
 
@@ -26,8 +22,20 @@ export const medicalFileService = {
   getAppointmentFiles: (appointmentId) =>
     api.get(`/medical-files/appointment/${appointmentId}`),
 
-  downloadFile: (storedName, fileName) =>
-    downloadFileWithAuth(storedName, fileName),
+  downloadMedicalFile: (storedName, role = "patient") => {
+    let downloadPath;
+    if (role === "doctor") {
+      downloadPath = `/medical-files/download/doctor/${storedName}`;
+    } else {
+      downloadPath = `/medical-files/download/patient/${storedName}`;
+    }
+    openDownloadWindow(downloadPath);
+  },
+
+  downloadFile: (storedName) => {
+    // Maintain backward compatibility, default to patient download
+    medicalFileService.downloadMedicalFile(storedName, "patient");
+  },
 };
 
 export default medicalFileService;

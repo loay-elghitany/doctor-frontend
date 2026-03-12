@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Spinner, Alert } from "./ui";
 import { medicalFileService } from "../services/medicalFileService";
+import { useAuth } from "../context/AuthContext";
 import { handleApiError } from "../utils/helpers";
 
 export const PatientMedicalFiles = () => {
@@ -12,6 +13,9 @@ export const PatientMedicalFiles = () => {
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+
+  const { user } = useAuth();
+  const role = user?.role;
 
   const fetchFiles = async () => {
     setLoading(true);
@@ -70,12 +74,10 @@ export const PatientMedicalFiles = () => {
     }
   };
 
-  // Download file with Authorization header (includes token in fetch, avoids blank page)
   const handleDownload = async (file) => {
     try {
-      // Extract storedName: use storedName field if available, otherwise from fileUrl
       const storedName = file.storedName || file.fileUrl.split("/").pop();
-      await medicalFileService.downloadFile(storedName, file.fileName);
+      await medicalFileService.downloadMedicalFile(storedName, role);
     } catch (err) {
       setError(handleApiError(err) || "Failed to download file");
     }
