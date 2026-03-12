@@ -1,29 +1,14 @@
 import api from "./api";
 
-const downloadFileWithAuth = async (storedName, fileName) => {
+const downloadFileWithAuth = (storedName, fileName) => {
   const token = localStorage.getItem("token");
   const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-  const url = `${apiBase}/medical-files/download/${storedName}`;
 
-  const response = await fetch(url, {
-    headers: {
-      Authorization: token ? `Bearer ${token}` : "",
-    },
-  });
+  // Construct the URL with the token in the query string
+  const url = `${apiBase}/medical-files/download/${storedName}?token=${token}`;
 
-  if (!response.ok) {
-    throw new Error(`Download failed: ${response.statusText}`);
-  }
-
-  const blob = await response.blob();
-  const blobUrl = window.URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = blobUrl;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  window.URL.revokeObjectURL(blobUrl);
-  document.body.removeChild(link);
+  // Open the URL in a new tab to let the browser handle the download
+  window.open(url, "_blank");
 };
 
 export const medicalFileService = {
@@ -46,3 +31,5 @@ export const medicalFileService = {
 };
 
 export default medicalFileService;
+
+// Note: The downloadFile function constructs a URL with the token in the query string and opens it in a new tab. The backend should handle this route, verify the token, and serve the file for download.
