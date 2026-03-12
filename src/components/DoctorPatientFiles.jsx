@@ -35,11 +35,16 @@ export const DoctorPatientFiles = ({ patientId, appointmentId, onClose }) => {
 
   const handleDownload = async (file) => {
     try {
-      const storedName = file.storedName;
-      if (!storedName) {
-        throw new Error("File name not available");
+      if (!file._id || !file.fileName) {
+        throw new Error("File details not available for download.");
       }
-      await medicalFileService.downloadMedicalFile(storedName, role);
+      await medicalFileService.downloadMedicalFile({
+        role: user.role,
+        doctorId: user._id,
+        patientId: patientId,
+        fileId: file._id,
+        fileName: file.fileName,
+      });
     } catch (err) {
       setError(handleApiError(err) || "Failed to download file");
     }

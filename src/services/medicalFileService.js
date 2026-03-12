@@ -1,10 +1,25 @@
 import api from "./api";
 
-const openDownloadWindow = (downloadPath) => {
-  const token = localStorage.getItem("token");
-  const apiBase = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-  const url = `${apiBase}${downloadPath}?token=${token}`;
-  window.open(url, "_blank");
+const downloadFileFromStream = async (url, fileName) => {
+  try {
+    const response = await api.get(url, { responseType: "blob" });
+    const blob = new Blob([response.data], {
+      type: response.headers["content-type"],
+    });
+
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(blob);
+    link.download = fileName;
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(link.href);
+  } catch (error) {
+    console.error("File download failed:", error);
+    throw error;
+  }
 };
 
 export const medicalFileService = {
@@ -22,22 +37,21 @@ export const medicalFileService = {
   getAppointmentFiles: (appointmentId) =>
     api.get(`/medical-files/appointment/${appointmentId}`),
 
-  downloadMedicalFile: (storedName, role = "patient") => {
+  downloadMedicalFile: ({
+    role,
+    patientId,
+    doctorId,
+    fileId,
+    fileName,
+  }) => {
     let downloadPath;
     if (role === "doctor") {
-      downloadPath = `/medical-files/download/doctor/${storedName}`;
+      downloadPath = `/medical-files/download/doctor/${doctorId}/${fileId}`;
     } else {
-      downloadPath = `/medical-files/download/patient/${storedName}`;
+      downloadPath = `/medical-files/download/patient/${patientId}/${fileId}`;
     }
-    openDownloadWindow(downloadPath);
-  },
-
-  downloadFile: (storedName) => {
-    // Maintain backward compatibility, default to patient download
-    medicalFileService.downloadMedicalFile(storedName, "patient");
+    return downloadFileFromStream(downloadPath, fileName);
   },
 };
 
 export default medicalFileService;
-
-// Note: The downloadFile function constructs a URL with the token in the query string and opens it in a new tab. The backend should handle this route, verify the token, and serve the file for download.
