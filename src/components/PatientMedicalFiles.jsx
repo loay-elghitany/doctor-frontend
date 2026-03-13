@@ -76,13 +76,12 @@ export const PatientMedicalFiles = () => {
 
   const handleDownload = async (file) => {
     try {
-      if (!file._id || !file.fileName) {
+      if (!file.storedName || !file.fileName) {
         throw new Error("File details not available for download.");
       }
       await medicalFileService.downloadMedicalFile({
         role: user.role,
-        patientId: user._id,
-        fileId: file._id,
+        storedName: file.storedName,
         fileName: file.fileName,
       });
     } catch (err) {

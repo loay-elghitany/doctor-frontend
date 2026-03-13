@@ -37,18 +37,12 @@ export const medicalFileService = {
   getAppointmentFiles: (appointmentId) =>
     api.get(`/medical-files/appointment/${appointmentId}`),
 
-  downloadMedicalFile: ({
-    role,
-    patientId,
-    doctorId,
-    fileId,
-    fileName,
-  }) => {
+  downloadMedicalFile: ({ role, storedName, fileName }) => {
     let downloadPath;
     if (role === "doctor") {
-      downloadPath = `/medical-files/download/doctor/${doctorId}/${fileId}`;
+      downloadPath = `/medical-files/download/doctor/${storedName}`;
     } else {
-      downloadPath = `/medical-files/download/patient/${patientId}/${fileId}`;
+      downloadPath = `/medical-files/download/patient/${storedName}`;
     }
     return downloadFileFromStream(downloadPath, fileName);
   },
