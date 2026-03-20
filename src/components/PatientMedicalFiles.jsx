@@ -76,12 +76,18 @@ export const PatientMedicalFiles = () => {
 
   const handleDownload = async (file) => {
     try {
+      const role = "patient"; // Role is always "patient" in this component
+      if (!role) {
+        throw new Error("User role is missing, cannot download file.");
+      }
       if (!file.storedName || !file.fileName) {
         throw new Error("File details not available for download.");
       }
+      // Sanitize the storedName to get only the filename
+      const sanitizedStoredName = file.storedName.split("/").pop();
       await medicalFileService.downloadMedicalFile({
-        role: user.role,
-        storedName: file.storedName,
+        role,
+        storedName: sanitizedStoredName,
         fileName: file.fileName,
       });
     } catch (err) {
