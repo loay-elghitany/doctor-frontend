@@ -38,7 +38,9 @@ export const medicalFileService = {
     api.get(`/medical-files/appointment/${appointmentId}`),
 
   downloadMedicalFile: ({ role, storedName, fileName }) => {
-    const downloadPath = `/medical-files/download/patient/${storedName}`;
+    // Extract the last segment of storedName to handle cases where it contains a full path
+    const fileIdentifier = storedName.split("/").pop();
+    const downloadPath = `/medical-files/download/${role}/${fileIdentifier}`;
     return downloadFileFromStream(downloadPath, fileName);
   },
 };
