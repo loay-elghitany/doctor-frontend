@@ -15,7 +15,7 @@ export const PatientMedicalFiles = () => {
   const [selectedFile, setSelectedFile] = useState(null);
 
   const { user } = useAuth();
-  const role = user?.role;
+  const role = "patient";
 
   const fetchFiles = async () => {
     setLoading(true);

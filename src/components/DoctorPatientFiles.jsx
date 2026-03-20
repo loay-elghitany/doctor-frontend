@@ -9,7 +9,7 @@ export const DoctorPatientFiles = ({ patientId, appointmentId, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const { user } = useAuth();
-  const role = user?.role;
+  const role = "doctor";
 
   const fetchFiles = async () => {
     setLoading(true);
