@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Spinner, Alert } from "./ui";
-import PatientMedicalFiles from "./PatientMedicalFiles";
 import { getPatientTimeline } from "../services/timelineService";
 import { formatDate } from "../utils/helpers";
 
@@ -75,7 +74,7 @@ export const PatientTimeline = () => {
       </div>
 
       {/* Upload section for patient */}
-      <PatientMedicalFiles />
+      {/* File upload functionality has been removed */}
 
       {/* Timeline Events */}
       <div className="relative">

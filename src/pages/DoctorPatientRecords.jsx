@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { MainLayout } from "../components/layout/Layout";
 import { Spinner, Alert } from "../components/ui";
 import { DoctorPatientTimeline } from "../components/DoctorPatientTimeline";
-import DoctorPatientFiles from "../components/DoctorPatientFiles";
 import { handleApiError } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
 import api from "../services/api";
@@ -18,11 +17,6 @@ export const DoctorPatientRecords = () => {
     useState(null);
   const [patientAppointments, setPatientAppointments] = useState({});
   const [appointmentLoading, setAppointmentLoading] = useState({});
-  const [filesModal, setFilesModal] = useState({
-    open: false,
-    patientId: null,
-    appointmentId: null,
-  });
 
   // Fetch all patients for this doctor
   useEffect(() => {
@@ -316,18 +310,6 @@ export const DoctorPatientRecords = () => {
                                       )}
                                     </div>
                                     <div className="flex items-center gap-3">
-                                      <button
-                                        onClick={() =>
-                                          setFilesModal({
-                                            open: true,
-                                            patientId: patient.id,
-                                            appointmentId: apt._id,
-                                          })
-                                        }
-                                        className="text-sm px-3 py-1 rounded bg-gray-100 hover:bg-gray-200"
-                                      >
-                                        Patient Files
-                                      </button>
                                       <span
                                         className={`text-xs px-2 py-1 rounded-full font-medium ${
                                           apt.status === "confirmed"
@@ -357,24 +339,6 @@ export const DoctorPatientRecords = () => {
           </>
         )}
       </div>
-      {/* Files Modal */}
-      {filesModal.open && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-          <div className="max-w-3xl w-full bg-white rounded-lg p-6 max-h-[90vh] overflow-y-auto">
-            <DoctorPatientFiles
-              patientId={filesModal.patientId}
-              appointmentId={filesModal.appointmentId}
-              onClose={() =>
-                setFilesModal({
-                  open: false,
-                  patientId: null,
-                  appointmentId: null,
-                })
-              }
-            />
-          </div>
-        </div>
-      )}
     </MainLayout>
   );
 };
