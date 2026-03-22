@@ -22,9 +22,16 @@ export const medicalFileService = {
     api.get(`/medical-files/appointment/${appointmentId}`),
 
   downloadMedicalFile: async ({ role, storedName, fileName }) => {
-    const token = localStorage.getItem("token");
+    const patient = JSON.parse(localStorage.getItem("patientInfo"));
+    const doctor = JSON.parse(localStorage.getItem("doctorInfo"));
+    const token = patient?.token || doctor?.token;
     debugLog("medicalFileService", "Download attempt", {
       hasToken: !!token,
+      tokenSource: patient?.token
+        ? "patient"
+        : doctor?.token
+          ? "doctor"
+          : "none",
       role,
       storedName,
     });
