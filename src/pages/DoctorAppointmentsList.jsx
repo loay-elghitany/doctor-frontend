@@ -457,8 +457,20 @@ export const DoctorAppointmentsList = () => {
 
         {/* Prescriptions Modal */}
         {showPrescriptions && selectedAppointment && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-            <div className="max-w-2xl w-full bg-white rounded-lg p-6 max-h-[90vh] overflow-y-auto">
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+          >
+            <motion.div
+              className="max-w-2xl w-full bg-white rounded-lg p-6 max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, scale: 0.97, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 10 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
               <PrescriptionModal
                 appointmentId={selectedAppointment._id}
                 userRole="doctor"
@@ -470,8 +482,8 @@ export const DoctorAppointmentsList = () => {
                   // Optionally refresh appointments if needed
                 }}
               />
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
       </div>
     </MainLayout>

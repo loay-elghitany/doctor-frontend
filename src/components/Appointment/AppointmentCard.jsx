@@ -1,3 +1,6 @@
+import { motion } from "framer-motion";
+import { Stethoscope } from "lucide-react";
+
 // Appointment card component
 export const AppointmentCard = ({
   appointment,
@@ -21,13 +24,21 @@ export const AppointmentCard = ({
   const isCancelled = appointment.status === "cancelled";
 
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, boxShadow: "0 24px 50px rgba(15, 23, 42, 0.08)" }}
+      transition={{ duration: 0.25, ease: "easeInOut" }}
       className={`card border-l-4 ${statusColors[appointment.status] || "border-gray-500"} ${
         isCancelled ? "bg-red-50" : ""
       }`}
     >
-      <div className="flex justify-between items-start mb-4">
-        <div>
+      <div className="flex justify-between items-start mb-4 gap-4">
+        <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+          <Stethoscope className="h-5 w-5" />
+        </div>
+        <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900">
             {appointment.doctor?.name || "Doctor"}
           </h3>
@@ -109,7 +120,7 @@ export const AppointmentCard = ({
             </button>
           )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

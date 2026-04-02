@@ -14,6 +14,8 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { MedicalHeroIllustration } from "../components/illustrations/MedicalHeroIllustration";
+import { GuidedTour } from "../components/GuidedTour";
 
 // LOCAL DASHBOARD PRESENTATION LAYER MAPPING
 // This mapping is used ONLY for dashboard statistics display
@@ -28,6 +30,27 @@ const DASHBOARD_STATUS_MAPPING = {
   pendingStatuses: ["pending", "reschedule_proposed"],
 };
 
+const DOCTOR_TOUR_STEPS = [
+  {
+    title: "Welcome to your clinic hub",
+    description:
+      "This dashboard surfaces your most important appointments, patient flow, and daily metrics in one premium view.",
+    tip: "Use the theme toggle in the header to switch between light and dark mode.",
+  },
+  {
+    title: "Live appointment stats",
+    description:
+      "Track your daily appointment volume, pending confirmations, completed care, and cancellations instantly.",
+    tip: "Hover over a card to see smooth motion and priority feedback.",
+  },
+  {
+    title: "Upcoming appointments",
+    description:
+      "Access the next 7 days of appointments with a fast action button for the full schedule.",
+    tip: "Click the appointments button to open the full calendar experience.",
+  },
+];
+
 export const DoctorDashboard = () => {
   const [stats, setStats] = useState({
     today: 0,
@@ -38,6 +61,8 @@ export const DoctorDashboard = () => {
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -154,11 +179,31 @@ export const DoctorDashboard = () => {
     fetchDashboardData();
   }, []);
 
+  useEffect(() => {
+    if (!localStorage.getItem("clinic-tour-seen")) {
+      setTimeout(() => setTourOpen(true), 600);
+    }
+  }, []);
+
+  const handleTourNext = () => {
+    setTourStep((prev) => Math.min(prev + 1, DOCTOR_TOUR_STEPS.length - 1));
+  };
+
+  const handleTourBack = () => {
+    setTourStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleTourClose = () => {
+    setTourOpen(false);
+    setTourStep(0);
+    localStorage.setItem("clinic-tour-seen", "true");
+  };
+
   return (
     <MainLayout userType="doctor">
       <div className="space-y-8">
-        <div className="rounded-[30px] bg-white p-8 shadow-sm border border-slate-200">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="rounded-[30px] bg-white p-8 shadow-sm border border-slate-200 overflow-hidden">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.32em] text-slate-500 mb-3">
                 Welcome back
@@ -167,13 +212,79 @@ export const DoctorDashboard = () => {
                 Welcome, Dr. {welcomeName}
               </h1>
               <p className="mt-2 text-sm text-slate-500">{formattedDate}</p>
+              <p className="mt-4 max-w-xl text-sm text-slate-500">
+                Your clinic overview is ready — manage appointments, monitor
+                patient flow, and stay in control of every care detail.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  onClick={() => setTourOpen(true)}
+                  className="btn-primary inline-flex items-center gap-2"
+                >
+                  Start tour
+                </button>
+                <button
+                  onClick={() => navigate("/doctor/appointments")}
+                  className="inline-flex items-center gap-2 rounded-xl bg-sky-100 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-200"
+                >
+                  Explore schedule
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <div className="inline-flex items-center rounded-3xl bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm">
-              <CalendarDays className="h-5 w-5 text-slate-500 mr-2" />
-              Today&apos;s overview
+            <div className="hidden xl:block xl:w-96">
+              <MedicalHeroIllustration />
             </div>
           </div>
         </div>
+
+        <motion.div
+          className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 dark:bg-slate-900 dark:border-slate-700"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+        >
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                Performance overview
+              </p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Animated metrics show how your daily appointments compare across categories.
+              </p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:bg-slate-800 dark:text-slate-200">
+              Render animation active
+            </span>
+          </div>
+
+          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {statCards.map((card, index) => {
+              const maxValue = Math.max(...statCards.map((c) => c.value), 1);
+              const height = card.value
+                ? 36 + Math.round((card.value / maxValue) * 84)
+                : 36;
+              const chartColors = ["#0ea5e9", "#f59e0b", "#10b981", "#ef4444"];
+
+              return (
+                <div key={card.label} className="flex flex-col items-center gap-3">
+                  <div className="relative flex h-36 w-full items-end rounded-3xl bg-white/90 p-2 dark:bg-slate-800">
+                    <motion.div
+                      className="absolute bottom-2 left-2 right-2 rounded-3xl"
+                      initial={{ height: 0 }}
+                      animate={{ height }}
+                      transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
+                      style={{ backgroundColor: chartColors[index] }}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+                    {card.label}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -293,6 +404,14 @@ export const DoctorDashboard = () => {
           )}
         </div>
       </div>
+      <GuidedTour
+        isOpen={tourOpen}
+        steps={DOCTOR_TOUR_STEPS}
+        currentStep={tourStep}
+        onNext={handleTourNext}
+        onBack={handleTourBack}
+        onClose={handleTourClose}
+      />
     </MainLayout>
   );
 };

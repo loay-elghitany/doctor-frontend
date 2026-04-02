@@ -1,12 +1,36 @@
 import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
 import { AppointmentCard } from "../components/Appointment/AppointmentCard";
 import { Spinner, Alert } from "../components/ui";
+import { MedicalHeroIllustration } from "../components/illustrations/MedicalHeroIllustration";
+import { GuidedTour } from "../components/GuidedTour";
 import { PatientTimeline } from "../components/PatientTimeline";
 import { appointmentService } from "../services/appointmentService";
 import { formatDate, handleApiError } from "../utils/helpers";
 import { useNavigate } from "react-router-dom";
 import { PrescriptionModal } from "../components/Prescription/PrescriptionModal";
+
+const PATIENT_TOUR_STEPS = [
+  {
+    title: "Welcome to your care dashboard",
+    description:
+      "This is your central command for upcoming visits, health trends, and clinical updates.",
+    tip: "Use the tour to find the most important patient tools quickly.",
+  },
+  {
+    title: "Upcoming appointments",
+    description:
+      "Review appointment details, view prescriptions, and manage reschedule requests from one place.",
+    tip: "Tap any appointment card to open details.",
+  },
+  {
+    title: "Medical timeline",
+    description:
+      "Switch to your medical timeline to see all past care entries and progress over time.",
+    tip: "Use the timeline tab to keep care history at your fingertips.",
+  },
+];
 
 // PatientDashboard fetches upcoming appointments and displays the next 5
 export const PatientDashboard = () => {
@@ -18,6 +42,8 @@ export const PatientDashboard = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showPrescriptions, setShowPrescriptions] = useState(false);
   const [activeTab, setActiveTab] = useState("appointments");
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
 
   useEffect(() => {
     // Fetch upcoming appointments for the authenticated patient
@@ -53,6 +79,26 @@ export const PatientDashboard = () => {
     fetchUpcoming();
   }, []);
 
+  useEffect(() => {
+    if (!localStorage.getItem("clinic-tour-seen")) {
+      setTimeout(() => setTourOpen(true), 600);
+    }
+  }, []);
+
+  const handleTourNext = () => {
+    setTourStep((prev) => Math.min(prev + 1, PATIENT_TOUR_STEPS.length - 1));
+  };
+
+  const handleTourBack = () => {
+    setTourStep((prev) => Math.max(prev - 1, 0));
+  };
+
+  const handleTourClose = () => {
+    setTourOpen(false);
+    setTourStep(0);
+    localStorage.setItem("clinic-tour-seen", "true");
+  };
+
   const handleRescheduleAction = (appointment) => {
     if (appointment.status === "reschedule_proposed") {
       navigate(`/patient/appointments/${appointment._id}/choose`);
@@ -76,9 +122,41 @@ export const PatientDashboard = () => {
   return (
     <MainLayout userType="patient">
       <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {patientName ? `Hello, ${patientName}` : "Hello"}
-        </h1>
+        <motion.div
+          className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm overflow-hidden"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeInOut" }}
+        >
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {patientName ? `Hello, ${patientName}` : "Hello"}
+              </h1>
+              <p className="mt-3 max-w-xl text-sm text-gray-600">
+                Track your care, review upcoming visits, and keep every health
+                update organized in one premium dashboard.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button
+                  onClick={() => setTourOpen(true)}
+                  className="btn-primary inline-flex items-center gap-2"
+                >
+                  Explore the tour
+                </button>
+                <button
+                  onClick={() => setActiveTab("timeline")}
+                  className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+                >
+                  View timeline
+                </button>
+              </div>
+            </div>
+            <div className="hidden lg:block lg:w-80">
+              <MedicalHeroIllustration />
+            </div>
+          </div>
+        </motion.div>
 
         <div className="card">
           {/* Tabs */}
@@ -145,8 +223,20 @@ export const PatientDashboard = () => {
 
         {/* Placeholder modal behavior: clicking a card will set selectedAppointment. */}
         {selectedAppointment && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
-            <div className="max-w-xl w-full bg-white rounded-lg p-6">
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+          >
+            <motion.div
+              className="max-w-xl w-full bg-white rounded-lg p-6"
+              initial={{ opacity: 0, scale: 0.97, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.97, y: 10 }}
+              transition={{ duration: 0.25, ease: "easeInOut" }}
+            >
               <h3 className="text-xl font-bold mb-2">Appointment Details</h3>
 
               {/* Cancellation Notice */}
@@ -267,8 +357,8 @@ export const PatientDashboard = () => {
                   </button>
                 )}
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         )}
 
         {/* Prescriptions Modal */}
@@ -290,6 +380,14 @@ export const PatientDashboard = () => {
           </div>
         )}
       </div>
+      <GuidedTour
+        isOpen={tourOpen}
+        steps={PATIENT_TOUR_STEPS}
+        currentStep={tourStep}
+        onNext={handleTourNext}
+        onBack={handleTourBack}
+        onClose={handleTourClose}
+      />
     </MainLayout>
   );
 };

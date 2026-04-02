@@ -9,10 +9,37 @@
   box-sizing: border-box;
 }
 
+:root {
+  color-scheme: light;
+  --bg: #eff2f7;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --card: #ffffff;
+  --card-hover: #f8fafc;
+  --shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
+}
+
+.dark {
+  color-scheme: dark;
+  --bg: #0f172a;
+  --surface: #111827;
+  --surface-muted: #1f2937;
+  --text: #f8fafc;
+  --muted: #cbd5e1;
+  --border: #334155;
+  --card: #111827;
+  --card-hover: #1f2937;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
 body {
   font-family: "Inter", system-ui, sans-serif;
-  background-color: #eff2f7;
-  color: #0f172a;
+  background-color: var(--bg);
+  color: var(--text);
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 html {
@@ -24,12 +51,24 @@ html {
   color: #1e293b;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 .card {
-  @apply bg-white rounded-[28px] shadow-sm border border-slate-200;
+  @apply rounded-[28px] border p-6 transition duration-200 ease-in-out;
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
 }
 
 .btn-base {
-  @apply px-4 py-2 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  @apply px-4 py-2 rounded-xl font-medium transition-all duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2;
 }
 
 .btn-primary {
@@ -48,8 +87,39 @@ html {
   @apply btn-base bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500;
 }
 
+.input-base {
+  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ease-in-out;
+}
+
+.input-base:focus {
+  @apply shadow-sm;
+}
+
+.input-base.animate-shake {
+  animation: shake 0.25s ease-in-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+
 .badge {
-  @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold;
+  @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold transition-all duration-200 ease-in-out;
 }
 
 .badge-pending {
@@ -68,59 +138,7 @@ html {
   @apply badge bg-sky-100 text-sky-800;
 }
 
-.badge-reschedule_proposed {
-  @apply badge bg-amber-100 text-amber-800;
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-/* Utility classes */
-.btn-base {
-  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
-}
-
-.btn-primary {
-  @apply btn-base bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
-}
-
-.btn-secondary {
-  @apply btn-base bg-gray-200 text-gray-800 hover:bg-gray-300 focus:ring-gray-500;
-}
-
-.btn-danger {
-  @apply btn-base bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
-}
-
-.btn-success {
-  @apply btn-base bg-green-600 text-white hover:bg-green-700 focus:ring-green-500;
-}
-
-.input-base {
-  @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent;
-}
-
-.card {
-  @apply bg-white rounded-lg shadow-md p-6 border border-gray-200;
-}
-
-.badge {
-  @apply inline-block px-3 py-1 rounded-full text-sm font-medium;
-}
-
-.badge-pending {
-  @apply badge bg-yellow-100 text-yellow-800;
-}
-
-.badge-confirmed {
-  @apply badge bg-green-100 text-green-800;
-}
-
-.badge-cancelled {
-  @apply badge bg-red-100 text-red-800;
-}
-
+.badge-reschedule_proposed,
 .badge-reschedule-proposed {
-  @apply badge bg-yellow-100 text-yellow-800;
+  @apply badge bg-amber-100 text-amber-800;
 }

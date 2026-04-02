@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -10,6 +10,8 @@ import {
   LogOut,
   Menu,
   LayoutDashboard,
+  Sun,
+  Moon,
 } from "lucide-react";
 
 const MotionLink = motion(Link);
@@ -17,7 +19,22 @@ const MotionLink = motion(Link);
 // Header component
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [theme, setTheme] = useState("light");
   const { logout } = useAuth();
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("clinic-theme");
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else if (window.matchMedia?.("(prefers-color-scheme: dark)")?.matches) {
+      setTheme("dark");
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("clinic-theme", theme);
+  }, [theme]);
 
   const handleLogout = () => {
     logout();
@@ -36,7 +53,7 @@ export const Header = () => {
           ClinicSaaS
         </Link>
 
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
+        <nav className="hidden md:flex items-center gap-4 text-sm font-medium text-slate-600">
           <Link
             to="/patient/dashboard"
             className="hover:text-slate-900 transition-colors"
@@ -49,6 +66,17 @@ export const Header = () => {
           >
             Doctor
           </Link>
+          <button
+            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </button>
         </nav>
 
         <button
@@ -172,14 +200,19 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
                 to={link.path}
                 onClick={onClose}
                 layout
-                whileHover={{ x: 3 }}
+                whileHover={{ x: 3, scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 280, damping: 24 }}
-                className={`flex items-center gap-3 rounded-3xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                className={`relative flex items-center gap-3 rounded-3xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-[0_0_0_1px_rgba(59,130,246,0.25)]"
+                    ? "bg-blue-600 text-white shadow-[0_0_30px_rgba(59,130,246,0.22)]"
                     : "text-slate-300 hover:bg-slate-800 hover:text-white"
                 }`}
               >
+                <span
+                  className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-full bg-blue-400 transition-all ${
+                    isActive ? "opacity-100" : "opacity-0"
+                  }`}
+                />
                 <Icon className="h-5 w-5" />
                 {link.label}
               </MotionLink>

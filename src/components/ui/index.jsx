@@ -64,7 +64,7 @@ export const Input = ({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          className={`input-base ${error ? "border-red-500 focus:ring-red-500" : ""} ${className}`}
+          className={`input-base ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
           {...props}
         >
           {children}
@@ -88,7 +88,7 @@ export const Input = ({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`input-base ${error ? "border-red-500 focus:ring-red-500" : ""} ${className}`}
+        className={`input-base ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
         {...props}
       />
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
@@ -123,7 +123,7 @@ export const Textarea = ({
         onChange={onChange}
         disabled={disabled}
         rows={rows}
-        className={`input-base ${error ? "border-red-500 focus:ring-red-500" : ""} ${className}`}
+        className={`input-base ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
         {...props}
       />
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
@@ -134,13 +134,28 @@ export const Textarea = ({
 // Badge component
 export const Badge = ({ children, variant = "pending", className = "" }) => {
   const badgeClass = `badge badge-${variant}`;
-  return <span className={`${badgeClass} ${className}`}>{children}</span>;
+  return (
+    <motion.span
+      layout
+      initial={{ opacity: 0, y: 4 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.25, ease: "easeInOut" }}
+      className={`${badgeClass} ${className}`}
+    >
+      {children}
+    </motion.span>
+  );
 };
 
 // Card component
 export const Card = ({ children, className = "", header, footer }) => {
   return (
-    <div className={`card ${className}`}>
+    <motion.div
+      layout
+      whileHover={{ y: -3, boxShadow: "0 24px 40px rgba(15, 23, 42, 0.08)" }}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
+      className={`card ${className}`}
+    >
       {header && (
         <div className="mb-4 pb-4 border-b border-gray-200">{header}</div>
       )}
@@ -148,7 +163,7 @@ export const Card = ({ children, className = "", header, footer }) => {
       {footer && (
         <div className="mt-4 pt-4 border-t border-gray-200">{footer}</div>
       )}
-    </div>
+    </motion.div>
   );
 };
 
@@ -224,18 +239,24 @@ export const Alert = ({ type = "info", message, onClose }) => {
   };
 
   return (
-    <div
-      className={`${bgColor[type]} px-4 py-3 rounded-lg mb-4 flex justify-between items-center`}
-    >
-      <p>{message}</p>
-      {onClose && (
-        <button
-          onClick={onClose}
-          className="text-lg font-bold hover:opacity-70"
-        >
-          ×
-        </button>
-      )}
-    </div>
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 10 }}
+        transition={{ duration: 0.25, ease: "easeInOut" }}
+        className={`${bgColor[type]} px-4 py-3 rounded-lg mb-4 flex justify-between items-center`}
+      >
+        <p>{message}</p>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="text-lg font-bold hover:opacity-70"
+          >
+            ×
+          </button>
+        )}
+      </motion.div>
+    </AnimatePresence>
   );
 };
