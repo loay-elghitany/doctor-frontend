@@ -13,6 +13,7 @@ import {
   XCircle,
   ArrowRight,
 } from "lucide-react";
+import { motion } from "framer-motion";
 
 // LOCAL DASHBOARD PRESENTATION LAYER MAPPING
 // This mapping is used ONLY for dashboard statistics display
@@ -181,21 +182,32 @@ export const DoctorDashboard = () => {
         )}
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-          {statCards.map((card) => {
+          {statCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <div
+              <motion.div
                 key={card.label}
-                className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.35,
+                  ease: "easeInOut",
+                  delay: index * 0.1,
+                }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
               >
-                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${card.accent}`}>
+                <div
+                  className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${card.accent}`}
+                >
                   <Icon className="h-6 w-6" />
                 </div>
                 <div className="mt-6 text-4xl font-semibold text-slate-900">
                   {loading ? "-" : card.value}
                 </div>
                 <p className="mt-3 text-sm text-slate-500">{card.label}</p>
-              </div>
+              </motion.div>
             );
           })}
         </div>
@@ -203,8 +215,12 @@ export const DoctorDashboard = () => {
         <div className="card p-6">
           <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900">Upcoming Appointments</h2>
-              <p className="mt-1 text-sm text-slate-500">Next 7 days of scheduled appointments</p>
+              <h2 className="text-2xl font-semibold text-slate-900">
+                Upcoming Appointments
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Next 7 days of scheduled appointments
+              </p>
             </div>
             <button
               onClick={() => navigate("/doctor/appointments")}
@@ -222,12 +238,18 @@ export const DoctorDashboard = () => {
                 const aptDate = new Date(apt.date);
                 const patientName = apt.patientId?.name || "Unknown Patient";
                 return (
-                  <div
+                  <motion.div
                     key={apt._id}
+                    layout
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
                     className="flex flex-col gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4 transition hover:bg-white hover:shadow-sm md:flex-row md:items-center md:justify-between"
                   >
                     <div>
-                      <p className="text-base font-semibold text-slate-900">{patientName}</p>
+                      <p className="text-base font-semibold text-slate-900">
+                        {patientName}
+                      </p>
                       <p className="mt-1 text-sm text-slate-500">
                         {aptDate.toLocaleDateString()} • {apt.timeSlot}
                       </p>
@@ -238,10 +260,10 @@ export const DoctorDashboard = () => {
                           apt.status === "scheduled"
                             ? "badge-scheduled"
                             : apt.status === "confirmed"
-                            ? "badge-confirmed"
-                            : apt.status === "cancelled"
-                            ? "badge-cancelled"
-                            : "badge-pending"
+                              ? "badge-confirmed"
+                              : apt.status === "cancelled"
+                                ? "badge-cancelled"
+                                : "badge-pending"
                         }`}
                       >
                         {apt.status}
@@ -254,13 +276,13 @@ export const DoctorDashboard = () => {
                         <ArrowRight className="h-4 w-4" />
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
           ) : (
             <p className="text-slate-500">
-              No appointments scheduled. 
+              No appointments scheduled.
               <button
                 onClick={() => navigate("/doctor/appointments")}
                 className="font-semibold text-blue-600 hover:text-blue-700"

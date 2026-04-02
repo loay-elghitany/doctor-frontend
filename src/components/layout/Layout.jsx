@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Header, Sidebar, Footer } from "./Navigation";
 
 // Main layout wrapper
@@ -21,7 +22,15 @@ export const MainLayout = ({ children, userType = "patient" }) => {
           >
             ☰
           </button>
-          <div className="container mx-auto px-6 py-8">{children}</div>
+          <motion.div
+            className="container mx-auto px-6 py-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            {children}
+          </motion.div>
         </main>
       </div>
       <Footer />
@@ -33,7 +42,15 @@ export const MainLayout = ({ children, userType = "patient" }) => {
 export const AuthLayout = ({ children }) => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
-      <div className="w-full max-w-md">{children}</div>
+      <motion.div
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
+        {children}
+      </motion.div>
     </div>
   );
 };

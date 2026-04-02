@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
 import { Table, Tabs } from "../components/ui/DataDisplay";
 import { Button, Badge, Card, Alert, Spinner, Modal } from "../components/ui";
@@ -355,8 +356,12 @@ export const DoctorAppointmentsList = () => {
                 </thead>
                 <tbody>
                   {filteredAppointments.map((appointment) => (
-                    <tr
+                    <motion.tr
                       key={appointment._id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.25, ease: "easeInOut" }}
                       className="border-b hover:bg-gray-50"
                     >
                       <td className="px-6 py-4 text-sm text-gray-900">
@@ -442,7 +447,7 @@ export const DoctorAppointmentsList = () => {
                           </Button>
                         )}
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>

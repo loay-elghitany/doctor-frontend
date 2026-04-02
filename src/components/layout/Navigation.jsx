@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import {
   Home,
@@ -10,6 +11,8 @@ import {
   Menu,
   LayoutDashboard,
 } from "lucide-react";
+
+const MotionLink = motion(Link);
 
 // Header component
 export const Header = () => {
@@ -23,7 +26,10 @@ export const Header = () => {
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between gap-4">
-        <Link to="/" className="inline-flex items-center gap-3 text-xl font-semibold text-slate-900">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-3 text-xl font-semibold text-slate-900"
+        >
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
             C
           </span>
@@ -31,10 +37,16 @@ export const Header = () => {
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-600">
-          <Link to="/patient/dashboard" className="hover:text-slate-900 transition-colors">
+          <Link
+            to="/patient/dashboard"
+            className="hover:text-slate-900 transition-colors"
+          >
             Patient
           </Link>
-          <Link to="/doctor/dashboard" className="hover:text-slate-900 transition-colors">
+          <Link
+            to="/doctor/dashboard"
+            className="hover:text-slate-900 transition-colors"
+          >
             Doctor
           </Link>
         </nav>
@@ -81,7 +93,12 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
   const { logout } = useAuth();
 
   const patientLinks = [
-    { id: "dashboard", path: "/patient/dashboard", label: "Dashboard", icon: Home },
+    {
+      id: "dashboard",
+      path: "/patient/dashboard",
+      label: "Dashboard",
+      icon: Home,
+    },
     {
       id: "new-appointment",
       path: "/patient/appointments/new",
@@ -91,7 +108,12 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
   ];
 
   const doctorLinks = [
-    { id: "dashboard", path: "/doctor/dashboard", label: "Dashboard", icon: LayoutDashboard },
+    {
+      id: "dashboard",
+      path: "/doctor/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
     {
       id: "appointments",
       path: "/doctor/appointments",
@@ -145,10 +167,13 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
             const isActive = location.pathname === link.path;
             const Icon = link.icon;
             return (
-              <Link
+              <MotionLink
                 key={link.id}
                 to={link.path}
                 onClick={onClose}
+                layout
+                whileHover={{ x: 3 }}
+                transition={{ type: "spring", stiffness: 280, damping: 24 }}
                 className={`flex items-center gap-3 rounded-3xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? "bg-blue-600 text-white shadow-[0_0_0_1px_rgba(59,130,246,0.25)]"
@@ -157,7 +182,7 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
               >
                 <Icon className="h-5 w-5" />
                 {link.label}
-              </Link>
+              </MotionLink>
             );
           })}
 

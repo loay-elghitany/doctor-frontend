@@ -3,7 +3,9 @@ import {
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { Home, Login } from "../pages/Auth.jsx";
 import { Register } from "../pages/Register.jsx";
 import { PatientDashboard } from "../pages/PatientDashboard.jsx";
@@ -21,7 +23,17 @@ import AdminProtectedRoute from "../components/auth/AdminProtectedRoute.jsx";
 export const AppRoutes = () => {
   return (
     <Router>
-      <Routes>
+      <AnimatedRoutes />
+    </Router>
+  );
+};
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
@@ -101,6 +113,6 @@ export const AppRoutes = () => {
         {/* 404 Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router>
+    </AnimatePresence>
   );
 };
