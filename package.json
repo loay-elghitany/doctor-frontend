@@ -13,7 +13,8 @@
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.15.0",
     "axios": "^1.5.0",
-    "date-fns": "^2.30.0"
+    "date-fns": "^2.30.0",
+    "lucide-react": "^0.547.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.3",

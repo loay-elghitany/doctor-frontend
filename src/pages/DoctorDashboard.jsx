@@ -1,8 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
 import { appointmentService } from "../services/appointmentService";
 import { handleApiError } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
+import { useAuth } from "../context/AuthContext";
+import { format } from "date-fns";
+import {
+  CalendarDays,
+  Clock3,
+  CheckCircle2,
+  XCircle,
+  ArrowRight,
+} from "lucide-react";
 
 // LOCAL DASHBOARD PRESENTATION LAYER MAPPING
 // This mapping is used ONLY for dashboard statistics display
@@ -27,6 +37,38 @@ export const DoctorDashboard = () => {
   const [upcomingAppointments, setUpcomingAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const welcomeName = user?.name ? user.name.split(" ")[0] : "Doctor";
+  const formattedDate = format(new Date(), "EEEE, MMMM do");
+
+  const statCards = [
+    {
+      label: "Today's Appointments",
+      value: stats.today,
+      icon: CalendarDays,
+      accent: "bg-blue-500/10 text-blue-600",
+    },
+    {
+      label: "Pending Confirmations",
+      value: stats.pending,
+      icon: Clock3,
+      accent: "bg-amber-500/10 text-amber-600",
+    },
+    {
+      label: "Completed",
+      value: stats.completed,
+      icon: CheckCircle2,
+      accent: "bg-emerald-500/10 text-emerald-600",
+    },
+    {
+      label: "Cancelled",
+      value: stats.cancelled,
+      icon: XCircle,
+      accent: "bg-red-500/10 text-red-600",
+    },
+  ];
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -113,8 +155,24 @@ export const DoctorDashboard = () => {
 
   return (
     <MainLayout userType="doctor">
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Doctor Dashboard</h1>
+      <div className="space-y-8">
+        <div className="rounded-[30px] bg-white p-8 shadow-sm border border-slate-200">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.32em] text-slate-500 mb-3">
+                Welcome back
+              </p>
+              <h1 className="text-4xl font-semibold text-slate-900">
+                Welcome, Dr. {welcomeName}
+              </h1>
+              <p className="mt-2 text-sm text-slate-500">{formattedDate}</p>
+            </div>
+            <div className="inline-flex items-center rounded-3xl bg-slate-50 px-4 py-3 text-sm text-slate-700 shadow-sm">
+              <CalendarDays className="h-5 w-5 text-slate-500 mr-2" />
+              Today&apos;s overview
+            </div>
+          </div>
+        </div>
 
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -122,37 +180,40 @@ export const DoctorDashboard = () => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="card">
-            <div className="text-3xl font-bold text-blue-600">
-              {loading ? "-" : stats.today}
-            </div>
-            <p className="text-gray-600 mt-2">Today's Appointments</p>
-          </div>
-          <div className="card">
-            <div className="text-3xl font-bold text-yellow-600">
-              {loading ? "-" : stats.pending}
-            </div>
-            <p className="text-gray-600 mt-2">Pending Confirmations</p>
-          </div>
-          <div className="card">
-            <div className="text-3xl font-bold text-green-600">
-              {loading ? "-" : stats.completed}
-            </div>
-            <p className="text-gray-600 mt-2">Completed</p>
-          </div>
-          <div className="card">
-            <div className="text-3xl font-bold text-red-600">
-              {loading ? "-" : stats.cancelled}
-            </div>
-            <p className="text-gray-600 mt-2">Cancelled</p>
-          </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+          {statCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.label}
+                className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+              >
+                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${card.accent}`}>
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div className="mt-6 text-4xl font-semibold text-slate-900">
+                  {loading ? "-" : card.value}
+                </div>
+                <p className="mt-3 text-sm text-slate-500">{card.label}</p>
+              </div>
+            );
+          })}
         </div>
 
-        <div className="card">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Upcoming Appointments
-          </h2>
+        <div className="card p-6">
+          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h2 className="text-2xl font-semibold text-slate-900">Upcoming Appointments</h2>
+              <p className="mt-1 text-sm text-slate-500">Next 7 days of scheduled appointments</p>
+            </div>
+            <button
+              onClick={() => navigate("/doctor/appointments")}
+              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+            >
+              View all appointments
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
           {loading ? (
             <p className="text-gray-500">Loading...</p>
           ) : upcomingAppointments.length > 0 ? (
@@ -163,38 +224,49 @@ export const DoctorDashboard = () => {
                 return (
                   <div
                     key={apt._id}
-                    className="flex justify-between items-center py-2 border-b"
+                    className="flex flex-col gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4 transition hover:bg-white hover:shadow-sm md:flex-row md:items-center md:justify-between"
                   >
                     <div>
-                      <p className="font-medium text-gray-900">{patientName}</p>
-                      <p className="text-sm text-gray-500">
-                        {aptDate.toLocaleDateString()} at {apt.timeSlot}
+                      <p className="text-base font-semibold text-slate-900">{patientName}</p>
+                      <p className="mt-1 text-sm text-slate-500">
+                        {aptDate.toLocaleDateString()} • {apt.timeSlot}
                       </p>
                     </div>
-                    <span
-                      className={`text-sm px-3 py-1 rounded-full font-medium ${
-                        apt.status === "scheduled"
-                          ? "bg-blue-100 text-blue-800"
-                          : apt.status === "confirmed"
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                      }`}
-                    >
-                      {apt.status}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span
+                        className={`badge ${
+                          apt.status === "scheduled"
+                            ? "badge-scheduled"
+                            : apt.status === "confirmed"
+                            ? "badge-confirmed"
+                            : apt.status === "cancelled"
+                            ? "badge-cancelled"
+                            : "badge-pending"
+                        }`}
+                      >
+                        {apt.status}
+                      </span>
+                      <button
+                        onClick={() => navigate("/doctor/appointments")}
+                        className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
+                      >
+                        View
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
             </div>
           ) : (
-            <p className="text-gray-500">
-              No appointments scheduled.{" "}
-              <a
-                href="/doctor/appointments"
-                className="text-blue-600 hover:underline"
+            <p className="text-slate-500">
+              No appointments scheduled. 
+              <button
+                onClick={() => navigate("/doctor/appointments")}
+                className="font-semibold text-blue-600 hover:text-blue-700"
               >
                 View all appointments
-              </a>
+              </button>
             </p>
           )}
         </div>

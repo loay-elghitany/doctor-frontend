@@ -11,8 +11,65 @@
 
 body {
   font-family: "Inter", system-ui, sans-serif;
-  background-color: #f9fafb;
-  color: #1f2937;
+  background-color: #eff2f7;
+  color: #0f172a;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: #bfdbfe;
+  color: #1e293b;
+}
+
+.card {
+  @apply bg-white rounded-[28px] shadow-sm border border-slate-200;
+}
+
+.btn-base {
+  @apply px-4 py-2 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply btn-base bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+}
+
+.btn-secondary {
+  @apply btn-base bg-slate-100 text-slate-700 hover:bg-slate-200 focus:ring-slate-400;
+}
+
+.btn-danger {
+  @apply btn-base bg-red-600 text-white hover:bg-red-700 focus:ring-red-500;
+}
+
+.btn-success {
+  @apply btn-base bg-emerald-600 text-white hover:bg-emerald-700 focus:ring-emerald-500;
+}
+
+.badge {
+  @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold;
+}
+
+.badge-pending {
+  @apply badge bg-yellow-100 text-yellow-800;
+}
+
+.badge-confirmed {
+  @apply badge bg-emerald-100 text-emerald-800;
+}
+
+.badge-cancelled {
+  @apply badge bg-red-100 text-red-800;
+}
+
+.badge-scheduled {
+  @apply badge bg-sky-100 text-sky-800;
+}
+
+.badge-reschedule_proposed {
+  @apply badge bg-amber-100 text-amber-800;
 }
 
 html {

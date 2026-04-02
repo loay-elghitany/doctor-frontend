@@ -14,7 +14,7 @@ export const MainLayout = ({ children, userType = "patient" }) => {
           onClose={() => setSidebarOpen(false)}
           userType={userType}
         />
-        <main className="flex-1 md:ml-0">
+        <main className="flex-1 md:pl-72 bg-slate-50">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="md:hidden fixed bottom-6 right-6 bg-blue-600 text-white p-3 rounded-full shadow-lg z-30"
