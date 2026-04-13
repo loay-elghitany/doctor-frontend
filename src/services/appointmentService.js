@@ -6,8 +6,6 @@ export const appointmentService = {
   createAppointment: (doctorId, date, timeSlot, notes) =>
     api.post("/appointments", { doctorId, date, timeSlot, notes }),
 
-  getPatientAppointments: () => api.get("/appointments"),
-
   chooseAppointmentTime: (appointmentId, optionIndex) =>
     api.patch(`/appointments/${appointmentId}/choose-time`, { optionIndex }),
 
@@ -18,8 +16,8 @@ export const appointmentService = {
   hideAppointment: (appointmentId, hidden) =>
     api.patch(`/appointments/${appointmentId}/hide`, { hidden }),
 
-  // Doctor endpoints
-  getDoctorAppointments: () => api.get("/doctor/appointments"),
+  // Unified appointments endpoint for all roles
+  getAppointments: () => api.get("/appointments"),
 
   // Soft-delete a single appointment from doctor's dashboard
   softDeleteAppointment: (appointmentId) =>
@@ -48,9 +46,12 @@ export const appointmentService = {
   markAppointmentCompleted: (appointmentId, notes) =>
     api.post(`/doctor/appointments/${appointmentId}/mark-completed`, { notes }),
 
-  // View endpoints
-  // Fetch upcoming appointments for the authenticated patient
-  getUpcomingAppointments: () => api.get("/views/appointments/upcoming"),
+  // Secretary-specific methods - REMOVED: now use unified endpoints
+  // getSecretaryAppointments: () => api.get("/secretary/appointments"),
+  // getSecretaryPatients: () => api.get("/secretary/patients"),
+  // createSecretaryPatient: (data) => api.post("/secretary/patients", data),
+  // createSecretaryAppointment: (data) => api.post("/secretary/appointments", data),
+  // updateSecretaryAppointment: (id, data) => api.put(`/secretary/appointments/${id}`, data),
 };
 
 // PRESCRIPTIONS API CALLS

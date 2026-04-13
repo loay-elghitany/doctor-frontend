@@ -51,7 +51,7 @@ export const PatientDashboard = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await appointmentService.getUpcomingAppointments();
+        const res = await appointmentService.getAppointments();
         // Expecting res.data to be { success, message, data }
         const data = res.data?.data || [];
 

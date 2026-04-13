@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Header, Sidebar, Footer } from "./Navigation";
 
 // Main layout wrapper
+// userType controls the sidebar navigation for patient, doctor, or secretary users
 export const MainLayout = ({ children, userType = "patient" }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

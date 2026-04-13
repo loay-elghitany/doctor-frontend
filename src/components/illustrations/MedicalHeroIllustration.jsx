@@ -31,7 +31,12 @@ export const MedicalHeroIllustration = () => {
       <motion.div
         className="absolute -right-4 top-14 h-16 w-16 rounded-full bg-white/70 shadow-lg"
         animate={{ x: [0, -6, 0], y: [0, 4, 0] }}
-        transition={{ duration: 6, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+          repeatType: "mirror",
+          ease: "easeInOut",
+        }}
       />
 
       <motion.svg

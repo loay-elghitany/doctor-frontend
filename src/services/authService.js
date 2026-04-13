@@ -75,6 +75,26 @@ const authService = {
       });
   },
 
+  loginSecretary: (email, password) => {
+    debugLog("authService:loginSecretary", "Sending request", { email });
+    return api
+      .post("/secretaries/login", { email, password, role: "secretary" })
+      .then((res) => {
+        debugLog("authService:loginSecretary", "Success response received", {
+          hasToken: !!res.data?.data?.token,
+        });
+        return res;
+      })
+      .catch((err) => {
+        debugError(
+          "authService:loginSecretary",
+          "Error",
+          err.response?.data || err.message,
+        );
+        throw err;
+      });
+  },
+
   // ----------------------------------------------------------------
   // Profile Actions
   // ----------------------------------------------------------------
@@ -114,6 +134,48 @@ const authService = {
       .catch((err) => {
         debugError(
           "authService:getDoctorProfile",
+          "Error",
+          err.response?.data || err.message,
+        );
+        throw err;
+      });
+  },
+
+  // Get secretary profile - used when role is "secretary"
+  getSecretaryProfile: () => {
+    debugLog("authService:getSecretaryProfile", "Fetching profile");
+    return api
+      .get("/secretaries/me")
+      .then((res) => {
+        debugLog("authService:getSecretaryProfile", "Success", {
+          dataKeys: Object.keys(res.data?.data || {}),
+        });
+        return res;
+      })
+      .catch((err) => {
+        debugError(
+          "authService:getSecretaryProfile",
+          "Error",
+          err.response?.data || err.message,
+        );
+        throw err;
+      });
+  },
+
+  // Create secretary - only doctors can call this
+  createSecretary: (name, email, password) => {
+    debugLog("authService:createSecretary", "Creating secretary", { email });
+    return api
+      .post("/secretaries", { name, email, password })
+      .then((res) => {
+        debugLog("authService:createSecretary", "Success", {
+          secretaryId: res.data?.data?.id,
+        });
+        return res;
+      })
+      .catch((err) => {
+        debugError(
+          "authService:createSecretary",
           "Error",
           err.response?.data || err.message,
         );

@@ -1,7 +1,14 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ArrowLeft, CheckCircle2, Info } from "lucide-react";
 
-export const GuidedTour = ({ isOpen, steps, currentStep, onNext, onBack, onClose }) => {
+export const GuidedTour = ({
+  isOpen,
+  steps,
+  currentStep,
+  onNext,
+  onBack,
+  onClose,
+}) => {
   const step = steps[currentStep] || {};
 
   return (
@@ -83,7 +90,8 @@ export const GuidedTour = ({ isOpen, steps, currentStep, onNext, onBack, onClose
             <div className="mt-6 flex items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-700 dark:bg-slate-800">
               <CheckCircle2 className="h-5 w-5 text-emerald-500" />
               <span className="text-slate-600 dark:text-slate-300">
-                This tour is designed to help you explore the most important workspace areas quickly.
+                This tour is designed to help you explore the most important
+                workspace areas quickly.
               </span>
             </div>
           </motion.div>

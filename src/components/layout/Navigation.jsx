@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
+import { motion } from "framer-motion";
 import {
   Home,
   CalendarDays,
@@ -20,7 +20,29 @@ const MotionLink = motion(Link);
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState("light");
-  const { logout } = useAuth();
+  const { isAuthenticated, userRole, logout } = useAuth();
+
+  const roleNavItems = {
+    patient: [
+      { path: "/patient/dashboard", label: "Dashboard" },
+      { path: "/patient/appointments/new", label: "Book Appointment" },
+    ],
+    doctor: [
+      { path: "/doctor/dashboard", label: "Dashboard" },
+      { path: "/doctor/appointments", label: "Appointments" },
+      { path: "/doctor/patient-records", label: "Patients" },
+    ],
+    secretary: [
+      { path: "/secretary/dashboard", label: "Dashboard" },
+      { path: "/secretary/appointments", label: "Appointments" },
+      { path: "/secretary/patients", label: "Patients" },
+    ],
+    admin: [{ path: "/admin/dashboard", label: "Dashboard" }],
+  };
+
+  const navItems = isAuthenticated
+    ? (roleNavItems[userRole] ?? [{ path: "/login", label: "Dashboard" }])
+    : [{ path: "/login", label: "Login" }];
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("clinic-theme");
@@ -54,18 +76,15 @@ export const Header = () => {
         </Link>
 
         <nav className="hidden md:flex items-center gap-4 text-sm font-medium text-slate-600">
-          <Link
-            to="/patient/dashboard"
-            className="hover:text-slate-900 transition-colors"
-          >
-            Patient
-          </Link>
-          <Link
-            to="/doctor/dashboard"
-            className="hover:text-slate-900 transition-colors"
-          >
-            Doctor
-          </Link>
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className="hover:text-slate-900 transition-colors"
+            >
+              {item.label}
+            </Link>
+          ))}
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
@@ -88,26 +107,24 @@ export const Header = () => {
 
         {isOpen && (
           <div className="absolute right-6 top-20 w-56 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl md:hidden">
-            <Link
-              to="/patient/dashboard"
-              className="block rounded-2xl px-4 py-3 text-slate-700 hover:bg-slate-50"
-              onClick={() => setIsOpen(false)}
-            >
-              Patient
-            </Link>
-            <Link
-              to="/doctor/dashboard"
-              className="block rounded-2xl px-4 py-3 text-slate-700 hover:bg-slate-50"
-              onClick={() => setIsOpen(false)}
-            >
-              Doctor
-            </Link>
-            <button
-              onClick={handleLogout}
-              className="mt-3 flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-red-600 hover:bg-red-50"
-            >
-              <LogOut className="h-4 w-4" /> Logout
-            </button>
+            {navItems.map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className="block rounded-2xl px-4 py-3 text-slate-700 hover:bg-slate-50"
+                onClick={() => setIsOpen(false)}
+              >
+                {item.label}
+              </Link>
+            ))}
+            {isAuthenticated && (
+              <button
+                onClick={handleLogout}
+                className="mt-3 flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-red-600 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4" /> Logout
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -156,7 +173,39 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
     },
   ];
 
-  const links = userType === "doctor" ? doctorLinks : patientLinks;
+  const secretaryLinks = [
+    {
+      id: "dashboard",
+      path: "/secretary/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      id: "appointments",
+      path: "/secretary/appointments",
+      label: "Appointments",
+      icon: CalendarDays,
+    },
+    {
+      id: "patients",
+      path: "/secretary/patients",
+      label: "Patients",
+      icon: FolderOpen,
+    },
+    {
+      id: "new-appointment",
+      path: "/secretary/appointments/new",
+      label: "New Appointment",
+      icon: PlusCircle,
+    },
+  ];
+
+  const links =
+    userType === "doctor"
+      ? doctorLinks
+      : userType === "secretary"
+        ? secretaryLinks
+        : patientLinks;
 
   const handleLogout = () => {
     logout();

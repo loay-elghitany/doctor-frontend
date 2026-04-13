@@ -56,9 +56,11 @@ export const Table = ({
                       key={col.key}
                       className="px-6 py-4 text-sm text-gray-900"
                     >
-                      {col.render
-                        ? col.render(row[col.key], row)
-                        : row[col.key]}
+                      {row
+                        ? col.render
+                          ? col.render(row[col.key], row)
+                          : (row[col.key] ?? "-")
+                        : "-"}
                     </td>
                   ))}
                   {actions && (

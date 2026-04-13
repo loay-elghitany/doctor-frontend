@@ -10,11 +10,15 @@ import { useAuth } from "../../context/AuthContext";
  *   <PatientDashboard />
  * </ProtectedRoute>
  *
- * <ProtectedRoute requiredRole="doctor">
- *   <DoctorDashboard />
+ * <ProtectedRoute requiredRoles={['doctor', 'secretary']}>
+ *   <SharedComponent />
  * </ProtectedRoute>
  */
-const ProtectedRoute = ({ children, requiredRole = null }) => {
+const ProtectedRoute = ({
+  children,
+  requiredRole = null,
+  requiredRoles = null,
+}) => {
   const { isAuthenticated, loading, userRole } = useAuth();
   const location = useLocation();
 
@@ -30,14 +34,23 @@ const ProtectedRoute = ({ children, requiredRole = null }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Support both single role and multiple roles
+  const allowedRoles = requiredRoles || (requiredRole ? [requiredRole] : null);
+
   // Check role if required
-  if (requiredRole && userRole !== requiredRole) {
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
     console.log(
-      `ProtectedRoute: User role '${userRole}' does not match required role '${requiredRole}', redirecting.`,
+      `ProtectedRoute: User role '${userRole}' does not match allowed roles [${allowedRoles.join(", ")}], redirecting.`,
     );
     // Redirect to appropriate dashboard based on user role
     const redirectPath =
-      userRole === "doctor" ? "/doctor/dashboard" : "/patient/dashboard";
+      userRole === "doctor"
+        ? "/doctor/dashboard"
+        : userRole === "patient"
+          ? "/patient/dashboard"
+          : userRole === "secretary"
+            ? "/secretary/dashboard"
+            : "/login"; // fallback
     return <Navigate to={redirectPath} replace />;
   }
 

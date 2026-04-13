@@ -17,6 +17,10 @@ import { DoctorPatientRecords } from "../pages/DoctorPatientRecords.jsx";
 import { ProposeAppointmentTimes } from "../pages/ProposeAppointmentTimes.jsx";
 import { AdminLogin } from "../pages/AdminLogin.jsx";
 import { AdminDashboard } from "../pages/AdminDashboard.jsx";
+import { SecretaryDashboard } from "../pages/SecretaryDashboard.jsx";
+import { SecretaryAppointmentsList } from "../pages/SecretaryAppointmentsList.jsx";
+import { SecretaryPatientsList } from "../pages/SecretaryPatientsList.jsx";
+import { SecretaryCreateAppointment } from "../pages/SecretaryCreateAppointment.jsx";
 import ProtectedRoute from "../components/auth/ProtectedRoute.jsx";
 import AdminProtectedRoute from "../components/auth/AdminProtectedRoute.jsx";
 
@@ -95,6 +99,40 @@ const AnimatedRoutes = () => {
           element={
             <ProtectedRoute requiredRole="doctor">
               <DoctorPatientRecords />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Secretary Routes */}
+        <Route
+          path="/secretary/dashboard"
+          element={
+            <ProtectedRoute requiredRole="secretary">
+              <SecretaryDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/secretary/appointments"
+          element={
+            <ProtectedRoute requiredRole="secretary">
+              <SecretaryAppointmentsList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/secretary/appointments/new"
+          element={
+            <ProtectedRoute requiredRole="secretary">
+              <SecretaryCreateAppointment />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/secretary/patients"
+          element={
+            <ProtectedRoute requiredRole="secretary">
+              <SecretaryPatientsList />
             </ProtectedRoute>
           }
         />

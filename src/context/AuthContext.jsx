@@ -45,6 +45,9 @@ export const AuthProvider = ({ children }) => {
           if (role === "doctor") {
             response = await authService.getDoctorProfile();
             setUserRole("doctor");
+          } else if (role === "secretary") {
+            response = await authService.getSecretaryProfile();
+            setUserRole("secretary");
           } else {
             response = await authService.getPatientProfile();
             setUserRole("patient");
@@ -80,7 +83,9 @@ export const AuthProvider = ({ children }) => {
       const response =
         userType === "patient"
           ? await authService.loginPatient(email, password)
-          : await authService.loginDoctor(email, password);
+          : userType === "doctor"
+            ? await authService.loginDoctor(email, password)
+            : await authService.loginSecretary(email, password);
 
       debugLog("AuthContext:login", "Auth service returned", {
         hasToken: !!response.data.data?.token,
@@ -113,6 +118,8 @@ export const AuthProvider = ({ children }) => {
       try {
         if (role === "doctor") {
           profileResponse = await authService.getDoctorProfile();
+        } else if (role === "secretary") {
+          profileResponse = await authService.getSecretaryProfile();
         } else {
           profileResponse = await authService.getPatientProfile();
         }

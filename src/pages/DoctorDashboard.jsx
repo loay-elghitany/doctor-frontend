@@ -16,6 +16,8 @@ import {
 import { motion } from "framer-motion";
 import { MedicalHeroIllustration } from "../components/illustrations/MedicalHeroIllustration";
 import { GuidedTour } from "../components/GuidedTour";
+import { Modal, Button, Input } from "../components/ui";
+import authService from "../services/authService";
 
 // LOCAL DASHBOARD PRESENTATION LAYER MAPPING
 // This mapping is used ONLY for dashboard statistics display
@@ -64,6 +66,17 @@ export const DoctorDashboard = () => {
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
 
+  // Secretary modal state
+  const [secretaryModalOpen, setSecretaryModalOpen] = useState(false);
+  const [secretaryForm, setSecretaryForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+  const [secretaryLoading, setSecretaryLoading] = useState(false);
+  const [secretaryError, setSecretaryError] = useState("");
+  const [secretarySuccess, setSecretarySuccess] = useState("");
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const welcomeName = user?.name ? user.name.split(" ")[0] : "Doctor";
@@ -102,7 +115,7 @@ export const DoctorDashboard = () => {
       setError("");
       try {
         debugLog("DoctorDashboard", "Fetching dashboard data");
-        const response = await appointmentService.getDoctorAppointments();
+        const response = await appointmentService.getAppointments();
 
         // Extract appointments from nested data structure
         const appointments = response.data?.data || [];
@@ -185,6 +198,53 @@ export const DoctorDashboard = () => {
     }
   }, []);
 
+  // Secretary modal handlers
+  const handleSecretaryModalOpen = () => {
+    setSecretaryModalOpen(true);
+    setSecretaryError("");
+    setSecretarySuccess("");
+  };
+
+  const handleSecretaryModalClose = () => {
+    setSecretaryModalOpen(false);
+    setSecretaryForm({ name: "", email: "", password: "" });
+    setSecretaryError("");
+    setSecretarySuccess("");
+  };
+
+  const handleSecretaryFormChange = (e) => {
+    setSecretaryForm({
+      ...secretaryForm,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSecretarySubmit = async (e) => {
+    e.preventDefault();
+    setSecretaryLoading(true);
+    setSecretaryError("");
+    setSecretarySuccess("");
+
+    try {
+      await authService.createSecretary(
+        secretaryForm.name.trim(),
+        secretaryForm.email.trim(),
+        secretaryForm.password,
+      );
+
+      setSecretarySuccess("Secretary created successfully!");
+      setTimeout(() => {
+        handleSecretaryModalClose();
+      }, 2000);
+    } catch (err) {
+      setSecretaryError(
+        err.response?.data?.message || "Failed to create secretary",
+      );
+    } finally {
+      setSecretaryLoading(false);
+    }
+  };
+
   const handleTourNext = () => {
     setTourStep((prev) => Math.min(prev + 1, DOCTOR_TOUR_STEPS.length - 1));
   };
@@ -238,54 +298,6 @@ export const DoctorDashboard = () => {
           </div>
         </div>
 
-        <motion.div
-          className="rounded-[28px] border border-slate-200 bg-slate-50 p-5 dark:bg-slate-900 dark:border-slate-700"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeInOut" }}
-        >
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                Performance overview
-              </p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Animated metrics show how your daily appointments compare across categories.
-              </p>
-            </div>
-            <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm dark:bg-slate-800 dark:text-slate-200">
-              Render animation active
-            </span>
-          </div>
-
-          <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-            {statCards.map((card, index) => {
-              const maxValue = Math.max(...statCards.map((c) => c.value), 1);
-              const height = card.value
-                ? 36 + Math.round((card.value / maxValue) * 84)
-                : 36;
-              const chartColors = ["#0ea5e9", "#f59e0b", "#10b981", "#ef4444"];
-
-              return (
-                <div key={card.label} className="flex flex-col items-center gap-3">
-                  <div className="relative flex h-36 w-full items-end rounded-3xl bg-white/90 p-2 dark:bg-slate-800">
-                    <motion.div
-                      className="absolute bottom-2 left-2 right-2 rounded-3xl"
-                      initial={{ height: 0 }}
-                      animate={{ height }}
-                      transition={{ duration: 0.35, ease: "easeOut", delay: index * 0.05 }}
-                      style={{ backgroundColor: chartColors[index] }}
-                    />
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-                    {card.label}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
-        </motion.div>
-
         {error && (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
             {error}
@@ -333,13 +345,21 @@ export const DoctorDashboard = () => {
                 Next 7 days of scheduled appointments
               </p>
             </div>
-            <button
-              onClick={() => navigate("/doctor/appointments")}
-              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
-            >
-              View all appointments
-              <ArrowRight className="h-4 w-4" />
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={handleSecretaryModalOpen}
+                className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
+              >
+                Add Secretary
+              </button>
+              <button
+                onClick={() => navigate("/doctor/appointments")}
+                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+              >
+                View all appointments
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
           {loading ? (
             <p className="text-gray-500">Loading...</p>
@@ -404,6 +424,79 @@ export const DoctorDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Secretary Creation Modal */}
+      <Modal
+        isOpen={secretaryModalOpen}
+        onClose={handleSecretaryModalClose}
+        title="Add New Secretary"
+        size="md"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={handleSecretaryModalClose}
+              disabled={secretaryLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleSecretarySubmit}
+              disabled={secretaryLoading}
+            >
+              {secretaryLoading ? "Creating..." : "Create Secretary"}
+            </Button>
+          </>
+        }
+      >
+        <form onSubmit={handleSecretarySubmit} className="space-y-4">
+          {secretaryError && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+              {secretaryError}
+            </div>
+          )}
+          {secretarySuccess && (
+            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+              {secretarySuccess}
+            </div>
+          )}
+
+          <Input
+            label="Full Name"
+            type="text"
+            name="name"
+            placeholder="Enter secretary's full name"
+            value={secretaryForm.name}
+            onChange={handleSecretaryFormChange}
+            required
+            disabled={secretaryLoading}
+          />
+
+          <Input
+            label="Email Address"
+            type="email"
+            name="email"
+            placeholder="Enter secretary's email"
+            value={secretaryForm.email}
+            onChange={handleSecretaryFormChange}
+            required
+            disabled={secretaryLoading}
+          />
+
+          <Input
+            label="Password"
+            type="password"
+            name="password"
+            placeholder="Enter a secure password"
+            value={secretaryForm.password}
+            onChange={handleSecretaryFormChange}
+            required
+            disabled={secretaryLoading}
+          />
+        </form>
+      </Modal>
+
       <GuidedTour
         isOpen={tourOpen}
         steps={DOCTOR_TOUR_STEPS}
