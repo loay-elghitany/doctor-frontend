@@ -19,6 +19,13 @@ export const appointmentService = {
   // Unified appointments endpoint for all roles
   getAppointments: () => api.get("/appointments"),
 
+  // Patient-specific alias retained for backward compatibility
+  getPatientAppointments: () => api.get("/appointments"),
+
+  // Secretary can create appointments on behalf of a patient too
+  createSecretaryAppointment: (appointmentData) =>
+    api.post("/appointments", appointmentData),
+
   // Soft-delete a single appointment from doctor's dashboard
   softDeleteAppointment: (appointmentId) =>
     api.post(`/doctor/appointments/${appointmentId}/soft-delete`),

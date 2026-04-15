@@ -23,6 +23,20 @@ api.interceptors.request.use(
       config.headers = {};
     }
 
+    const requestUrl = String(config.url || "").toLowerCase();
+    const isAuthEndpoint =
+      /\/(patients|doctors|secretaries)\/(login|register)/i.test(requestUrl);
+
+    if (isAuthEndpoint) {
+      if (import.meta.env.DEV) {
+        debugLog("api:request", "Skipping auth token for auth endpoint", {
+          method: config.method?.toUpperCase(),
+          url: config.url,
+        });
+      }
+      return config;
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
       debugLog("api:request", "Attaching auth token", {
@@ -30,22 +44,12 @@ api.interceptors.request.use(
         url: config.url,
         tokenPresent: true,
       });
-    } else {
+    } else if (import.meta.env.DEV) {
       debugLog("api:request", "No auth token available", {
         method: config.method?.toUpperCase(),
         url: config.url,
       });
-      console.warn("api:request - no auth token found for request", {
-        method: config.method,
-        url: config.url,
-      });
     }
-
-    console.log("api:request headers", {
-      method: config.method,
-      url: config.url,
-      headers: config.headers,
-    });
 
     return config;
   },

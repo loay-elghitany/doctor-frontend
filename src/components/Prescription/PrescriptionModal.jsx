@@ -166,8 +166,11 @@ export const PrescriptionModal = ({
                         Prescription {index + 1}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">
-                        {prescription.diagnosis.substring(0, 100)}
-                        {prescription.diagnosis.length > 100 ? "..." : ""}
+                        {prescription.diagnosis
+                          ? `${prescription.diagnosis.substring(0, 100)}${
+                              prescription.diagnosis.length > 100 ? "..." : ""
+                            }`
+                          : "No diagnosis provided."}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         {prescription.medications?.length || 0} medication
