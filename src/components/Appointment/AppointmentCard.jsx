@@ -23,6 +23,15 @@ export const AppointmentCard = ({
 
   const isCancelled = appointment.status === "cancelled";
 
+  const patientLabel =
+    appointment.patientId?.name ||
+    appointment.patientId?.email ||
+    (typeof appointment.patientId === "string"
+      ? appointment.patientId
+      : appointment.patientId?._id
+        ? String(appointment.patientId._id)
+        : "Patient");
+
   return (
     <motion.div
       layout
@@ -42,9 +51,7 @@ export const AppointmentCard = ({
           <h3 className="text-lg font-semibold text-gray-900">
             {appointment.doctor?.name || "Doctor"}
           </h3>
-          <p className="text-sm text-gray-500 mt-1">
-            {appointment.patientId || "Patient"}
-          </p>
+          <p className="text-sm text-gray-500 mt-1">{patientLabel}</p>
           {isCancelled && (
             <p className="text-sm font-medium text-red-600 mt-2">
               Doctor Cancelled
@@ -126,6 +133,15 @@ export const AppointmentCard = ({
 
 // Appointment detail modal content
 export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
+  const patientLabel =
+    appointment.patientId?.name ||
+    appointment.patientId?.email ||
+    (typeof appointment.patientId === "string"
+      ? appointment.patientId
+      : appointment.patientId?._id
+        ? String(appointment.patientId._id)
+        : "N/A");
+
   return (
     <div>
       <div className="space-y-4">
@@ -135,7 +151,7 @@ export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
         </div>
         <div>
           <label className="text-sm font-medium text-gray-700">Patient</label>
-          <p className="text-gray-900">{appointment.patientId || "N/A"}</p>
+          <p className="text-gray-900">{patientLabel}</p>
         </div>
         <div>
           <label className="text-sm font-medium text-gray-700">
