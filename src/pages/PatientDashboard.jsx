@@ -66,7 +66,11 @@ export const PatientDashboard = () => {
 
         setAppointments(sorted);
 
-        if (typeof payload === "object" && payload !== null && payload.patientName)
+        if (
+          typeof payload === "object" &&
+          payload !== null &&
+          payload.patientName
+        )
           setPatientName(payload.patientName);
       } catch (err) {
         setError(handleApiError(err));

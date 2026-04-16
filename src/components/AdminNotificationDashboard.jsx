@@ -45,7 +45,11 @@ const AdminNotificationDashboard = () => {
       const result = response.data;
 
       if (result.success) {
-        setNotifications(Array.isArray(result.data?.notifications) ? result.data.notifications : []);
+        setNotifications(
+          Array.isArray(result.data?.notifications)
+            ? result.data.notifications
+            : [],
+        );
         setPagination({
           total: result.data?.pagination?.total ?? 0,
           limit: result.data?.pagination?.limit ?? activeFilters.limit,
