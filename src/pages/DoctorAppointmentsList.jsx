@@ -374,7 +374,7 @@ export const DoctorAppointmentsList = () => {
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <Badge variant={appointment.status}>
-                          {appointment.status.replace(/_/g, " ")}
+                          {String(appointment.status || "").replace(/_/g, " ")}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 text-sm space-x-2">

@@ -69,10 +69,11 @@ const EnhancedPatientTimeline = () => {
       const result = await response.json();
 
       if (result.success) {
-        setEvents(result.data.events);
+        const data = result.data || {};
+        setEvents(Array.isArray(data.events) ? data.events : []);
         setPagination({
-          total: result.data.pagination.total,
-          hasMore: result.data.pagination.hasMore,
+          total: data.pagination?.total ?? 0,
+          hasMore: data.pagination?.hasMore ?? false,
         });
       }
     } catch (err) {
@@ -95,7 +96,7 @@ const EnhancedPatientTimeline = () => {
       const result = await response.json();
 
       if (result.success) {
-        setStats(result.data);
+        setStats(result.data ?? {});
       }
     } catch (err) {
       console.error("Error fetching stats:", err);

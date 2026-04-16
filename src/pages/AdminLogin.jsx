@@ -1,5 +1,5 @@
-import React, { useState, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useContext, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
 import { Input, Button, Alert, Card } from "../components/ui";
 import { AdminAuthContext } from "../context/AdminAuthContext";
@@ -11,9 +11,18 @@ import { debugLog, debugError } from "../utils/debug";
  */
 export const AdminLogin = () => {
   const navigate = useNavigate();
-  const { login } = useContext(AdminAuthContext);
+  const location = useLocation();
+  const { login, isAdminAuthenticated } = useContext(AdminAuthContext);
 
   const [token, setToken] = useState("");
+
+  useEffect(() => {
+    if (isAdminAuthenticated) {
+      navigate(location.state?.from?.pathname || "/admin/dashboard", {
+        replace: true,
+      });
+    }
+  }, [isAdminAuthenticated, navigate, location.state]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 

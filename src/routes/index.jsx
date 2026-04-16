@@ -46,6 +46,14 @@ const AnimatedRoutes = () => {
 
         {/* Patient Routes */}
         <Route
+          path="/patient"
+          element={
+            <ProtectedRoute requiredRole="patient">
+              <Navigate to="/patient/dashboard" replace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/patient/dashboard"
           element={
             <ProtectedRoute requiredRole="patient">
@@ -71,6 +79,14 @@ const AnimatedRoutes = () => {
         />
 
         {/* Doctor Routes */}
+        <Route
+          path="/doctor"
+          element={
+            <ProtectedRoute requiredRole="doctor">
+              <Navigate to="/doctor/dashboard" replace />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/doctor/dashboard"
           element={
@@ -106,6 +122,14 @@ const AnimatedRoutes = () => {
 
         {/* Secretary Routes */}
         <Route
+          path="/secretary"
+          element={
+            <ProtectedRoute requiredRole="secretary">
+              <Navigate to="/secretary/dashboard" replace />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/secretary/dashboard"
           element={
             <ProtectedRoute requiredRole="secretary">
@@ -140,6 +164,14 @@ const AnimatedRoutes = () => {
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <Navigate to="/admin/dashboard" replace />
+            </AdminRoute>
+          }
+        />
         <Route
           path="/admin/dashboard"
           element={

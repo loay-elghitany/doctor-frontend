@@ -25,7 +25,7 @@ import {
   CheckCircle,
   Clock,
 } from "lucide-react";
-import { getAdminToken } from "../utils/helpers";
+import { createAdminService } from "../services/adminService";
 
 /**
  * Admin Analytics Dashboard Component
@@ -45,35 +45,26 @@ const AdminAnalyticsDashboard = () => {
     period: "weekly", // daily, weekly, monthly
   });
 
+  const adminService = createAdminService();
+
   // Fetch analytics
   const fetchAnalytics = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const queryParams = new URLSearchParams();
-      queryParams.append("startDate", dateRange.startDate);
-      queryParams.append("endDate", dateRange.endDate);
-      queryParams.append("limit", 10);
+      const response = await adminService.getAnalytics({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+        limit: 10,
+      });
 
-      const response = await fetch(
-        `/api/admin/analytics?${queryParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAdminToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch analytics");
-
-      const result = await response.json();
-
+      const result = response.data;
       if (result.success) {
-        setAnalytics(result.data);
+        setAnalytics(result.data ?? {});
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
       console.error("Error fetching analytics:", err);
     } finally {
       setLoading(false);
@@ -83,25 +74,14 @@ const AdminAnalyticsDashboard = () => {
   // Fetch trends
   const fetchTrends = async () => {
     try {
-      const queryParams = new URLSearchParams();
-      queryParams.append("period", dateRange.period);
-      queryParams.append("days", dateRange.period === "daily" ? 7 : 30);
+      const response = await adminService.getAnalyticsTrends({
+        period: dateRange.period,
+        days: dateRange.period === "daily" ? 7 : 30,
+      });
 
-      const response = await fetch(
-        `/api/admin/analytics/trends?${queryParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAdminToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch trends");
-
-      const result = await response.json();
-
+      const result = response.data;
       if (result.success) {
-        setTrends(result.data.trends);
+        setTrends(Array.isArray(result.data?.trends) ? result.data.trends : []);
       }
     } catch (err) {
       console.error("Error fetching trends:", err);
@@ -113,22 +93,12 @@ const AdminAnalyticsDashboard = () => {
     try {
       setExporting(true);
 
-      const queryParams = new URLSearchParams();
-      queryParams.append("startDate", dateRange.startDate);
-      queryParams.append("endDate", dateRange.endDate);
+      const response = await adminService.exportAnalytics({
+        startDate: dateRange.startDate,
+        endDate: dateRange.endDate,
+      });
 
-      const response = await fetch(
-        `/api/admin/analytics/export?${queryParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAdminToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Export failed");
-
-      const blob = await response.blob();
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -138,7 +108,7 @@ const AdminAnalyticsDashboard = () => {
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
     } finally {
       setExporting(false);
     }

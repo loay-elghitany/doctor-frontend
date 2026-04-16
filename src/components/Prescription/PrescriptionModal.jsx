@@ -242,7 +242,7 @@ export const PrescriptionBadge = ({ appointmentId, userRole }) => {
           appointmentId,
           userRole,
         );
-        setCount(data.prescriptions?.length || 0);
+        setCount(data.data?.length || 0);
       } catch (err) {
         console.error("Error loading prescription count:", err);
       } finally {

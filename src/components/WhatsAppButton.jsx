@@ -12,7 +12,10 @@ const WhatsAppButton = () => {
     setError("");
     try {
       const res = await communicationService.getWhatsAppLinkForDoctor();
-      const { whatsappLink } = res.data.data;
+      const whatsappLink = res.data?.data?.whatsappLink;
+      if (!whatsappLink) {
+        throw new Error("WhatsApp link unavailable");
+      }
       window.open(whatsappLink, "_blank");
     } catch (err) {
       setError(handleApiError(err) || "Failed to open WhatsApp");

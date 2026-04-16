@@ -52,23 +52,22 @@ export const PatientDashboard = () => {
       setError("");
       try {
         const res = await appointmentService.getAppointments();
-        // Expecting res.data to be { success, message, data }
-        const data = res.data?.data || [];
+        const payload = res.data?.data;
+        const appointmentList = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.appointments)
+            ? payload.appointments
+            : [];
 
-        // Sort appointments by date (upcoming first, including cancelled)
-        // This ensures patients see all appointments including when they were cancelled
-        const sorted = data
+        const sorted = appointmentList
           .slice()
-          .sort((a, b) => new Date(a.date) - new Date(b.date))
-          // No date filtering here - show all appointments (past and future)
-          // to keep visibility of cancelled appointments
+          .sort((a, b) => new Date(a?.date) - new Date(b?.date))
           .slice(0, 5);
 
         setAppointments(sorted);
 
-        // If backend returns patient info in payload, use it for greeting
-        if (res.data?.data?.patientName)
-          setPatientName(res.data.data.patientName);
+        if (typeof payload === "object" && payload !== null && payload.patientName)
+          setPatientName(payload.patientName);
       } catch (err) {
         setError(handleApiError(err));
       } finally {

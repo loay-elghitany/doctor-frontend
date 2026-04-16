@@ -161,11 +161,15 @@ export const AuthProvider = ({ children }) => {
         hasToken: !!response.data.data?.token,
       });
 
-      const { token } = response.data.data;
+      const token = response.data?.data?.token;
+      if (!token) {
+        throw new Error("Invalid authentication response");
+      }
 
-      // Set token for future requests
       setAuthToken(token);
       localStorage.setItem("token", token);
+      clearAdminToken();
+      setIsAdmin(false);
 
       // Safely decode token to get role
       let role = null;

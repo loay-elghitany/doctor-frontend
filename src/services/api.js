@@ -28,6 +28,9 @@ api.interceptors.request.use(
     const requestUrl = String(config.url || "").toLowerCase();
     const isAuthEndpoint =
       /\/(patients|doctors|secretaries)\/(login|register)/i.test(requestUrl);
+    const isAdminEndpoint = /(^\/?admin(\/|$))|(^\/?api\/admin(\/|$))/i.test(
+      requestUrl,
+    );
 
     if (isAuthEndpoint) {
       if (import.meta.env.DEV) {
@@ -39,14 +42,19 @@ api.interceptors.request.use(
       return config;
     }
 
-    if (adminToken) {
-      config.headers.Authorization = `Bearer ${adminToken}`;
-      debugLog("api:request", "Attaching admin token", {
-        method: config.method?.toUpperCase(),
-        url: config.url,
-        adminTokenPresent: true,
-      });
-    } else if (normalToken) {
+    if (isAdminEndpoint) {
+      if (adminToken) {
+        config.headers.Authorization = `Bearer ${adminToken}`;
+        debugLog("api:request", "Attaching admin token", {
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          adminTokenPresent: true,
+        });
+      }
+      return config;
+    }
+
+    if (normalToken) {
       config.headers.Authorization = `Bearer ${normalToken}`;
       debugLog("api:request", "Attaching auth token", {
         method: config.method?.toUpperCase(),

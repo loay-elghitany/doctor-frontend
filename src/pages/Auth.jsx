@@ -403,15 +403,20 @@ export const Login = () => {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
 
-  const from =
-    location.state?.from?.pathname ||
-    (userType === "patient"
+  const defaultRedirect =
+    userType === "patient"
       ? "/patient/dashboard"
       : userType === "doctor"
         ? "/doctor/dashboard"
         : userType === "secretary"
           ? "/secretary/dashboard"
-          : "/admin/dashboard");
+          : "/login";
+
+  const safeFromPath = location.state?.from?.pathname;
+  const from =
+    safeFromPath && safeFromPath.startsWith(`/${userType}`)
+      ? safeFromPath
+      : defaultRedirect;
 
   const handleSubmit = async (e) => {
     e.preventDefault();

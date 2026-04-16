@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BarChart, LineChart, PieChart } from "lucide-react";
-import { getAdminToken } from "../utils/helpers";
+import { createAdminService } from "../services/adminService";
 
 /**
  * Admin Dashboard Component
@@ -33,39 +33,28 @@ const AdminNotificationDashboard = () => {
     hasMore: false,
   });
 
+  const adminService = createAdminService();
+
   // Fetch notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (activeFilters = filters) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Build query string
-      const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
-          queryParams.append(key, value);
-        }
-      });
-
-      const response = await fetch(
-        `/api/admin/notifications?${queryParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAdminToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch notifications");
-
-      const result = await response.json();
+      const response = await adminService.getNotifications(activeFilters);
+      const result = response.data;
 
       if (result.success) {
-        setNotifications(result.data.notifications);
-        setPagination(result.data.pagination);
+        setNotifications(Array.isArray(result.data?.notifications) ? result.data.notifications : []);
+        setPagination({
+          total: result.data?.pagination?.total ?? 0,
+          limit: result.data?.pagination?.limit ?? activeFilters.limit,
+          offset: result.data?.pagination?.offset ?? activeFilters.offset,
+          hasMore: result.data?.pagination?.hasMore ?? false,
+        });
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || err.message);
       console.error("Error fetching notifications:", err);
     } finally {
       setLoading(false);
@@ -75,27 +64,16 @@ const AdminNotificationDashboard = () => {
   // Fetch statistics
   const fetchStats = async () => {
     try {
-      const queryParams = new URLSearchParams();
-      if (filters.startDate) queryParams.append("startDate", filters.startDate);
-      if (filters.endDate) queryParams.append("endDate", filters.endDate);
-      if (filters.doctorId) queryParams.append("doctorId", filters.doctorId);
-      if (filters.patientId) queryParams.append("patientId", filters.patientId);
+      const response = await adminService.getNotificationStats({
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        doctorId: filters.doctorId,
+        patientId: filters.patientId,
+      });
 
-      const response = await fetch(
-        `/api/admin/notifications/stats?${queryParams.toString()}`,
-        {
-          headers: {
-            Authorization: `Bearer ${getAdminToken()}`,
-          },
-        },
-      );
-
-      if (!response.ok) throw new Error("Failed to fetch statistics");
-
-      const result = await response.json();
-
+      const result = response.data;
       if (result.success) {
-        setStats(result.data);
+        setStats(result.data ?? {});
       }
     } catch (err) {
       console.error("Error fetching statistics:", err);
@@ -137,17 +115,12 @@ const AdminNotificationDashboard = () => {
   // Retry failed
   const handleRetry = async () => {
     try {
-      const response = await fetch("/api/admin/notifications/retry", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${getAdminToken()}`,
-        },
-      });
-
-      const result = await response.json();
+      const response = await adminService.retryNotifications();
+      const result = response.data;
+      const retriedCount = result?.data?.retriedCount ?? 0;
 
       if (result.success) {
-        alert(`Retried ${result.data.retriedCount} notifications`);
+        alert(`Retried ${retriedCount} notifications`);
         handleSearch();
       }
     } catch (err) {
@@ -159,14 +132,23 @@ const AdminNotificationDashboard = () => {
   // Export to CSV
   const handleExport = async () => {
     try {
-      const queryParams = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
+      const params = Object.entries(filters).reduce((acc, [key, value]) => {
         if (value && key !== "limit" && key !== "offset") {
-          queryParams.append(key, value);
+          acc[key] = value;
         }
-      });
+        return acc;
+      }, {});
 
-      window.location.href = `/api/admin/notifications/export?${queryParams.toString()}`;
+      const response = await adminService.exportNotifications(params);
+      const blob = response.data;
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `notifications-${filters.startDate || "all"}-${filters.endDate || "all"}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
     } catch (err) {
       alert("Failed to export notifications");
       console.error("Error:", err);
@@ -175,20 +157,25 @@ const AdminNotificationDashboard = () => {
 
   // Pagination handlers
   const handleNextPage = () => {
-    setFilters((prev) => ({
-      ...prev,
-      offset: prev.offset + prev.limit,
-    }));
-    fetchNotifications();
+    setFilters((prev) => {
+      const next = {
+        ...prev,
+        offset: prev.offset + prev.limit,
+      };
+      fetchNotifications(next);
+      return next;
+    });
   };
 
   const handlePrevPage = () => {
-    const newOffset = Math.max(0, filters.offset - filters.limit);
-    setFilters((prev) => ({
-      ...prev,
-      offset: newOffset,
-    }));
-    fetchNotifications();
+    setFilters((prev) => {
+      const next = {
+        ...prev,
+        offset: Math.max(0, prev.offset - prev.limit),
+      };
+      fetchNotifications(next);
+      return next;
+    });
   };
 
   return (
@@ -224,7 +211,7 @@ const AdminNotificationDashboard = () => {
                 <div>
                   <p className="text-gray-600 text-sm">Sent</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {stats.byStatus.sent || 0}
+                    {stats?.byStatus?.sent || 0}
                   </p>
                 </div>
                 <div className="text-green-400 text-2xl">✓</div>
@@ -236,7 +223,7 @@ const AdminNotificationDashboard = () => {
                 <div>
                   <p className="text-gray-600 text-sm">Failed</p>
                   <p className="text-2xl font-bold text-red-600">
-                    {stats.byStatus.failed || 0}
+                    {stats?.byStatus?.failed || 0}
                   </p>
                 </div>
                 <div className="text-red-400 text-2xl">✗</div>
@@ -248,7 +235,7 @@ const AdminNotificationDashboard = () => {
                 <div>
                   <p className="text-gray-600 text-sm">Pending</p>
                   <p className="text-2xl font-bold text-yellow-600">
-                    {stats.byStatus.pending || 0}
+                    {stats?.byStatus?.pending || 0}
                   </p>
                 </div>
                 <div className="text-yellow-400 text-2xl">⏳</div>

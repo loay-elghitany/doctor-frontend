@@ -141,7 +141,8 @@ export const Header = () => {
 // Sidebar component
 export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, userRole, isAdmin } = useAuth();
+  const currentRole = isAdmin ? "admin" : userRole;
 
   const patientLinks = [
     {
@@ -228,13 +229,15 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
   ];
 
   const links =
-    userType === "doctor"
+    currentRole === "doctor"
       ? doctorLinks
-      : userType === "secretary"
+      : currentRole === "secretary"
         ? secretaryLinks
-        : userType === "admin"
+        : currentRole === "admin"
           ? adminLinks
-          : patientLinks;
+          : currentRole === "patient"
+            ? patientLinks
+            : [];
 
   const handleLogout = () => {
     logout();

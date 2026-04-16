@@ -69,11 +69,12 @@ const EnhancedDoctorTimeline = () => {
       const result = await response.json();
 
       if (result.success) {
-        setEvents(result.data.events);
+        const data = result.data || {};
+        setEvents(Array.isArray(data.events) ? data.events : []);
         setPagination({
-          total: result.data.pagination.total,
-          hasMore: result.data.pagination.hasMore,
-          newEventsCount: result.data.summary?.newEventsCount || 0,
+          total: data.pagination?.total ?? 0,
+          hasMore: data.pagination?.hasMore ?? false,
+          newEventsCount: data.summary?.newEventsCount ?? 0,
         });
 
         // Mark as read after fetching
@@ -99,7 +100,7 @@ const EnhancedDoctorTimeline = () => {
       const result = await response.json();
 
       if (result.success) {
-        setStats(result.data);
+        setStats(result.data ?? {});
       }
     } catch (err) {
       console.error("Error fetching doctor timeline stats:", err);
@@ -148,9 +149,11 @@ const EnhancedDoctorTimeline = () => {
       const result = await response.json();
 
       if (result.success) {
-        setEvents(result.data.events);
+        const data = result.data || {};
+        const events = Array.isArray(data.events) ? data.events : [];
+        setEvents(events);
         setPagination({
-          total: result.data.pagination?.total || result.data.events.length,
+          total: data.pagination?.total ?? events.length,
           hasMore: false,
           newEventsCount: 0,
         });

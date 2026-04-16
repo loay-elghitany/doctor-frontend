@@ -43,31 +43,36 @@ const ProtectedRoute = ({
 
   // Support both single role and multiple roles
   const allowedRoles = requiredRoles || (requiredRole ? [requiredRole] : null);
-  const normalizedAllowedRoles = allowedRoles
-    ? allowedRoles.map((role) => String(role || "").toLowerCase())
-    : null;
+  if (!allowedRoles) {
+    console.log(
+      "ProtectedRoute: Missing requiredRole/requiredRoles, denying access.",
+    );
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  const normalizedAllowedRoles = allowedRoles.map((role) =>
+    String(role || "").toLowerCase(),
+  );
   const normalizedUserRole =
     typeof userRole === "string" ? userRole.toLowerCase() : userRole;
 
   // Check role if required
-  if (
-    normalizedAllowedRoles &&
-    !normalizedAllowedRoles.includes(normalizedUserRole)
-  ) {
+  if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
     if (import.meta.env.DEV) {
       console.log(
         `ProtectedRoute: User role '${userRole}' does not match allowed roles [${allowedRoles.join(", ")}], redirecting.`,
       );
     }
-    // Redirect to appropriate dashboard based on user role
+
     const redirectPath =
       normalizedUserRole === "doctor"
         ? "/doctor/dashboard"
-        : normalizedUserRole === "patient"
-          ? "/patient/dashboard"
-          : normalizedUserRole === "secretary"
-            ? "/secretary/dashboard"
-            : "/login"; // fallback
+        : normalizedUserRole === "secretary"
+          ? "/secretary/dashboard"
+          : normalizedUserRole === "patient"
+            ? "/patient/dashboard"
+            : "/login";
+
     return <Navigate to={redirectPath} replace />;
   }
 

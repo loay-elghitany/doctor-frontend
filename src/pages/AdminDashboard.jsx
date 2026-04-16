@@ -83,14 +83,13 @@ export const AdminDashboard = () => {
       debugLog("AdminDashboard", "Fetching all doctors");
       const response = await adminService.getAllDoctors();
 
-      // FIX: Correct response structure
-      // response.data contains { total, active, inactive, doctors }
-      const doctorsList = response?.data?.doctors || [];
+      // response.data is the axios body object { success, message, data }
+      const doctorsList = response?.data?.data?.doctors || [];
       debugLog("AdminDashboard", "Doctors fetched", {
         count: doctorsList.length,
-        total: response?.data?.total,
-        active: response?.data?.active,
-        inactive: response?.data?.inactive,
+        total: response?.data?.data?.total,
+        active: response?.data?.data?.active,
+        inactive: response?.data?.data?.inactive,
       });
       setDoctors(Array.isArray(doctorsList) ? doctorsList : []);
     } catch (err) {
