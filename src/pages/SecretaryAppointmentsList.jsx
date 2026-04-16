@@ -68,12 +68,13 @@ export const SecretaryAppointmentsList = () => {
   // Filter appointments based on active tab
   const filteredAppointments = appointments.filter((appointment) => {
     if (activeTab === "all") return true;
-    return appointment.status === activeTab;
+    return (appointment?.status || "") === activeTab;
   });
 
   // Status badge colors
   const getStatusColor = (status) => {
-    switch (status) {
+    const normalizedStatus = String(status || "").toLowerCase();
+    switch (normalizedStatus) {
       case "confirmed":
         return "success";
       case "pending":
@@ -126,30 +127,43 @@ export const SecretaryAppointmentsList = () => {
     {
       key: "date",
       header: "Date",
-      render: (appointment) => (
-        <div>
-          <div className="font-medium">{formatDate(appointment.date)}</div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            {appointment.timeSlot}
+      render: (appointment) => {
+        if (!appointment) return <div>Invalid date</div>;
+        return (
+          <div>
+            <div className="font-medium">
+              {appointment?.date
+                ? formatDate(appointment.date)
+                : "Invalid date"}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {appointment?.timeSlot || "—"}
+            </div>
           </div>
-        </div>
-      ),
+        );
+      },
     },
     {
       key: "status",
       header: "Status",
-      render: (appointment) => (
-        <Badge variant={getStatusColor(appointment.status)}>
-          {appointment.status.replace("_", " ").toUpperCase()}
-        </Badge>
-      ),
+      render: (appointment) => {
+        if (!appointment) return <Badge variant="default">UNKNOWN</Badge>;
+        const statusText = (appointment?.status || "unknown")
+          .replace("_", " ")
+          .toUpperCase();
+        return (
+          <Badge variant={getStatusColor(appointment?.status)}>
+            {statusText}
+          </Badge>
+        );
+      },
     },
     {
       key: "notes",
       header: "Notes",
       render: (appointment) => (
         <div className="max-w-xs truncate text-sm">
-          {appointment.notes || "No notes"}
+          {appointment?.notes || "No notes"}
         </div>
       ),
     },
@@ -162,7 +176,7 @@ export const SecretaryAppointmentsList = () => {
             variant="secondary"
             size="sm"
             onClick={() =>
-              navigate(`/secretary/appointments/${appointment._id}`)
+              navigate(`/secretary/appointments/${appointment?._id}`)
             }
           >
             View
