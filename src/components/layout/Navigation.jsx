@@ -20,7 +20,7 @@ const MotionLink = motion(Link);
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState("light");
-  const { isAuthenticated, userRole, logout } = useAuth();
+  const { isAuthenticated, userRole, isAdmin, logout } = useAuth();
 
   const roleNavItems = {
     patient: [
@@ -37,11 +37,17 @@ export const Header = () => {
       { path: "/secretary/appointments", label: "Appointments" },
       { path: "/secretary/patients", label: "Patients" },
     ],
-    admin: [{ path: "/admin/dashboard", label: "Dashboard" }],
+    admin: [
+      { path: "/admin/dashboard", label: "Dashboard" },
+      { path: "/admin/doctors", label: "Doctors" },
+      { path: "/admin/analytics", label: "Analytics" },
+    ],
   };
 
   const navItems = isAuthenticated
-    ? (roleNavItems[userRole] ?? [{ path: "/login", label: "Dashboard" }])
+    ? isAdmin
+      ? roleNavItems.admin
+      : (roleNavItems[userRole] ?? [{ path: "/login", label: "Dashboard" }])
     : [{ path: "/login", label: "Login" }];
 
   useEffect(() => {
@@ -200,12 +206,35 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
     },
   ];
 
+  const adminLinks = [
+    {
+      id: "dashboard",
+      path: "/admin/dashboard",
+      label: "Dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      id: "doctors",
+      path: "/admin/doctors",
+      label: "Doctors",
+      icon: FolderOpen,
+    },
+    {
+      id: "analytics",
+      path: "/admin/analytics",
+      label: "Analytics",
+      icon: CalendarDays,
+    },
+  ];
+
   const links =
     userType === "doctor"
       ? doctorLinks
       : userType === "secretary"
         ? secretaryLinks
-        : patientLinks;
+        : userType === "admin"
+          ? adminLinks
+          : patientLinks;
 
   const handleLogout = () => {
     logout();

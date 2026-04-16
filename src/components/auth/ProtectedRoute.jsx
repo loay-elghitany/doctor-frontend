@@ -19,7 +19,7 @@ const ProtectedRoute = ({
   requiredRole = null,
   requiredRoles = null,
 }) => {
-  const { isAuthenticated, loading, userRole } = useAuth();
+  const { isAuthenticated, loading, userRole, isAdmin } = useAuth();
   const location = useLocation();
 
   if (loading) {
@@ -32,6 +32,13 @@ const ProtectedRoute = ({
       "ProtectedRoute: User not authenticated, redirecting to login.",
     );
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (isAdmin) {
+    console.log(
+      "ProtectedRoute: Admin user detected, blocking access to non-admin route.",
+    );
+    return <Navigate to="/admin/dashboard" replace />;
   }
 
   // Support both single role and multiple roles

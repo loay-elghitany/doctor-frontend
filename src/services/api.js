@@ -18,7 +18,9 @@ const api = axios.create({
 // Attach token to every request automatically
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
+    const adminToken =
+      localStorage.getItem("admin_token") || localStorage.getItem("adminToken");
+    const normalToken = localStorage.getItem("token");
     if (!config.headers) {
       config.headers = {};
     }
@@ -37,8 +39,15 @@ api.interceptors.request.use(
       return config;
     }
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+      debugLog("api:request", "Attaching admin token", {
+        method: config.method?.toUpperCase(),
+        url: config.url,
+        adminTokenPresent: true,
+      });
+    } else if (normalToken) {
+      config.headers.Authorization = `Bearer ${normalToken}`;
       debugLog("api:request", "Attaching auth token", {
         method: config.method?.toUpperCase(),
         url: config.url,

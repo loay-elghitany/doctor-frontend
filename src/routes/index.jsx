@@ -17,12 +17,13 @@ import { DoctorPatientRecords } from "../pages/DoctorPatientRecords.jsx";
 import { ProposeAppointmentTimes } from "../pages/ProposeAppointmentTimes.jsx";
 import { AdminLogin } from "../pages/AdminLogin.jsx";
 import { AdminDashboard } from "../pages/AdminDashboard.jsx";
+import { AdminAnalyticsPage } from "../pages/AdminAnalyticsPage.jsx";
 import { SecretaryDashboard } from "../pages/SecretaryDashboard.jsx";
 import { SecretaryAppointmentsList } from "../pages/SecretaryAppointmentsList.jsx";
 import { SecretaryPatientsList } from "../pages/SecretaryPatientsList.jsx";
 import { SecretaryCreateAppointment } from "../pages/SecretaryCreateAppointment.jsx";
 import ProtectedRoute from "../components/auth/ProtectedRoute.jsx";
-import AdminProtectedRoute from "../components/auth/AdminProtectedRoute.jsx";
+import AdminRoute from "../components/auth/AdminRoute.jsx";
 
 export const AppRoutes = () => {
   return (
@@ -142,9 +143,25 @@ const AnimatedRoutes = () => {
         <Route
           path="/admin/dashboard"
           element={
-            <AdminProtectedRoute>
+            <AdminRoute>
               <AdminDashboard />
-            </AdminProtectedRoute>
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/doctors"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+        <Route
+          path="/admin/analytics"
+          element={
+            <AdminRoute>
+              <AdminAnalyticsPage />
+            </AdminRoute>
           }
         />
 

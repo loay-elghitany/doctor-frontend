@@ -25,6 +25,7 @@ import {
   CheckCircle,
   Clock,
 } from "lucide-react";
+import { getAdminToken } from "../utils/helpers";
 
 /**
  * Admin Analytics Dashboard Component
@@ -59,7 +60,7 @@ const AdminAnalyticsDashboard = () => {
         `/api/admin/analytics?${queryParams.toString()}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAdminToken()}`,
           },
         },
       );
@@ -90,7 +91,7 @@ const AdminAnalyticsDashboard = () => {
         `/api/admin/analytics/trends?${queryParams.toString()}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAdminToken()}`,
           },
         },
       );
@@ -120,7 +121,7 @@ const AdminAnalyticsDashboard = () => {
         `/api/admin/analytics/export?${queryParams.toString()}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAdminToken()}`,
           },
         },
       );

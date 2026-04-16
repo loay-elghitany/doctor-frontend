@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BarChart, LineChart, PieChart } from "lucide-react";
+import { getAdminToken } from "../utils/helpers";
 
 /**
  * Admin Dashboard Component
@@ -50,7 +51,7 @@ const AdminNotificationDashboard = () => {
         `/api/admin/notifications?${queryParams.toString()}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAdminToken()}`,
           },
         },
       );
@@ -84,7 +85,7 @@ const AdminNotificationDashboard = () => {
         `/api/admin/notifications/stats?${queryParams.toString()}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            Authorization: `Bearer ${getAdminToken()}`,
           },
         },
       );
@@ -139,7 +140,7 @@ const AdminNotificationDashboard = () => {
       const response = await fetch("/api/admin/notifications/retry", {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `Bearer ${getAdminToken()}`,
         },
       });
 

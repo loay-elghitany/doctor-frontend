@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import api, { setupInterceptors } from "../services/api";
-import { setAuthToken, clearAuthToken, getAuthToken } from "../utils/helpers";
+import {
+  setAuthToken,
+  clearAuthToken,
+  getAuthToken,
+  getAdminToken,
+  clearAdminToken,
+} from "../utils/helpers";
 import authService from "../services/authService";
 import { debugLog, debugError } from "../utils/debug";
 
@@ -15,65 +21,129 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const logout = () => {
     debugLog("AuthContext:logout", "Logging out user");
     clearAuthToken();
+    clearAdminToken();
+    window.dispatchEvent(new CustomEvent("adminAuthChanged"));
     setUser(null);
     setIsAuthenticated(false);
     setUserRole(null);
+    setIsAdmin(false);
   };
 
   useEffect(() => {
     setupInterceptors(logout);
 
-    const loadUser = async () => {
-      debugLog("AuthContext:loadUser", "Checking for token and loading user");
-      const token = getAuthToken();
-      if (token) {
-        setAuthToken(token); // Ensure axios header is set
-        debugLog("AuthContext:loadUser", "Token found, fetching user profile");
-        try {
-          // Decode token to get role
-          const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-          const role = tokenPayload.role;
+    const getSavedAdminToken = () => getAdminToken();
 
-          debugLog("AuthContext:loadUser", "Token decoded", { role });
+    const loadUserFromToken = async (token) => {
+      setAuthToken(token); // Ensure axios header is set
+      debugLog("AuthContext:loadUser", "Token found, fetching user profile");
 
-          // Fetch appropriate profile based on role
-          let response;
-          if (role === "doctor") {
-            response = await authService.getDoctorProfile();
-            setUserRole("doctor");
-          } else if (role === "secretary") {
-            response = await authService.getSecretaryProfile();
-            setUserRole("secretary");
-          } else {
-            response = await authService.getPatientProfile();
-            setUserRole("patient");
-          }
+      const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+      const role = String(tokenPayload.role || "").toLowerCase();
 
-          setUser(response.data.data);
-          setIsAuthenticated(true);
-          debugLog("AuthContext:loadUser", "User profile loaded", {
-            role,
-            userName: response.data.data?.name,
-          });
-        } catch (error) {
-          debugError(
-            "AuthContext:loadUser",
-            "Failed to load user profile",
-            error,
-          );
-          logout();
-        }
+      debugLog("AuthContext:loadUser", "Token decoded", { role });
+
+      let response;
+      if (role === "doctor") {
+        response = await authService.getDoctorProfile();
+        setUserRole("doctor");
+      } else if (role === "secretary") {
+        response = await authService.getSecretaryProfile();
+        setUserRole("secretary");
+      } else if (role === "patient") {
+        response = await authService.getPatientProfile();
+        setUserRole("patient");
       } else {
+        throw new Error(`Unsupported role '${role}'`);
+      }
+
+      setUser(response.data.data);
+      setIsAuthenticated(true);
+      debugLog("AuthContext:loadUser", "User profile loaded", {
+        role,
+        userName: response.data.data?.name,
+      });
+    };
+
+    const initializeAuth = async () => {
+      debugLog("AuthContext:loadUser", "Checking for token and loading user");
+      const adminToken = getSavedAdminToken();
+
+      if (adminToken) {
+        debugLog(
+          "AuthContext:loadUser",
+          "Admin token found, activating admin mode",
+        );
+        setIsAdmin(true);
+        setIsAuthenticated(true);
+        setUser(null);
+        setUserRole(null);
+        setLoading(false);
+        return;
+      }
+
+      const token = getAuthToken();
+      if (!token) {
         debugLog("AuthContext:loadUser", "No token found");
+        setIsAuthenticated(false);
+        setIsAdmin(false);
+        setUser(null);
+        setUserRole(null);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        await loadUserFromToken(token);
+      } catch (error) {
+        debugError(
+          "AuthContext:loadUser",
+          "Failed to load user profile",
+          error,
+        );
+        logout();
       }
       setLoading(false);
     };
 
-    loadUser();
+    initializeAuth();
+
+    const handleAdminAuthChanged = () => {
+      const adminToken = getSavedAdminToken();
+      if (adminToken) {
+        debugLog(
+          "AuthContext:adminAuthChanged",
+          "Admin auth detected, switching to admin mode",
+        );
+        setIsAdmin(true);
+        setIsAuthenticated(true);
+        setUser(null);
+        setUserRole(null);
+        setLoading(false);
+        return;
+      }
+
+      debugLog(
+        "AuthContext:adminAuthChanged",
+        "Admin auth cleared, reloading normal auth",
+      );
+      setIsAdmin(false);
+      setLoading(true);
+      initializeAuth();
+    };
+
+    window.addEventListener("adminAuthChanged", handleAdminAuthChanged);
+    window.addEventListener("storage", handleAdminAuthChanged);
+
+    return () => {
+      window.removeEventListener("adminAuthChanged", handleAdminAuthChanged);
+      window.removeEventListener("storage", handleAdminAuthChanged);
+    };
   }, []);
 
   const login = async (email, password, userType) => {
@@ -120,8 +190,10 @@ export const AuthProvider = ({ children }) => {
           profileResponse = await authService.getDoctorProfile();
         } else if (role === "secretary") {
           profileResponse = await authService.getSecretaryProfile();
-        } else {
+        } else if (role === "patient") {
           profileResponse = await authService.getPatientProfile();
+        } else {
+          throw new Error(`Unsupported role '${role}'`);
         }
         debugLog("AuthContext:login", "Profile fetched", {
           role,
@@ -137,6 +209,9 @@ export const AuthProvider = ({ children }) => {
 
       setUser(profileResponse.data.data);
       setIsAuthenticated(true);
+      if (!getAdminToken()) {
+        setIsAdmin(false);
+      }
       debugLog("AuthContext:login", "Login completed successfully");
       return profileResponse.data.data;
     } catch (err) {
@@ -157,6 +232,7 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     loading,
     userRole,
+    isAdmin,
     login,
     logout,
   };

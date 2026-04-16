@@ -75,6 +75,28 @@ export const clearAuthToken = () => {
   localStorage.removeItem("token");
 };
 
+const ADMIN_TOKEN_KEY = "admin_token";
+const LEGACY_ADMIN_TOKEN_KEY = "adminToken";
+
+// Helper function to store admin token separately
+export const setAdminToken = (token) => {
+  localStorage.setItem(ADMIN_TOKEN_KEY, token);
+};
+
+// Helper function to get admin token
+export const getAdminToken = () => {
+  return (
+    localStorage.getItem(ADMIN_TOKEN_KEY) ||
+    localStorage.getItem(LEGACY_ADMIN_TOKEN_KEY)
+  );
+};
+
+// Helper function to clear admin token
+export const clearAdminToken = () => {
+  localStorage.removeItem(ADMIN_TOKEN_KEY);
+  localStorage.removeItem(LEGACY_ADMIN_TOKEN_KEY);
+};
+
 // Helper function to check if user is authenticated
 export const isAuthenticated = () => {
   return !!localStorage.getItem("token");
