@@ -1,5 +1,7 @@
 import { motion } from "framer-motion";
 import { Stethoscope } from "lucide-react";
+import { formatDateSafe } from "../../utils/date/formatDateSafe";
+import { getStatusLabel } from "../../utils/helpers";
 
 // Appointment card component
 export const AppointmentCard = ({
@@ -60,9 +62,9 @@ export const AppointmentCard = ({
         </div>
         {/* Normalize status to CSS class name (replace underscores with dashes) */}
         <span
-          className={`badge ${String(appointment.status || "")?.replace(/_/g, "-")}`}
+          className={`badge ${String(appointment.status || "unknown").replace(/_/g, "-")}`}
         >
-          {appointment.status}
+          {getStatusLabel(appointment.status)}
         </span>
       </div>
 
@@ -70,7 +72,7 @@ export const AppointmentCard = ({
         <p>
           <span className="font-medium text-gray-700">Date:</span>{" "}
           <span className="text-gray-600">
-            {new Date(appointment.date).toLocaleString()}
+            {formatDateSafe(appointment.date)} {appointment.timeSlot || ""}
           </span>
         </p>
         {appointment.notes && (
@@ -158,14 +160,16 @@ export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
             Date & Time
           </label>
           <p className="text-gray-900">
-            {new Date(appointment.date).toLocaleString()}
+            {formatDateSafe(appointment.date)} {appointment.timeSlot || ""}
           </p>
         </div>
         <div>
           <label className="text-sm font-medium text-gray-700">Status</label>
           <p className="text-gray-900 mt-1">
-            <span className={`badge badge-${appointment.status}`}>
-              {appointment.status}
+            <span
+              className={`badge badge-${String(appointment.status || "unknown").replace(/_/g, "-")}`}
+            >
+              {getStatusLabel(appointment.status)}
             </span>
           </p>
         </div>
@@ -183,7 +187,7 @@ export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
             <ul className="mt-2 space-y-2">
               {appointment.rescheduleOptions.map((opt, idx) => (
                 <li key={idx} className="text-gray-900">
-                  {new Date(opt.date).toLocaleString()}
+                  {formatDateSafe(opt.date)} {opt.timeSlot || ""}
                   {opt.chosen && (
                     <span className="ml-2 text-green-600">(Selected)</span>
                   )}

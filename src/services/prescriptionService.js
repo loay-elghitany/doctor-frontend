@@ -6,7 +6,7 @@ export const createPrescription = async (prescriptionData) => {
     const response = await api.post("/prescriptions", prescriptionData);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error;
   }
 };
 
@@ -16,7 +16,7 @@ export const getDoctorPrescriptions = async () => {
     const response = await api.get("/prescriptions/doctor");
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error;
   }
 };
 
@@ -30,7 +30,7 @@ export const getAppointmentPrescriptions = async (appointmentId, userRole) => {
     const response = await api.get(endpoint);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error;
   }
 };
 
@@ -40,6 +40,6 @@ export const deletePrescription = async (prescriptionId) => {
     const response = await api.delete(`/prescriptions/${prescriptionId}`);
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error;
   }
 };

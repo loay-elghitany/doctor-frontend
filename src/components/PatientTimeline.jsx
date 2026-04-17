@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Spinner, Alert } from "./ui";
 import { getPatientTimeline } from "../services/timelineService";
-import { formatDate } from "../utils/helpers";
+import { formatDate, parseDate } from "../utils/helpers";
 import WhatsAppButton from "./WhatsAppButton";
 
 /**
@@ -33,7 +33,7 @@ export const PatientTimeline = () => {
 
   // Group events by date
   const groupedByDate = timeline.reduce((acc, event) => {
-    const dateKey = new Date(event.eventDate).toLocaleDateString();
+    const dateKey = parseDate(event.eventDate)?.toLocaleDateString() || "Unknown Date";
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -84,9 +84,11 @@ export const PatientTimeline = () => {
 
         {/* Events */}
         <div className="space-y-6">
-          {timeline.map((event, index) => (
-            <div key={event.id} className="relative pl-20">
-              {/* Timeline dot */}
+          {timeline.map((event, index) => {
+            const metadata = event.metadata || {};
+            return (
+              <div key={event.id} className="relative pl-20">
+                {/* Timeline dot */}
               <div
                 className={`absolute left-0 w-9 h-9 rounded-full flex items-center justify-center -ml-4 ${
                   event.type === "appointment"
@@ -132,12 +134,12 @@ export const PatientTimeline = () => {
                     <div>
                       <p className="text-gray-600">
                         <span className="font-medium">Doctor:</span>{" "}
-                        {event.metadata.doctorName}
+                        {metadata.doctorName || "Unknown"}
                       </p>
-                      {event.metadata.doctorSpecialization && (
+                      {metadata.doctorSpecialization && (
                         <p className="text-gray-600">
                           <span className="font-medium">Specialty:</span>{" "}
-                          {event.metadata.doctorSpecialization}
+                          {metadata.doctorSpecialization}
                         </p>
                       )}
                     </div>
@@ -145,7 +147,7 @@ export const PatientTimeline = () => {
                     <div>
                       <p className="text-gray-600">
                         <span className="font-medium">Time:</span>{" "}
-                        {event.metadata.timeSlot}
+                        {metadata.timeSlot || "—"}
                       </p>
                     </div>
 
@@ -154,25 +156,25 @@ export const PatientTimeline = () => {
                         <span className="font-medium">Status:</span>
                         <span
                           className={`inline-block ml-2 px-2 py-0.5 rounded text-xs font-medium ${
-                            event.metadata.status === "confirmed"
+                            metadata.status === "confirmed"
                               ? "bg-green-100 text-green-800"
-                              : event.metadata.status === "cancelled"
+                              : metadata.status === "cancelled"
                                 ? "bg-red-100 text-red-800"
                                 : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
-                          {event.metadata.status}
+                          {metadata.status || "Unknown"}
                         </span>
                       </p>
                     </div>
 
-                    {event.metadata.notes && (
+                    {metadata.notes && (
                       <div>
                         <p className="text-gray-600">
                           <span className="font-medium">Notes:</span>
                         </p>
                         <p className="text-gray-700 mt-1 italic">
-                          {event.metadata.notes}
+                          {metadata.notes}
                         </p>
                       </div>
                     )}
@@ -186,28 +188,28 @@ export const PatientTimeline = () => {
                         <span className="font-medium">Medications:</span>
                       </p>
                       <p className="text-gray-700 mt-1">
-                        {event.metadata.medicationSummary}
+                        {metadata.medicationSummary || "No medication details provided."}
                       </p>
                     </div>
 
-                    {event.metadata.diagnosis && (
+                    {metadata.diagnosis && (
                       <div>
                         <p className="text-gray-600">
                           <span className="font-medium">Diagnosis:</span>
                         </p>
                         <p className="text-gray-700 mt-1">
-                          {event.metadata.diagnosis}
+                          {metadata.diagnosis}
                         </p>
                       </div>
                     )}
 
-                    {event.metadata.appointmentDate && (
+                    {metadata.appointmentDate && (
                       <div>
                         <p className="text-gray-600 text-xs">
                           Linked to appointment on{" "}
-                          {new Date(
-                            event.metadata.appointmentDate,
-                          ).toLocaleDateString()}
+                          {parseDate(metadata.appointmentDate)
+                            ? parseDate(metadata.appointmentDate).toLocaleDateString()
+                            : "Unknown Date"}
                         </p>
                       </div>
                     )}

@@ -1,4 +1,26 @@
 import api from "./api";
+import { normalizeAppointments } from "../utils/normalizers/appointmentNormalizer";
+
+const normalizeAppointmentResponse = (response) => {
+  const raw = response?.data?.data;
+  const normalized = normalizeAppointments(raw);
+
+  const meta =
+    raw && typeof raw === "object" && !Array.isArray(raw)
+      ? Object.fromEntries(
+          Object.entries(raw).filter(([key]) => key !== "appointments"),
+        )
+      : undefined;
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      data: normalized,
+      ...(meta ? { meta } : {}),
+    },
+  };
+};
 
 // APPOINTMENTS API CALLS
 export const appointmentService = {
@@ -17,10 +39,16 @@ export const appointmentService = {
     api.patch(`/appointments/${appointmentId}/hide`, { hidden }),
 
   // Unified appointments endpoint for all roles
-  getAppointments: () => api.get("/appointments"),
+  getAppointments: async () => {
+    const response = await api.get("/appointments");
+    return normalizeAppointmentResponse(response);
+  },
 
   // Patient-specific alias retained for backward compatibility
-  getPatientAppointments: () => api.get("/appointments"),
+  getPatientAppointments: async () => {
+    const response = await api.get("/appointments");
+    return normalizeAppointmentResponse(response);
+  },
 
   // Secretary can create appointments on behalf of a patient too
   createSecretaryAppointment: (appointmentData) =>

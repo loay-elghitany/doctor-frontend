@@ -7,7 +7,8 @@ import { MedicalHeroIllustration } from "../components/illustrations/MedicalHero
 import { GuidedTour } from "../components/GuidedTour";
 import { PatientTimeline } from "../components/PatientTimeline";
 import { appointmentService } from "../services/appointmentService";
-import { formatDate, handleApiError } from "../utils/helpers";
+import { handleApiError } from "../utils/helpers";
+import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { useNavigate } from "react-router-dom";
 import { PrescriptionModal } from "../components/Prescription/PrescriptionModal";
 
@@ -52,26 +53,24 @@ export const PatientDashboard = () => {
       setError("");
       try {
         const res = await appointmentService.getAppointments();
-        const payload = res.data?.data;
-        const appointmentList = Array.isArray(payload)
-          ? payload
-          : Array.isArray(payload?.appointments)
-            ? payload.appointments
-            : [];
+        const appointmentList = Array.isArray(res.data?.data)
+          ? res.data.data
+          : [];
 
         const sorted = appointmentList
           .slice()
-          .sort((a, b) => new Date(a?.date) - new Date(b?.date))
+          .sort((a, b) => {
+            const aTime = a?.date ? new Date(a.date).getTime() : Infinity;
+            const bTime = b?.date ? new Date(b.date).getTime() : Infinity;
+            return aTime - bTime;
+          })
           .slice(0, 5);
 
         setAppointments(sorted);
 
-        if (
-          typeof payload === "object" &&
-          payload !== null &&
-          payload.patientName
-        )
-          setPatientName(payload.patientName);
+        if (res.data?.meta?.patientName) {
+          setPatientName(res.data.meta.patientName);
+        }
       } catch (err) {
         setError(handleApiError(err));
       } finally {
@@ -309,8 +308,8 @@ export const PatientDashboard = () => {
                             >
                               <div>
                                 <p className="text-gray-900 font-medium">
-                                  {new Date(opt.date).toLocaleDateString()} at{" "}
-                                  {opt.timeSlot}
+                                  {formatDateSafe(opt.date)}
+                                  {opt.timeSlot ? ` at ${opt.timeSlot}` : ""}
                                 </p>
                                 {opt.chosen && (
                                   <p className="text-sm text-green-600 font-medium">

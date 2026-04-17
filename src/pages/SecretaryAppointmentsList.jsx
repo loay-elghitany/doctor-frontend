@@ -5,7 +5,8 @@ import { MainLayout } from "../components/layout/Layout";
 import { Table, Tabs } from "../components/ui/DataDisplay";
 import { Button, Badge, Card, Alert, Spinner, Modal } from "../components/ui";
 import { appointmentService } from "../services/appointmentService";
-import { handleApiError } from "../utils/helpers";
+import { getStatusLabel, handleApiError } from "../utils/helpers";
+import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { debugLog, debugError } from "../utils/debug";
 import { PrescriptionModal } from "../components/Prescription/PrescriptionModal";
 
@@ -92,21 +93,12 @@ export const SecretaryAppointmentsList = () => {
     }
   };
 
-  // Format date for display
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  };
-
   // Table columns
   const columns = [
     {
       key: "patient",
       header: "Patient",
-      render: (appointment) => {
+      render: (_, appointment) => {
         if (!appointment) return null;
         if (!appointment.patientId) {
           console.warn("Missing patientId in appointment", appointment);
@@ -127,50 +119,35 @@ export const SecretaryAppointmentsList = () => {
     {
       key: "date",
       header: "Date",
-      render: (appointment) => {
-        if (!appointment) return <div>Invalid date</div>;
-        return (
-          <div>
-            <div className="font-medium">
-              {appointment?.date
-                ? formatDate(appointment.date)
-                : "Invalid date"}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {appointment?.timeSlot || "—"}
-            </div>
+      render: (_, appointment) => (
+        <div>
+          <div className="font-medium">{formatDateSafe(appointment?.date)}</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {appointment?.timeSlot || "—"}
           </div>
-        );
-      },
+        </div>
+      ),
     },
     {
       key: "status",
       header: "Status",
-      render: (appointment) => {
-        if (!appointment) return <Badge variant="default">UNKNOWN</Badge>;
-        const statusText = (appointment?.status || "unknown")
-          .replace("_", " ")
-          .toUpperCase();
-        return (
-          <Badge variant={getStatusColor(appointment?.status)}>
-            {statusText}
-          </Badge>
-        );
-      },
+      render: (_, appointment) => (
+        <Badge variant={getStatusColor(appointment?.status)}>
+          {getStatusLabel(appointment?.status)}
+        </Badge>
+      ),
     },
     {
       key: "notes",
       header: "Notes",
-      render: (appointment) => (
-        <div className="max-w-xs truncate text-sm">
-          {appointment?.notes || "No notes"}
-        </div>
+      render: (_, appointment) => (
+        <div className="max-w-xs truncate text-sm">{appointment?.notes}</div>
       ),
     },
     {
       key: "actions",
       header: "Actions",
-      render: (appointment) => (
+      render: (_, appointment) => (
         <div className="flex space-x-2">
           <Button
             variant="secondary"

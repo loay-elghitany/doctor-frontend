@@ -1,25 +1,39 @@
-// Helper function to format dates
+// Helper function to safely parse dates
+export const parseDate = (value) => {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+// Helper function to format dates safely
 export const formatDate = (date) => {
+  const parsed = parseDate(date);
+  if (!parsed) return "—";
+
   return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(date));
+  }).format(parsed);
 };
 
-// Helper function to format time only
+// Helper function to format time only safely
 export const formatTime = (date) => {
+  const parsed = parseDate(date);
+  if (!parsed) return "—";
+
   return new Intl.DateTimeFormat("en-US", {
     hour: "2-digit",
     minute: "2-digit",
-  }).format(new Date(date));
+  }).format(parsed);
 };
 
 // Helper function to check if date is in the past
 export const isPastDate = (date) => {
-  return new Date(date) < new Date();
+  const parsed = parseDate(date);
+  return parsed ? parsed < new Date() : false;
 };
 
 // Helper function to get status label
@@ -33,8 +47,9 @@ export const getStatusLabel = (status) => {
     rejected: "Rejected",
     no_show: "No Show",
     reschedule_proposed: "Reschedule Proposed",
+    unknown: "Unknown",
   };
-  return labels[status] || status;
+  return labels[status] || String(status || "Unknown");
 };
 
 // Helper function to get status color class
@@ -58,6 +73,20 @@ export const handleApiError = (error) => {
     return error.response.data.message;
   }
   return error.message || "An unexpected error occurred";
+};
+
+// Helper function to safely parse JWT tokens
+export const parseJwtToken = (token) => {
+  if (!token || typeof token !== "string") return null;
+
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+
+  try {
+    return JSON.parse(atob(parts[1]));
+  } catch {
+    return null;
+  }
 };
 
 // Helper function to store auth token

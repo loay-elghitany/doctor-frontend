@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
 import { appointmentService } from "../services/appointmentService";
-import { handleApiError } from "../utils/helpers";
+import { handleApiError, parseDate } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
 import { useAuth } from "../context/AuthContext";
 import { format } from "date-fns";
@@ -145,18 +145,19 @@ export const DoctorDashboard = () => {
             completedCount++;
           if (apt.status === "cancelled") cancelledCount++;
 
-          // Count today's appointments
-          const aptDate = new Date(apt.date);
-          aptDate.setHours(0, 0, 0, 0);
-          if (aptDate.getTime() === today.getTime()) {
-            todayCount++;
+          const aptDateValue = parseDate(apt.date);
+          if (aptDateValue) {
+            const aptDay = new Date(aptDateValue);
+            aptDay.setHours(0, 0, 0, 0);
+            if (aptDay.getTime() === today.getTime()) {
+              todayCount++;
+            }
           }
 
-          // Get upcoming appointments (next 7 days, not cancelled, and scheduled/confirmed)
           if (
-            apt.date &&
-            new Date(apt.date) >= today &&
-            new Date(apt.date) <
+            aptDateValue &&
+            aptDateValue >= today &&
+            aptDateValue <
               new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000) &&
             apt.status !== "cancelled" &&
             DASHBOARD_STATUS_MAPPING.upcomingStatuses.includes(apt.status)
@@ -174,8 +175,9 @@ export const DoctorDashboard = () => {
 
         // Sort upcoming by date and time
         upcomingList.sort((a, b) => {
-          const dateCompare = new Date(a.date) - new Date(b.date);
-          if (dateCompare !== 0) return dateCompare;
+          const aTime = parseDate(a.date)?.getTime() ?? Infinity;
+          const bTime = parseDate(b.date)?.getTime() ?? Infinity;
+          if (aTime !== bTime) return aTime - bTime;
           return (a.timeSlot || "").localeCompare(b.timeSlot || "");
         });
 

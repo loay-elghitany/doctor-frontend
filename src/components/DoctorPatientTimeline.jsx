@@ -104,7 +104,8 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
   };
 
   const formatEventType = (type) => {
-    return type
+    const normalizedType = String(type || "unknown");
+    return normalizedType
       .split("_")
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(" ");
@@ -181,7 +182,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                 {timeline
                   .filter(
                     (event) =>
-                      event.eventType.startsWith("appointment") &&
+                      (event.eventType || "").startsWith("appointment") &&
                       event.appointmentId,
                   )
                   .map((event) => (

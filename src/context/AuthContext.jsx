@@ -6,6 +6,7 @@ import {
   getAuthToken,
   getAdminToken,
   clearAdminToken,
+  parseJwtToken,
 } from "../utils/helpers";
 import authService from "../services/authService";
 import { debugLog, debugError } from "../utils/debug";
@@ -43,8 +44,11 @@ export const AuthProvider = ({ children }) => {
       setAuthToken(token); // Ensure axios header is set
       debugLog("AuthContext:loadUser", "Token found, fetching user profile");
 
-      const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-      const role = String(tokenPayload.role || "").toLowerCase();
+      const tokenPayload = parseJwtToken(token);
+      if (!tokenPayload || !tokenPayload.role) {
+        throw new Error("Invalid authentication token");
+      }
+      const role = String(tokenPayload.role).toLowerCase();
 
       debugLog("AuthContext:loadUser", "Token decoded", { role });
 
@@ -174,7 +178,10 @@ export const AuthProvider = ({ children }) => {
       // Safely decode token to get role
       let role = null;
       try {
-        const tokenPayload = JSON.parse(atob(token.split(".")[1]));
+        const tokenPayload = parseJwtToken(token);
+        if (!tokenPayload || !tokenPayload.role) {
+          throw new Error("Invalid authentication token received");
+        }
         role = tokenPayload.role;
         debugLog("AuthContext:login", "Token decoded", { role });
       } catch (decodeErr) {

@@ -4,6 +4,7 @@ import { MainLayout } from "../components/layout/Layout";
 import { Button, Card, Alert, Spinner } from "../components/ui";
 import { appointmentService } from "../services/appointmentService";
 import { handleApiError } from "../utils/helpers";
+import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { debugLog, debugError } from "../utils/debug";
 
 /**
@@ -150,8 +151,8 @@ export const ChooseAppointmentTime = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-lg font-semibold text-gray-900">
-                      {new Date(option.date).toLocaleDateString()} at{" "}
-                      {option.timeSlot}
+                      {formatDateSafe(option.date)}
+                      {option.timeSlot ? ` at ${option.timeSlot}` : ""}
                     </p>
                   </div>
                   <input

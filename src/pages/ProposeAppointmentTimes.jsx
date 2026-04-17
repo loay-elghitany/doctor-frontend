@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
 import { Input, Button, Card, Alert } from "../components/ui";
 import { appointmentService } from "../services/appointmentService";
-import { handleApiError } from "../utils/helpers";
+import { handleApiError, parseDate } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
 
 /**
@@ -36,9 +36,11 @@ export const ProposeAppointmentTimes = () => {
     setError("");
     setSuccess("");
 
-    // Validate all options are filled
-    if (options.some((opt) => !opt.date || !opt.timeSlot)) {
-      setError("Please provide all dates and times for 3 options");
+    // Validate all options are filled and parse to valid dates
+    if (
+      options.some((opt) => !opt.date || !opt.timeSlot || !parseDate(opt.date))
+    ) {
+      setError("Please provide valid dates and times for all options");
       setLoading(false);
       return;
     }
@@ -51,7 +53,7 @@ export const ProposeAppointmentTimes = () => {
 
       // Convert to backend format: rescheduleOptions array
       const rescheduleOptions = options.map((opt) => ({
-        date: new Date(opt.date).toISOString(),
+        date: parseDate(opt.date).toISOString(),
         timeSlot: opt.timeSlot,
       }));
 

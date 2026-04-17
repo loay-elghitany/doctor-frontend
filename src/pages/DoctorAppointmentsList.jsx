@@ -5,7 +5,8 @@ import { MainLayout } from "../components/layout/Layout";
 import { Table, Tabs } from "../components/ui/DataDisplay";
 import { Button, Badge, Card, Alert, Spinner, Modal } from "../components/ui";
 import { appointmentService } from "../services/appointmentService";
-import { handleApiError } from "../utils/helpers";
+import { getStatusLabel, parseDate, handleApiError } from "../utils/helpers";
+import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { debugLog, debugError } from "../utils/debug";
 import { PrescriptionModal } from "../components/Prescription/PrescriptionModal";
 
@@ -80,15 +81,15 @@ export const DoctorAppointmentsList = () => {
       key: "date",
       label: "Date & Time",
       render: (apt) => {
-        if (!apt.date || !apt.timeSlot) return "-";
-        const dateObj = new Date(apt.date);
-        return `${dateObj.toLocaleDateString()} ${apt.timeSlot}`;
+        return `${formatDateSafe(apt.date)} ${apt.timeSlot || ""}`;
       },
     },
     {
       key: "status",
       label: "Status",
-      render: (val) => <Badge variant={val}>{val}</Badge>,
+      render: (val) => (
+        <Badge variant={String(val || "unknown")}>{getStatusLabel(val)}</Badge>
+      ),
     },
   ];
 
@@ -177,9 +178,8 @@ export const DoctorAppointmentsList = () => {
     if (!appointment) return false;
     const status = appointment.status;
     const now = new Date();
-    const datePast = appointment.date
-      ? new Date(appointment.date) < now
-      : false;
+    const appointmentDate = parseDate(appointment.date);
+    const datePast = appointmentDate ? appointmentDate < now : false;
     if (status === "cancelled") return true;
     if (status === "completed") return true;
     // Prevent deletion of future scheduled or confirmed appointments
@@ -368,13 +368,15 @@ export const DoctorAppointmentsList = () => {
                         {appointment.patientId?.name || "Unknown Patient"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {appointment.date && appointment.timeSlot
-                          ? `${new Date(appointment.date).toLocaleDateString()} ${appointment.timeSlot}`
+                        {appointment.date || appointment.timeSlot
+                          ? `${formatDateSafe(appointment.date)} ${appointment.timeSlot || ""}`
                           : "-"}
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <Badge variant={appointment.status}>
-                          {String(appointment.status || "").replace(/_/g, " ")}
+                        <Badge
+                          variant={String(appointment.status || "unknown")}
+                        >
+                          {getStatusLabel(appointment.status)}
                         </Badge>
                       </td>
                       <td className="px-6 py-4 text-sm space-x-2">

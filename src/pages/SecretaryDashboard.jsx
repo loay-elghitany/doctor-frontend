@@ -85,6 +85,7 @@ export const SecretaryDashboard = () => {
       const today = new Date().toISOString().split("T")[0];
       const todayAppointments = appointments.filter(
         (apt) =>
+          typeof apt.date === "string" &&
           apt.date.startsWith(today) &&
           ["scheduled", "confirmed"].includes(apt.status),
       ).length;
