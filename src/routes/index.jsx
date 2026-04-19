@@ -20,14 +20,16 @@ import { AdminDashboard } from "../pages/AdminDashboard.jsx";
 import { AdminAnalyticsPage } from "../pages/AdminAnalyticsPage.jsx";
 import { SecretaryDashboard } from "../pages/SecretaryDashboard.jsx";
 import { SecretaryAppointmentsList } from "../pages/SecretaryAppointmentsList.jsx";
+import { SecretaryAppointmentDetails } from "../pages/SecretaryAppointmentDetails.jsx";
 import { SecretaryPatientsList } from "../pages/SecretaryPatientsList.jsx";
+import { SecretaryPatientDetails } from "../pages/SecretaryPatientDetails.jsx";
 import { SecretaryCreateAppointment } from "../pages/SecretaryCreateAppointment.jsx";
 import ProtectedRoute from "../components/auth/ProtectedRoute.jsx";
 import AdminRoute from "../components/auth/AdminRoute.jsx";
 
 export const AppRoutes = () => {
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AnimatedRoutes />
     </Router>
   );
@@ -154,10 +156,26 @@ const AnimatedRoutes = () => {
           }
         />
         <Route
+          path="/secretary/appointments/:id"
+          element={
+            <ProtectedRoute requiredRole="secretary">
+              <SecretaryAppointmentDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/secretary/patients"
           element={
             <ProtectedRoute requiredRole="secretary">
               <SecretaryPatientsList />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/secretary/patients/:id"
+          element={
+            <ProtectedRoute requiredRole="secretary">
+              <SecretaryPatientDetails />
             </ProtectedRoute>
           }
         />

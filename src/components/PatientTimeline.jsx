@@ -33,7 +33,8 @@ export const PatientTimeline = () => {
 
   // Group events by date
   const groupedByDate = timeline.reduce((acc, event) => {
-    const dateKey = parseDate(event.eventDate)?.toLocaleDateString() || "Unknown Date";
+    const dateKey =
+      parseDate(event.eventDate)?.toLocaleDateString() || "Unknown Date";
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -89,135 +90,139 @@ export const PatientTimeline = () => {
             return (
               <div key={event.id} className="relative pl-20">
                 {/* Timeline dot */}
-              <div
-                className={`absolute left-0 w-9 h-9 rounded-full flex items-center justify-center -ml-4 ${
-                  event.type === "appointment"
-                    ? "bg-blue-500 text-white"
-                    : "bg-green-500 text-white"
-                }`}
-              >
-                {event.type === "appointment" ? (
-                  <span className="text-lg">📅</span>
-                ) : (
-                  <span className="text-lg">💊</span>
-                )}
-              </div>
-
-              {/* Timeline Card */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition">
-                {/* Event Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {event.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {formatDate(event.eventDate)}
-                    </p>
-                  </div>
-                  <span
-                    className={`inline-block px-2 py-1 text-xs font-medium rounded ${
-                      event.type === "appointment"
-                        ? "bg-blue-100 text-blue-800"
-                        : "bg-green-100 text-green-800"
-                    }`}
-                  >
-                    {event.type === "appointment"
-                      ? "Appointment"
-                      : "Prescription"}
-                  </span>
+                <div
+                  className={`absolute left-0 w-9 h-9 rounded-full flex items-center justify-center -ml-4 ${
+                    event.type === "appointment"
+                      ? "bg-blue-500 text-white"
+                      : "bg-green-500 text-white"
+                  }`}
+                >
+                  {event.type === "appointment" ? (
+                    <span className="text-lg">📅</span>
+                  ) : (
+                    <span className="text-lg">💊</span>
+                  )}
                 </div>
 
-                {/* Event Content based on type */}
-                {event.type === "appointment" && (
-                  <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
+                {/* Timeline Card */}
+                <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition">
+                  {/* Event Header */}
+                  <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="text-gray-600">
-                        <span className="font-medium">Doctor:</span>{" "}
-                        {metadata.doctorName || "Unknown"}
+                      <h3 className="font-semibold text-gray-900">
+                        {event.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {formatDate(event.eventDate)}
                       </p>
-                      {metadata.doctorSpecialization && (
+                    </div>
+                    <span
+                      className={`inline-block px-2 py-1 text-xs font-medium rounded ${
+                        event.type === "appointment"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-green-100 text-green-800"
+                      }`}
+                    >
+                      {event.type === "appointment"
+                        ? "Appointment"
+                        : "Prescription"}
+                    </span>
+                  </div>
+
+                  {/* Event Content based on type */}
+                  {event.type === "appointment" && (
+                    <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
+                      <div>
                         <p className="text-gray-600">
-                          <span className="font-medium">Specialty:</span>{" "}
-                          {metadata.doctorSpecialization}
+                          <span className="font-medium">Doctor:</span>{" "}
+                          {metadata.doctorName || "Unknown"}
                         </p>
+                        {metadata.doctorSpecialization && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Specialty:</span>{" "}
+                            {metadata.doctorSpecialization}
+                          </p>
+                        )}
+                      </div>
+
+                      <div>
+                        <p className="text-gray-600">
+                          <span className="font-medium">Time:</span>{" "}
+                          {metadata.timeSlot || "—"}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-gray-600">
+                          <span className="font-medium">Status:</span>
+                          <span
+                            className={`inline-block ml-2 px-2 py-0.5 rounded text-xs font-medium ${
+                              metadata.status === "confirmed"
+                                ? "bg-green-100 text-green-800"
+                                : metadata.status === "cancelled"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            {metadata.status || "Unknown"}
+                          </span>
+                        </p>
+                      </div>
+
+                      {metadata.notes && (
+                        <div>
+                          <p className="text-gray-600">
+                            <span className="font-medium">Notes:</span>
+                          </p>
+                          <p className="text-gray-700 mt-1 italic">
+                            {metadata.notes}
+                          </p>
+                        </div>
                       )}
                     </div>
+                  )}
 
-                    <div>
-                      <p className="text-gray-600">
-                        <span className="font-medium">Time:</span>{" "}
-                        {metadata.timeSlot || "—"}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-gray-600">
-                        <span className="font-medium">Status:</span>
-                        <span
-                          className={`inline-block ml-2 px-2 py-0.5 rounded text-xs font-medium ${
-                            metadata.status === "confirmed"
-                              ? "bg-green-100 text-green-800"
-                              : metadata.status === "cancelled"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
-                          }`}
-                        >
-                          {metadata.status || "Unknown"}
-                        </span>
-                      </p>
-                    </div>
-
-                    {metadata.notes && (
+                  {event.type === "prescription" && (
+                    <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
                       <div>
                         <p className="text-gray-600">
-                          <span className="font-medium">Notes:</span>
-                        </p>
-                        <p className="text-gray-700 mt-1 italic">
-                          {metadata.notes}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {event.type === "prescription" && (
-                  <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
-                    <div>
-                      <p className="text-gray-600">
-                        <span className="font-medium">Medications:</span>
-                      </p>
-                      <p className="text-gray-700 mt-1">
-                        {metadata.medicationSummary || "No medication details provided."}
-                      </p>
-                    </div>
-
-                    {metadata.diagnosis && (
-                      <div>
-                        <p className="text-gray-600">
-                          <span className="font-medium">Diagnosis:</span>
+                          <span className="font-medium">Medications:</span>
                         </p>
                         <p className="text-gray-700 mt-1">
-                          {metadata.diagnosis}
+                          {metadata.medicationSummary ||
+                            "No medication details provided."}
                         </p>
                       </div>
-                    )}
 
-                    {metadata.appointmentDate && (
-                      <div>
-                        <p className="text-gray-600 text-xs">
-                          Linked to appointment on{" "}
-                          {parseDate(metadata.appointmentDate)
-                            ? parseDate(metadata.appointmentDate).toLocaleDateString()
-                            : "Unknown Date"}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      {metadata.diagnosis && (
+                        <div>
+                          <p className="text-gray-600">
+                            <span className="font-medium">Diagnosis:</span>
+                          </p>
+                          <p className="text-gray-700 mt-1">
+                            {metadata.diagnosis}
+                          </p>
+                        </div>
+                      )}
+
+                      {metadata.appointmentDate && (
+                        <div>
+                          <p className="text-gray-600 text-xs">
+                            Linked to appointment on{" "}
+                            {parseDate(metadata.appointmentDate)
+                              ? parseDate(
+                                  metadata.appointmentDate,
+                                ).toLocaleDateString()
+                              : "Unknown Date"}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

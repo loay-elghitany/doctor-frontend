@@ -9,7 +9,7 @@ import { debugLog, debugError } from "../utils/debug";
 
 /**
  * ChooseAppointmentTime - Patient selects one of doctor's proposed reschedule times
- * Displays 3 reschedule options and submits selected optionIndex to backend
+ * Displays available reschedule options and submits selected optionIndex to backend
  */
 export const ChooseAppointmentTime = () => {
   const { id } = useParams();

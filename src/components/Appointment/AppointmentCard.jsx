@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Stethoscope } from "lucide-react";
 import { formatDateSafe } from "../../utils/date/formatDateSafe";
 import { getStatusLabel } from "../../utils/helpers";
+import { getAppointmentPermissions } from "../../utils/appointmentPermissions.js";
 
 // Appointment card component
 export const AppointmentCard = ({
@@ -14,7 +15,7 @@ export const AppointmentCard = ({
 }) => {
   const statusColors = {
     pending: "border-yellow-500",
-    confirmed: "border-green-500",
+    confirmed: "border-blue-500",
     scheduled: "border-blue-500",
     completed: "border-gray-500",
     cancelled: "border-red-500",
@@ -98,24 +99,29 @@ export const AppointmentCard = ({
             Choose New Time
           </button>
         )}
-        {(appointment.status === "scheduled" ||
-          appointment.status === "confirmed") &&
-          onMarkCompleted && (
-            <button
-              onClick={() => onMarkCompleted(appointment)}
-              className="btn-primary text-sm bg-green-600 hover:bg-green-700"
-            >
-              Mark Completed
-            </button>
-          )}
-        {isCancelled && onHide && (
-          <button
-            onClick={() => onHide(appointment)}
-            className="btn-secondary text-sm bg-red-100 text-red-700 hover:bg-red-200"
-          >
-            Remove
-          </button>
-        )}
+        {(() => {
+          const permissions = getAppointmentPermissions(appointment.status);
+          return (
+            <>
+              {permissions.canMarkCompleted && onMarkCompleted && (
+                <button
+                  onClick={() => onMarkCompleted(appointment)}
+                  className="btn-primary text-sm bg-green-600 hover:bg-green-700"
+                >
+                  Mark Completed
+                </button>
+              )}
+              {permissions.canDelete && onHide && (
+                <button
+                  onClick={() => onHide(appointment)}
+                  className="btn-secondary text-sm bg-red-100 text-red-700 hover:bg-red-200"
+                >
+                  Remove
+                </button>
+              )}
+            </>
+          );
+        })()}
         {onAction &&
           !isCancelled &&
           appointment.status !== "reschedule_proposed" &&

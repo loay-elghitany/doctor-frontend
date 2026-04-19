@@ -1,3 +1,5 @@
+import { normalizeStatus } from "./appointmentStatus.js";
+
 // Helper function to safely parse dates
 export const parseDate = (value) => {
   if (!value) return null;
@@ -41,7 +43,7 @@ export const getStatusLabel = (status) => {
   const labels = {
     pending: "Pending",
     confirmed: "Confirmed",
-    scheduled: "Scheduled",
+    scheduled: "Confirmed",
     completed: "Completed",
     cancelled: "Cancelled",
     rejected: "Rejected",
@@ -49,7 +51,7 @@ export const getStatusLabel = (status) => {
     reschedule_proposed: "Reschedule Proposed",
     unknown: "Unknown",
   };
-  return labels[status] || String(status || "Unknown");
+  return labels[normalizeStatus(status)] || String(status || "Unknown");
 };
 
 // Helper function to get status color class
@@ -57,14 +59,15 @@ export const getStatusColorClass = (status) => {
   const colors = {
     pending: "badge-pending",
     confirmed: "badge-confirmed",
-    scheduled: "badge-scheduled",
+    scheduled: "badge-confirmed",
     completed: "badge-completed",
     cancelled: "badge-cancelled",
     rejected: "badge-rejected",
     no_show: "badge-no-show",
     reschedule_proposed: "badge-reschedule-proposed",
   };
-  return colors[status] || "badge-pending";
+
+  return colors[normalizeStatus(status)] || "badge-pending";
 };
 
 // Helper function to handle API errors

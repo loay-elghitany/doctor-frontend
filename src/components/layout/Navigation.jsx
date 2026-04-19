@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { useAuth } from "../../context/AuthContext";
 import { motion } from "framer-motion";
 import {
   Home,
@@ -13,14 +12,17 @@ import {
   Sun,
   Moon,
 } from "lucide-react";
+import { useCurrentRole } from "../../hooks/useCurrentRole";
+import { useUnifiedLogout } from "../../hooks/useUnifiedLogout";
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 // Header component
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState("light");
-  const { isAuthenticated, userRole, isAdmin, logout } = useAuth();
+  const { role, isAdmin, isAuthenticated } = useCurrentRole();
+  const { handleLogout } = useUnifiedLogout();
 
   const roleNavItems = {
     patient: [
@@ -47,7 +49,7 @@ export const Header = () => {
   const navItems = isAuthenticated
     ? isAdmin
       ? roleNavItems.admin
-      : (roleNavItems[userRole] ?? [{ path: "/login", label: "Dashboard" }])
+      : (roleNavItems[role] ?? [{ path: "/login", label: "Dashboard" }])
     : [{ path: "/login", label: "Login" }];
 
   useEffect(() => {
@@ -64,9 +66,7 @@ export const Header = () => {
     localStorage.setItem("clinic-theme", theme);
   }, [theme]);
 
-  const handleLogout = () => {
-    logout();
-  };
+  // handleLogout is now provided by useUnifiedLogout hook
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
@@ -141,8 +141,8 @@ export const Header = () => {
 // Sidebar component
 export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
   const location = useLocation();
-  const { logout, userRole, isAdmin } = useAuth();
-  const currentRole = isAdmin ? "admin" : userRole;
+  const { role } = useCurrentRole();
+  const { handleLogout } = useUnifiedLogout();
 
   const patientLinks = [
     {
@@ -229,19 +229,17 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
   ];
 
   const links =
-    currentRole === "doctor"
+    role === "doctor"
       ? doctorLinks
-      : currentRole === "secretary"
+      : role === "secretary"
         ? secretaryLinks
-        : currentRole === "admin"
+        : role === "admin"
           ? adminLinks
-          : currentRole === "patient"
+          : role === "patient"
             ? patientLinks
             : [];
 
-  const handleLogout = () => {
-    logout();
-  };
+  // handleLogout is now provided by useUnifiedLogout hook
 
   return (
     <>

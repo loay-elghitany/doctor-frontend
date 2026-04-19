@@ -7,9 +7,11 @@ import { handleApiError, parseDate } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
 
 /**
- * ProposeAppointmentTimes - Doctor proposes 3 alternative time slots for rescheduling
+ * ProposeAppointmentTimes - Doctor proposes flexible alternative time slots for rescheduling
  * Sends rescheduleOptions to backend in format: [{ date: Date, timeSlot: "HH:MM" }, ...]
  */
+const MAX_RESCHEDULE_OPTIONS = 5;
+
 export const ProposeAppointmentTimes = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -17,17 +19,27 @@ export const ProposeAppointmentTimes = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // Form state: array of 3 options, each with date and timeSlot
-  const [options, setOptions] = useState([
-    { date: "", timeSlot: "09:00" },
-    { date: "", timeSlot: "10:00" },
-    { date: "", timeSlot: "11:00" },
-  ]);
+  const [options, setOptions] = useState([{ date: "", timeSlot: "09:00" }]);
+
+  const addOption = () => {
+    if (options.length >= MAX_RESCHEDULE_OPTIONS) {
+      setError(`You can provide up to ${MAX_RESCHEDULE_OPTIONS} options only.`);
+      return;
+    }
+    setOptions((prev) => [...prev, { date: "", timeSlot: "09:00" }]);
+  };
+
+  const removeOption = (index) => {
+    if (options.length === 1) return;
+    setOptions((prev) => prev.filter((_, idx) => idx !== index));
+  };
 
   const handleOptionChange = (index, field, value) => {
-    const newOptions = [...options];
-    newOptions[index] = { ...newOptions[index], [field]: value };
-    setOptions(newOptions);
+    setOptions((prev) =>
+      prev.map((option, idx) =>
+        idx === index ? { ...option, [field]: value } : option,
+      ),
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -36,11 +48,32 @@ export const ProposeAppointmentTimes = () => {
     setError("");
     setSuccess("");
 
-    // Validate all options are filled and parse to valid dates
+    // Validate options count and content
+    if (options.length < 1) {
+      setError("Add at least one proposed time option.");
+      setLoading(false);
+      return;
+    }
+
+    if (options.length > MAX_RESCHEDULE_OPTIONS) {
+      setError(`You can provide up to ${MAX_RESCHEDULE_OPTIONS} options only.`);
+      setLoading(false);
+      return;
+    }
+
     if (
       options.some((opt) => !opt.date || !opt.timeSlot || !parseDate(opt.date))
     ) {
-      setError("Please provide valid dates and times for all options");
+      setError("Please provide valid dates and times for all options.");
+      setLoading(false);
+      return;
+    }
+
+    const uniqueSet = new Set(
+      options.map((opt) => `${opt.date}|${opt.timeSlot}`),
+    );
+    if (uniqueSet.size !== options.length) {
+      setError("Remove duplicate date/time combinations.");
       setLoading(false);
       return;
     }
@@ -96,15 +129,30 @@ export const ProposeAppointmentTimes = () => {
         <Card>
           <form onSubmit={handleSubmit} className="space-y-6">
             <p className="text-gray-600 mb-4">
-              Provide exactly 3 date and time options for the patient to choose
-              from.
+              Propose between 1 and {MAX_RESCHEDULE_OPTIONS} time options for
+              the patient to choose from.
             </p>
 
             {options.map((option, index) => (
               <div key={index} className="border rounded p-4 bg-gray-50">
-                <h3 className="font-semibold text-gray-900 mb-4">
-                  Option {index + 1}
-                </h3>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3 className="font-semibold text-gray-900 mb-4">
+                      Option {index + 1}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="danger"
+                      size="sm"
+                      disabled={loading || options.length === 1}
+                      onClick={() => removeOption(index)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                </div>
                 <div className="space-y-4">
                   <Input
                     label="Date"
@@ -140,18 +188,29 @@ export const ProposeAppointmentTimes = () => {
               </div>
             ))}
 
-            <div className="flex gap-4">
-              <Button type="submit" variant="primary" disabled={loading}>
-                {loading ? "Proposing..." : "Propose Times"}
-              </Button>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 type="button"
                 variant="secondary"
-                disabled={loading}
-                onClick={() => navigate("/doctor/appointments")}
+                onClick={addOption}
+                disabled={loading || options.length >= MAX_RESCHEDULE_OPTIONS}
               >
-                Cancel
+                + Add time option
               </Button>
+
+              <div className="flex gap-4">
+                <Button type="submit" variant="primary" disabled={loading}>
+                  {loading ? "Proposing..." : "Propose Times"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={loading}
+                  onClick={() => navigate("/doctor/appointments")}
+                >
+                  Cancel
+                </Button>
+              </div>
             </div>
           </form>
         </Card>

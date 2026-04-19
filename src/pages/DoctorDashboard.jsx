@@ -26,8 +26,8 @@ import authService from "../services/authService";
 const DASHBOARD_STATUS_MAPPING = {
   // "Completed Appointments" = only appointments actually marked completed by doctor
   completedStatuses: ["completed"],
-  // "Upcoming Appointments" = scheduled or confirmed (backward compat) appointments
-  upcomingStatuses: ["scheduled", "confirmed"],
+  // "Upcoming Appointments" = scheduled appointments
+  upcomingStatuses: ["scheduled"],
   // "Pending Requests" = pending confirmation or awaiting patient choice on rescheduled times
   pendingStatuses: ["pending", "reschedule_proposed"],
 };
@@ -137,13 +137,19 @@ export const DoctorDashboard = () => {
         const upcomingList = [];
 
         appointments.forEach((apt) => {
+          const effectiveStatus =
+            apt.status === "confirmed" ? "scheduled" : apt.status;
           // Count by status
-          if (DASHBOARD_STATUS_MAPPING.pendingStatuses.includes(apt.status))
+          if (
+            DASHBOARD_STATUS_MAPPING.pendingStatuses.includes(effectiveStatus)
+          )
             pendingCount++;
           // Count actual completed appointments
-          if (DASHBOARD_STATUS_MAPPING.completedStatuses.includes(apt.status))
+          if (
+            DASHBOARD_STATUS_MAPPING.completedStatuses.includes(effectiveStatus)
+          )
             completedCount++;
-          if (apt.status === "cancelled") cancelledCount++;
+          if (effectiveStatus === "cancelled") cancelledCount++;
 
           const aptDateValue = parseDate(apt.date);
           if (aptDateValue) {
@@ -159,8 +165,8 @@ export const DoctorDashboard = () => {
             aptDateValue >= today &&
             aptDateValue <
               new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000) &&
-            apt.status !== "cancelled" &&
-            DASHBOARD_STATUS_MAPPING.upcomingStatuses.includes(apt.status)
+            effectiveStatus !== "cancelled" &&
+            DASHBOARD_STATUS_MAPPING.upcomingStatuses.includes(effectiveStatus)
           ) {
             upcomingList.push(apt);
           }
@@ -369,6 +375,8 @@ export const DoctorDashboard = () => {
             <div className="space-y-3">
               {upcomingAppointments.map((apt) => {
                 const aptDate = new Date(apt.date);
+                const effectiveStatus =
+                  apt.status === "confirmed" ? "scheduled" : apt.status;
                 const patientName = apt.patientId?.name || "Unknown Patient";
                 return (
                   <motion.div
@@ -390,16 +398,14 @@ export const DoctorDashboard = () => {
                     <div className="flex flex-wrap items-center gap-3">
                       <span
                         className={`badge ${
-                          apt.status === "scheduled"
+                          effectiveStatus === "scheduled"
                             ? "badge-scheduled"
-                            : apt.status === "confirmed"
-                              ? "badge-confirmed"
-                              : apt.status === "cancelled"
-                                ? "badge-cancelled"
-                                : "badge-pending"
+                            : effectiveStatus === "cancelled"
+                              ? "badge-cancelled"
+                              : "badge-pending"
                         }`}
                       >
-                        {apt.status}
+                        {effectiveStatus}
                       </span>
                       <button
                         onClick={() => navigate("/doctor/appointments")}

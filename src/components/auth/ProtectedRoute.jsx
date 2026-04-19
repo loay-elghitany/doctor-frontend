@@ -1,9 +1,13 @@
-import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useCurrentRole } from "../../hooks/useCurrentRole";
 
 /**
  * ProtectedRoute component for role-based access control
+ *
+ * Strictly validates user auth only (not admin):
+ * - If user is admin: block and redirect to /admin/dashboard
+ * - If user not authenticated: redirect to /login
+ * - If role doesn't match: redirect to role-specific dashboard
  *
  * Usage:
  * <ProtectedRoute requiredRole="patient">
@@ -19,49 +23,60 @@ const ProtectedRoute = ({
   requiredRole = null,
   requiredRoles = null,
 }) => {
-  const { isAuthenticated, loading, userRole, isAdmin } = useAuth();
+  const { isAuthenticated, loading, role, isAdmin } = useCurrentRole();
   const location = useLocation();
 
   if (loading) {
-    // You can add a loading spinner here
     return <div>Loading...</div>;
   }
 
-  if (!isAuthenticated) {
-    console.log(
-      "ProtectedRoute: User not authenticated, redirecting to login.",
-    );
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
+  // Block admin users from accessing normal user routes
   if (isAdmin) {
-    console.log(
-      "ProtectedRoute: Admin user detected, blocking access to non-admin route.",
-    );
+    if (import.meta.env.DEV) {
+      console.log(
+        "ProtectedRoute: Admin detected. Blocking access to user route. Redirecting to /admin/dashboard.",
+      );
+      console.log("Role Debug:", { isAdmin, role, isAuthenticated });
+    }
     return <Navigate to="/admin/dashboard" replace />;
   }
 
-  // Support both single role and multiple roles
-  const allowedRoles = requiredRoles || (requiredRole ? [requiredRole] : null);
-  if (!allowedRoles) {
-    console.log(
-      "ProtectedRoute: Missing requiredRole/requiredRoles, denying access.",
-    );
+  // Require user authentication
+  if (!isAuthenticated) {
+    if (import.meta.env.DEV) {
+      console.log(
+        "ProtectedRoute: User not authenticated. Redirecting to /login.",
+      );
+      console.log("Role Debug:", { isAdmin, role, isAuthenticated });
+    }
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  const normalizedAllowedRoles = allowedRoles.map((role) =>
-    String(role || "").toLowerCase(),
+  // Require either requiredRole or requiredRoles to be specified
+  const allowedRoles = requiredRoles || (requiredRole ? [requiredRole] : null);
+  if (!allowedRoles) {
+    if (import.meta.env.DEV) {
+      console.log(
+        "ProtectedRoute: Missing requiredRole/requiredRoles configuration. Denying access.",
+      );
+      console.log("Role Debug:", { isAdmin, role, isAuthenticated });
+    }
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Validate user role matches allowed roles
+  const normalizedAllowedRoles = allowedRoles.map((item) =>
+    String(item || "").toLowerCase(),
   );
   const normalizedUserRole =
-    typeof userRole === "string" ? userRole.toLowerCase() : userRole;
+    typeof role === "string" ? role.toLowerCase() : role;
 
-  // Check role if required
   if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
     if (import.meta.env.DEV) {
       console.log(
-        `ProtectedRoute: User role '${userRole}' does not match allowed roles [${allowedRoles.join(", ")}], redirecting.`,
+        `ProtectedRoute: User role '${role}' not in allowed roles [${allowedRoles.join(", ")}]. Redirecting to role dashboard.`,
       );
+      console.log("Role Debug:", { isAdmin, role, isAuthenticated });
     }
 
     const redirectPath =

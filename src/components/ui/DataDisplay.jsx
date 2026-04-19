@@ -58,7 +58,7 @@ export const Table = ({
                     >
                       {row
                         ? col.render
-                          ? col.render(row[col.key], row)
+                          ? col.render(row, row[col.key])
                           : (row[col.key] ?? "-")
                         : "-"}
                     </td>

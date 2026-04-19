@@ -1,23 +1,37 @@
-import React, { useContext } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import { AdminAuthContext } from "../../context/AdminAuthContext";
+import { useAdminAuth } from "../../context/AdminAuthContext";
 
+/**
+ * AdminRoute component for admin-only access control
+ *
+ * Strictly validates admin auth ONLY using AdminAuthContext:
+ * - Does NOT depend on user auth logic
+ * - Does NOT mix contexts
+ *
+ * Usage:
+ * <AdminRoute>
+ *   <AdminDashboard />
+ * </AdminRoute>
+ */
 const AdminRoute = ({ children }) => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
-  const { isAdminAuthenticated } = useContext(AdminAuthContext);
+  const { isAdminAuthenticated, loading } = useAdminAuth();
   const location = useLocation();
-  const adminAccess = isAdminAuthenticated || isAdmin;
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  if (!adminAccess) {
-    console.log(
-      "AdminRoute: Admin not authenticated, redirecting to admin login.",
-    );
+  if (!isAdminAuthenticated) {
+    if (import.meta.env.DEV) {
+      console.log(
+        "AdminRoute: Admin not authenticated. Redirecting to /admin/login.",
+      );
+    }
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  }
+
+  if (import.meta.env.DEV) {
+    console.log("AdminRoute: Admin authenticated. Granting access.");
   }
 
   return children;

@@ -14,6 +14,7 @@ import { Table } from "../components/ui/DataDisplay";
 import { createAdminService } from "../services/adminService";
 import { AdminAuthContext } from "../context/AdminAuthContext";
 import { handleApiError } from "../utils/helpers";
+import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { debugLog, debugError } from "../utils/debug";
 
 /**
@@ -110,8 +111,8 @@ export const AdminDashboard = () => {
     activeTab === "all"
       ? doctors
       : activeTab === "active"
-        ? doctors.filter((d) => d.isActive)
-        : doctors.filter((d) => !d.isActive);
+        ? doctors.filter((d) => Boolean(d.isActive))
+        : doctors.filter((d) => !Boolean(d.isActive));
 
   // Handle create doctor form submission
   const handleCreateSubmit = async (e) => {
@@ -246,11 +247,8 @@ export const AdminDashboard = () => {
     }
   };
 
-  // Format subscription dates
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString();
-  };
+  // Format subscription dates safely
+  const formatDate = (dateStr) => formatDateSafe(dateStr);
 
   // Doctor table columns
   const columns = [
@@ -260,16 +258,20 @@ export const AdminDashboard = () => {
     {
       key: "isActive",
       label: "Status",
-      render: (val) => (
-        <Badge variant={val ? "success" : "warning"}>
-          {val ? "Active" : "Inactive"}
-        </Badge>
-      ),
+      render: (row, _val) => {
+        const isActive = Boolean(row?.isActive);
+
+        return (
+          <Badge variant={isActive ? "success" : "warning"}>
+            {isActive ? "Active" : "Inactive"}
+          </Badge>
+        );
+      },
     },
     {
       key: "subscriptionStartedAt",
       label: "Started",
-      render: (val) => formatDate(val),
+      render: (_row, val) => formatDate(val),
     },
   ];
 
@@ -387,53 +389,59 @@ export const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDoctors.map((doctor) => (
-                    <tr key={doctor._id} className="border-b hover:bg-gray-50">
-                      {columns.map((col) => (
-                        <td
-                          key={`${doctor._id}-${col.key}`}
-                          className="px-6 py-3 text-sm text-gray-900"
-                        >
-                          {col.render
-                            ? col.render(doctor[col.key])
-                            : doctor[col.key]}
-                        </td>
-                      ))}
-                      <td className="px-6 py-3 text-sm">
-                        <div className="flex gap-2">
-                          {doctor.isActive ? (
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() =>
-                                confirmAction("deactivate", doctor)
-                              }
-                            >
-                              Pause
-                            </Button>
-                          ) : (
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() =>
-                                confirmAction("reactivate", doctor)
-                              }
-                            >
-                              Activate
-                            </Button>
-                          )}
-
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => confirmAction("delete", doctor)}
+                  {filteredDoctors.map((doctor) => {
+                    console.log("Doctor Row:", doctor);
+                    return (
+                      <tr
+                        key={doctor._id}
+                        className="border-b hover:bg-gray-50"
+                      >
+                        {columns.map((col) => (
+                          <td
+                            key={`${doctor._id}-${col.key}`}
+                            className="px-6 py-3 text-sm text-gray-900"
                           >
-                            Delete
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                            {col.render
+                              ? col.render(doctor, doctor[col.key])
+                              : doctor[col.key]}
+                          </td>
+                        ))}
+                        <td className="px-6 py-3 text-sm">
+                          <div className="flex gap-2">
+                            {Boolean(doctor.isActive) ? (
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() =>
+                                  confirmAction("deactivate", doctor)
+                                }
+                              >
+                                Pause
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="success"
+                                size="sm"
+                                onClick={() =>
+                                  confirmAction("reactivate", doctor)
+                                }
+                              >
+                                Activate
+                              </Button>
+                            )}
+
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => confirmAction("delete", doctor)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

@@ -166,7 +166,7 @@ export const SecretaryPatientsList = () => {
     {
       key: "name",
       header: "Name",
-      render: (_, patient) => (
+      render: (patient, value) => (
         <div className="font-medium text-gray-900 dark:text-white">
           {patient?.name ?? "-"}
         </div>
@@ -175,7 +175,7 @@ export const SecretaryPatientsList = () => {
     {
       key: "email",
       header: "Email",
-      render: (_, patient) => (
+      render: (patient, value) => (
         <div className="text-gray-600 dark:text-gray-300">
           {patient?.email ?? "-"}
         </div>
@@ -184,7 +184,7 @@ export const SecretaryPatientsList = () => {
     {
       key: "phone",
       header: "Phone",
-      render: (_, patient) => (
+      render: (patient, value) => (
         <div className="text-gray-600 dark:text-gray-300">
           {patient?.phoneNumber ?? "Not provided"}
         </div>
@@ -193,7 +193,7 @@ export const SecretaryPatientsList = () => {
     {
       key: "actions",
       header: "Actions",
-      render: (_, patient) => (
+      render: (patient, value) => (
         <div className="flex space-x-2">
           <Button
             variant="secondary"

@@ -21,16 +21,22 @@ export const addDoctorNote = async (
   noteContent,
   appointmentId = null,
 ) => {
+  const trimmedNote = String(noteContent || "").trim();
+  if (!patientId || !trimmedNote) {
+    throw new Error("Missing patientId or noteContent before API call");
+  }
+
   try {
     const response = await api.post(
       `/doctor/patients/${patientId}/timeline-note`,
       {
-        noteContent,
-        appointmentId,
+        patientId,
+        noteContent: trimmedNote,
+        appointmentId: appointmentId || null,
       },
     );
     return response.data;
   } catch (error) {
-    throw error.response?.data || error.message;
+    throw error;
   }
 };

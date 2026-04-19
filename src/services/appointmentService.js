@@ -56,18 +56,18 @@ export const appointmentService = {
 
   // Soft-delete a single appointment from doctor's dashboard
   softDeleteAppointment: (appointmentId) =>
-    api.post(`/doctor/appointments/${appointmentId}/soft-delete`),
+    api.post(`/doctor-appointments/${appointmentId}/soft-delete`),
 
   // Bulk smart cleanup
-  bulkCleanupAppointments: () => api.post(`/doctor/appointments/clean-old`),
+  bulkCleanupAppointments: () => api.post(`/doctor-appointments/clean-old`),
 
   proposeRescheduleTimes: (appointmentId, rescheduleOptions) =>
-    api.patch(`/doctor/appointments/${appointmentId}/propose-times`, {
+    api.patch(`/doctor-appointments/${appointmentId}/propose-times`, {
       rescheduleOptions,
     }),
 
   updateAppointmentStatus: (appointmentId, status, date, timeSlot) =>
-    api.put(`/doctor/appointments/${appointmentId}`, {
+    api.put(`/doctor-appointments/${appointmentId}`, {
       status,
       date,
       timeSlot,
@@ -75,11 +75,11 @@ export const appointmentService = {
 
   // Doctor cancel appointment - NOW USES DELETE (backend hardening change)
   cancelDoctorAppointment: (appointmentId) =>
-    api.delete(`/doctor/appointments/${appointmentId}`),
+    api.delete(`/doctor-appointments/${appointmentId}`),
 
   // Doctor mark appointment as completed
   markAppointmentCompleted: (appointmentId, notes) =>
-    api.post(`/doctor/appointments/${appointmentId}/mark-completed`, { notes }),
+    api.post(`/doctor-appointments/${appointmentId}/mark-completed`, { notes }),
 
   // Secretary-specific methods - REMOVED: now use unified endpoints
   // getSecretaryAppointments: () => api.get("/secretary/appointments"),

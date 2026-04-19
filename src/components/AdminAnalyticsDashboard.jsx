@@ -497,7 +497,10 @@ const AdminAnalyticsDashboard = () => {
                   className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
                 >
                   <p className="font-bold text-gray-800">
-                    {patient.name || patient.patientId}
+                    {patient.patientName ||
+                      patient.name ||
+                      patient.patientId ||
+                      "Unknown Patient"}
                   </p>
                   <p className="text-sm text-gray-600">{patient.email}</p>
                   <p className="mt-2 text-lg font-bold text-blue-600">

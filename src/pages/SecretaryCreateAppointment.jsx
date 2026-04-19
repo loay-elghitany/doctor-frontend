@@ -5,6 +5,8 @@ import { MainLayout } from "../components/layout/Layout";
 import { Button, Card, Alert, Spinner, Input } from "../components/ui";
 import { patientService } from "../services/patientService";
 import { debugLog, debugError } from "../utils/debug";
+import { appointmentService } from "../services/appointmentService";
+import { handleApiError } from "../utils/helpers";
 
 /**
  * SecretaryCreateAppointment - Create new appointments for patients

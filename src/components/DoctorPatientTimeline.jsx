@@ -11,6 +11,7 @@ import { formatDate } from "../utils/helpers";
  * Displays complete medical history for a patient
  * Allows doctor to add notes and view all events
  */
+
 export const DoctorPatientTimeline = ({ patientId, patientName }) => {
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +21,11 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
   const [noteContent, setNoteContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
-
+  console.log("DEBUG NOTE:", {
+    patientId,
+    noteContent,
+    selectedAppointmentId,
+  });
   useEffect(() => {
     fetchTimeline();
   }, [patientId]);

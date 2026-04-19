@@ -11,6 +11,7 @@ import { handleApiError } from "../utils/helpers";
 import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { useNavigate } from "react-router-dom";
 import { PrescriptionModal } from "../components/Prescription/PrescriptionModal";
+import { formatDate } from "../utils/helpers";
 
 const PATIENT_TOUR_STEPS = [
   {

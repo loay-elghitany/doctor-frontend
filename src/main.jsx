@@ -9,11 +9,11 @@ import "./index.css";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <ErrorBoundary>
-      <AuthProvider>
-        <AdminAuthProvider>
+      <AdminAuthProvider>
+        <AuthProvider>
           <AppRoutes />
-        </AdminAuthProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </AdminAuthProvider>
     </ErrorBoundary>
   </React.StrictMode>,
 );

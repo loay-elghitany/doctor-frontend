@@ -83,12 +83,15 @@ export const SecretaryDashboard = () => {
 
       // Calculate stats even if some data is missing
       const today = new Date().toISOString().split("T")[0];
-      const todayAppointments = appointments.filter(
-        (apt) =>
+      const todayAppointments = appointments.filter((apt) => {
+        const effectiveStatus =
+          apt.status === "confirmed" ? "scheduled" : apt.status;
+        return (
           typeof apt.date === "string" &&
           apt.date.startsWith(today) &&
-          ["scheduled", "confirmed"].includes(apt.status),
-      ).length;
+          ["scheduled"].includes(effectiveStatus)
+        );
+      }).length;
 
       const pendingAppointments = appointments.filter((apt) =>
         ["pending", "reschedule_proposed"].includes(apt.status),

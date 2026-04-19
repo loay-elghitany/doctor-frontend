@@ -8,6 +8,9 @@ export const Button = ({
   size = "md",
   disabled = false,
   type = "button",
+  fullWidth = false,
+  loading = false,
+  isLoading = false,
   className = "",
   ...props
 }) => {
@@ -19,15 +22,17 @@ export const Button = ({
       : size === "lg"
         ? "px-6 py-3 text-lg"
         : "";
+  const widthClass = fullWidth ? "w-full" : "";
+  const isBusy = loading || isLoading;
 
   return (
     <motion.button
       type={type}
       onClick={onClick}
-      disabled={disabled}
-      className={`${baseClass} ${variantClass} ${sizeClass} ${disabled ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
-      whileHover={!disabled ? { scale: 1.05 } : {}}
-      whileTap={!disabled ? { scale: 0.97 } : {}}
+      disabled={disabled || isBusy}
+      className={`${baseClass} ${variantClass} ${sizeClass} ${widthClass} ${disabled || isBusy ? "opacity-50 cursor-not-allowed" : ""} ${className}`}
+      whileHover={!(disabled || isBusy) ? { scale: 1.05 } : {}}
+      whileTap={!(disabled || isBusy) ? { scale: 0.97 } : {}}
       transition={{ type: "spring", stiffness: 300, damping: 22 }}
       {...props}
     >

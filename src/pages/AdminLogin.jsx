@@ -4,17 +4,19 @@ import { MainLayout } from "../components/layout/Layout";
 import { Input, Button, Alert, Card } from "../components/ui";
 import { AdminAuthContext } from "../context/AdminAuthContext";
 import { debugLog, debugError } from "../utils/debug";
+import api from "../services/api.js";
 
 /**
  * AdminLogin - Admin authentication page
- * Admin enters ADMIN_SECRET_TOKEN to access subscription management dashboard
+ * Admin enters email and password to access subscription management dashboard
  */
 export const AdminLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAdminAuthenticated } = useContext(AdminAuthContext);
 
-  const [token, setToken] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     if (isAdminAuthenticated) {
@@ -31,8 +33,8 @@ export const AdminLogin = () => {
     setLoading(true);
     setError("");
 
-    if (!token.trim()) {
-      setError("Admin token is required");
+    if (!email.trim() || !password.trim()) {
+      setError("Email and password are required");
       setLoading(false);
       return;
     }
@@ -40,11 +42,16 @@ export const AdminLogin = () => {
     try {
       debugLog("AdminLogin", "Admin authentication attempt");
 
-      // Store token in context and localStorage
-      login(token);
+      const res = await api.post("/admin/login", {
+        email,
+        password,
+      });
+
+      login(res.data.token);
 
       debugLog("AdminLogin", "Admin authenticated successfully");
-      setToken("");
+      setEmail("");
+      setPassword("");
 
       // Redirect to admin dashboard
       navigate("/admin/dashboard");
@@ -71,12 +78,23 @@ export const AdminLogin = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
-              label="Admin Authentication Token"
+              label="Email"
+              type="email"
+              name="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your admin email"
+              disabled={loading}
+              required
+            />
+
+            <Input
+              label="Password"
               type="password"
-              name="token"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              placeholder="Enter your admin secret token"
+              name="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter your password"
               disabled={loading}
               required
             />

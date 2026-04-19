@@ -1,17 +1,32 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import api, { setupInterceptors } from "../services/api";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
+import { setupInterceptors } from "../services/api";
 import {
   setAuthToken,
   clearAuthToken,
   getAuthToken,
-  getAdminToken,
-  clearAdminToken,
   parseJwtToken,
 } from "../utils/helpers";
 import authService from "../services/authService";
 import { debugLog, debugError } from "../utils/debug";
 
-const AuthContext = createContext();
+const defaultAuthContextValue = {
+  user: null,
+  isAuthenticated: false,
+  loading: true,
+  userRole: null,
+  isAdmin: false,
+  login: async () => {},
+  logout: () => {},
+};
+
+const AuthContext = createContext(defaultAuthContextValue);
 
 export const useAuth = () => {
   return useContext(AuthContext);
@@ -22,23 +37,20 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     debugLog("AuthContext:logout", "Logging out user");
     clearAuthToken();
-    clearAdminToken();
-    window.dispatchEvent(new CustomEvent("adminAuthChanged"));
     setUser(null);
     setIsAuthenticated(false);
     setUserRole(null);
-    setIsAdmin(false);
-  };
+
+    // Force immediate redirect to login
+    window.location.href = "/login";
+  }, []);
 
   useEffect(() => {
     setupInterceptors(logout);
-
-    const getSavedAdminToken = () => getAdminToken();
 
     const loadUserFromToken = async (token) => {
       setAuthToken(token); // Ensure axios header is set
@@ -76,26 +88,11 @@ export const AuthProvider = ({ children }) => {
 
     const initializeAuth = async () => {
       debugLog("AuthContext:loadUser", "Checking for token and loading user");
-      const adminToken = getSavedAdminToken();
-
-      if (adminToken) {
-        debugLog(
-          "AuthContext:loadUser",
-          "Admin token found, activating admin mode",
-        );
-        setIsAdmin(true);
-        setIsAuthenticated(true);
-        setUser(null);
-        setUserRole(null);
-        setLoading(false);
-        return;
-      }
 
       const token = getAuthToken();
       if (!token) {
         debugLog("AuthContext:loadUser", "No token found");
         setIsAuthenticated(false);
-        setIsAdmin(false);
         setUser(null);
         setUserRole(null);
         setLoading(false);
@@ -117,40 +114,26 @@ export const AuthProvider = ({ children }) => {
 
     initializeAuth();
 
-    const handleAdminAuthChanged = () => {
-      const adminToken = getSavedAdminToken();
-      if (adminToken) {
+    const handleStorageChange = () => {
+      // Handle storage changes (like token removal from other tabs)
+      const currentToken = getAuthToken();
+      if (!currentToken && isAuthenticated) {
         debugLog(
-          "AuthContext:adminAuthChanged",
-          "Admin auth detected, switching to admin mode",
+          "AuthContext:storage",
+          "Token removed from storage, logging out",
         );
-        setIsAdmin(true);
-        setIsAuthenticated(true);
-        setUser(null);
-        setUserRole(null);
-        setLoading(false);
-        return;
+        logout();
       }
-
-      debugLog(
-        "AuthContext:adminAuthChanged",
-        "Admin auth cleared, reloading normal auth",
-      );
-      setIsAdmin(false);
-      setLoading(true);
-      initializeAuth();
     };
 
-    window.addEventListener("adminAuthChanged", handleAdminAuthChanged);
-    window.addEventListener("storage", handleAdminAuthChanged);
+    window.addEventListener("storage", handleStorageChange);
 
     return () => {
-      window.removeEventListener("adminAuthChanged", handleAdminAuthChanged);
-      window.removeEventListener("storage", handleAdminAuthChanged);
+      window.removeEventListener("storage", handleStorageChange);
     };
-  }, []);
+  }, [isAuthenticated, logout]);
 
-  const login = async (email, password, userType) => {
+  const login = useCallback(async (email, password, userType) => {
     debugLog("AuthContext:login", "Starting login", { email, userType });
     try {
       debugLog("AuthContext:login", "Calling auth service");
@@ -172,8 +155,6 @@ export const AuthProvider = ({ children }) => {
 
       setAuthToken(token);
       localStorage.setItem("token", token);
-      clearAdminToken();
-      setIsAdmin(false);
 
       // Safely decode token to get role
       let role = null;
@@ -220,9 +201,6 @@ export const AuthProvider = ({ children }) => {
 
       setUser(profileResponse.data.data);
       setIsAuthenticated(true);
-      if (!getAdminToken()) {
-        setIsAdmin(false);
-      }
       debugLog("AuthContext:login", "Login completed successfully");
       return profileResponse.data.data;
     } catch (err) {
@@ -236,17 +214,20 @@ export const AuthProvider = ({ children }) => {
       setUserRole(null);
       throw err;
     }
-  };
+  }, []);
 
-  const value = {
-    user,
-    isAuthenticated,
-    loading,
-    userRole,
-    isAdmin,
-    login,
-    logout,
-  };
+  const value = useMemo(
+    () => ({
+      user,
+      isAuthenticated,
+      loading,
+      userRole,
+      isAdmin: false,
+      login,
+      logout,
+    }),
+    [user, isAuthenticated, loading, userRole, login, logout],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

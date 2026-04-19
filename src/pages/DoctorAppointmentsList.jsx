@@ -6,10 +6,15 @@ import { Table, Tabs } from "../components/ui/DataDisplay";
 import { Button, Badge, Card, Alert, Spinner, Modal } from "../components/ui";
 import { appointmentService } from "../services/appointmentService";
 import { getStatusLabel, parseDate, handleApiError } from "../utils/helpers";
+import {
+  normalizeStatus,
+  buildStatusTabs,
+} from "../utils/appointmentStatus.js";
 import { formatDateSafe } from "../utils/date/formatDateSafe";
-import { debugLog, debugError } from "../utils/debug";
+import { getAppointmentPermissions } from "../utils/appointmentPermissions.js";
 import { PrescriptionModal } from "../components/Prescription/PrescriptionModal";
-
+import { RescheduleModal } from "../components/appointments/RescheduleModal.jsx";
+import { debugLog, debugError } from "../utils/debug";
 /**
  * DoctorAppointmentsList - Display and manage appointments for authenticated doctor
  * Fetches appointments using doctor authentication from JWT token
@@ -24,13 +29,7 @@ export const DoctorAppointmentsList = () => {
   const [success, setSuccess] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
-  const tabs = [
-    { id: "all", label: "All" },
-    { id: "pending", label: "Pending" },
-    { id: "confirmed", label: "Confirmed" },
-    { id: "cancelled", label: "Cancelled" },
-    { id: "reschedule_proposed", label: "Awaiting Reschedule" },
-  ];
+  const tabs = buildStatusTabs(appointments);
 
   // Fetch doctor appointments on mount
   const fetchAppointments = async () => {
@@ -67,12 +66,29 @@ export const DoctorAppointmentsList = () => {
   const [cleanupLoading, setCleanupLoading] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showPrescriptions, setShowPrescriptions] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
 
   // Filter appointments by active tab
   const filteredAppointments =
     activeTab === "all"
       ? appointments
-      : appointments.filter((apt) => apt.status === activeTab);
+      : appointments.filter((apt) => {
+          const effectiveStatus = normalizeStatus(apt.status);
+          return effectiveStatus === activeTab;
+        });
+
+  const normalizedStatusCounts = appointments.reduce((counts, appointment) => {
+    const effectiveStatus = normalizeStatus(appointment?.status);
+    if (!effectiveStatus) return counts;
+    counts[effectiveStatus] = (counts[effectiveStatus] || 0) + 1;
+    return counts;
+  }, {});
+
+  React.useEffect(() => {
+    if (activeTab !== "all" && !normalizedStatusCounts[activeTab]) {
+      setActiveTab("all");
+    }
+  }, [activeTab, normalizedStatusCounts]);
 
   // Format display data
   const columns = [
@@ -80,16 +96,21 @@ export const DoctorAppointmentsList = () => {
     {
       key: "date",
       label: "Date & Time",
-      render: (apt) => {
-        return `${formatDateSafe(apt.date)} ${apt.timeSlot || ""}`;
+      render: (appointment, value) => {
+        return `${formatDateSafe(appointment.date)} ${appointment.timeSlot || ""}`;
       },
     },
     {
       key: "status",
       label: "Status",
-      render: (val) => (
-        <Badge variant={String(val || "unknown")}>{getStatusLabel(val)}</Badge>
-      ),
+      render: (_appointment, value) => {
+        const effectiveStatus = normalizeStatus(value);
+        return (
+          <Badge variant={String(effectiveStatus || "unknown")}>
+            {getStatusLabel(value)}
+          </Badge>
+        );
+      },
     },
   ];
 
@@ -107,7 +128,7 @@ export const DoctorAppointmentsList = () => {
         appointment.timeSlot,
       );
 
-      setSuccess("Appointment confirmed!");
+      setSuccess("Appointment scheduled!");
       setAppointments((prev) =>
         prev.map((apt) =>
           apt._id === appointment._id ? { ...apt, status: "scheduled" } : apt,
@@ -168,10 +189,8 @@ export const DoctorAppointmentsList = () => {
   };
 
   const handleProposeTimes = (appointment) => {
-    debugLog("DoctorAppointmentsList", "Navigating to propose times", {
-      appointmentId: appointment._id,
-    });
-    navigate(`/doctor/appointments/${appointment._id}/propose`);
+    setSelectedAppointment(appointment);
+    setShowRescheduleModal(true);
   };
 
   const isDeletable = (appointment) => {
@@ -374,7 +393,9 @@ export const DoctorAppointmentsList = () => {
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <Badge
-                          variant={String(appointment.status || "unknown")}
+                          variant={String(
+                            normalizeStatus(appointment.status) || "unknown",
+                          )}
                         >
                           {getStatusLabel(appointment.status)}
                         </Badge>
@@ -390,64 +411,70 @@ export const DoctorAppointmentsList = () => {
                         >
                           Prescriptions
                         </Button>
-                        {appointment.status === "pending" && (
-                          <>
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() => handleAccept(appointment)}
-                            >
-                              Accept
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleReject(appointment)}
-                            >
-                              Reject
-                            </Button>
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={() => handleProposeTimes(appointment)}
-                            >
-                              Suggest Times
-                            </Button>
-                          </>
-                        )}
-                        {(appointment.status === "confirmed" ||
-                          appointment.status === "scheduled") && (
-                          <>
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() => handleMarkCompleted(appointment)}
-                            >
-                              Mark Completed
-                            </Button>
-                            <Button
-                              variant="danger"
-                              size="sm"
-                              onClick={() => handleReject(appointment)}
-                            >
-                              Cancel
-                            </Button>
-                          </>
-                        )}
-                        {appointment.status === "reschedule_proposed" && (
-                          <span className="text-sm text-gray-500">
-                            Awaiting patient response
-                          </span>
-                        )}
-                        {isDeletable(appointment) && (
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => confirmDelete(appointment)}
-                          >
-                            Delete
-                          </Button>
-                        )}
+                        {(() => {
+                          const permissions = getAppointmentPermissions(
+                            appointment.status,
+                          );
+                          return (
+                            <>
+                              {permissions.canConfirm && (
+                                <Button
+                                  variant="success"
+                                  size="sm"
+                                  onClick={() => handleAccept(appointment)}
+                                >
+                                  Accept
+                                </Button>
+                              )}
+                              {permissions.canCancel && (
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() => handleReject(appointment)}
+                                >
+                                  Cancel
+                                </Button>
+                              )}
+                              {permissions.canReschedule && (
+                                <Button
+                                  variant="warning"
+                                  size="sm"
+                                  className="flex items-center gap-2"
+                                  onClick={() =>
+                                    handleProposeTimes(appointment)
+                                  }
+                                >
+                                  ⟳ Reschedule
+                                </Button>
+                              )}
+                              {permissions.canMarkCompleted && (
+                                <Button
+                                  variant="success"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleMarkCompleted(appointment)
+                                  }
+                                >
+                                  Mark Completed
+                                </Button>
+                              )}
+                              {appointment.status === "reschedule_proposed" && (
+                                <span className="text-sm text-gray-500">
+                                  Awaiting patient response
+                                </span>
+                              )}
+                              {permissions.canDelete && (
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() => confirmDelete(appointment)}
+                                >
+                                  Delete
+                                </Button>
+                              )}
+                            </>
+                          );
+                        })()}
                       </td>
                     </motion.tr>
                   ))}
@@ -456,6 +483,20 @@ export const DoctorAppointmentsList = () => {
             </div>
           )}
         </Card>
+
+        <RescheduleModal
+          isOpen={showRescheduleModal}
+          onClose={() => {
+            setShowRescheduleModal(false);
+            setSelectedAppointment(null);
+          }}
+          appointmentId={selectedAppointment?._id}
+          role="doctor"
+          onSuccess={async () => {
+            await fetchAppointments();
+            setSuccess("Reschedule options proposed successfully.");
+          }}
+        />
 
         {/* Prescriptions Modal */}
         {showPrescriptions && selectedAppointment && (
