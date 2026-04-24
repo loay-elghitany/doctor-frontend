@@ -6,6 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import authService from "../services/authService";
 import { motion } from "framer-motion";
 import { Users, Calendar, Lock, BarChart3 } from "lucide-react";
+import { getTenantSubdomain, getMainDomain } from "../utils/subdomain";
 
 // Enhanced Home/Landing Page
 export const Home = () => {
@@ -402,6 +403,7 @@ export const Login = () => {
   const [password, setPassword] = React.useState("");
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
+  const clinicSlug = React.useMemo(() => getTenantSubdomain(), []);
 
   const defaultRedirect =
     userType === "patient"
@@ -437,12 +439,52 @@ export const Login = () => {
       setLoading(false);
       return;
     }
+    if (userType === "patient" && !clinicSlug) {
+      setError("Please log in from your clinic subdomain.");
+      setLoading(false);
+      return;
+    }
 
     console.log("Login attempt:", { userType, email: trimmedEmail });
 
     try {
-      const user = await login(trimmedEmail, password, userType);
+      const user = await login(trimmedEmail, password, userType, { clinicSlug });
       console.log("Login success:", user);
+
+      // Tenant-aware redirection logic
+      const currentSubdomain = getTenantSubdomain();
+      const userClinicSlug = user.clinicSlug;
+
+      console.log("Tenant check:", {
+        currentSubdomain,
+        userClinicSlug,
+        userType,
+      });
+
+      // For doctors, patients, and secretaries, check if they belong to the current subdomain
+      if (
+        (userType === "doctor" || userType === "patient" || userType === "secretary") &&
+        userClinicSlug
+      ) {
+        // Case B: Mismatch - redirect to correct subdomain
+        if (currentSubdomain !== userClinicSlug) {
+          console.log(
+            "Subdomain mismatch detected. Redirecting to correct tenant.",
+            {
+              from: currentSubdomain || "(no subdomain)",
+              to: userClinicSlug,
+              userType,
+            }
+          );
+
+          // Construct the correct URL for the user's tenant
+          const correctUrl = buildTenantUrl(userClinicSlug, "/dashboard");
+          window.location.href = correctUrl;
+          return; // Exit to prevent further navigation
+        }
+      }
+
+      // Case A: Matches - proceed with normal navigation
       navigate(from, { replace: true });
     } catch (err) {
       const errorMessage =
@@ -454,6 +496,40 @@ export const Login = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  /**
+   * Build a URL for a specific tenant subdomain
+   * Handles both development (localhost) and production (Vercel/Render) environments
+   */
+  const buildTenantUrl = (tenantSlug, path = "/dashboard") => {
+    const host = window.location.host; // e.g., "mohamed.localhost:5173" OR "clinic.vercel.app" OR "myclinic.com"
+    const protocol = window.location.protocol; // http: or https:
+    
+    let baseDomain;
+    
+    // Logic to strip the current subdomain and get the base domain
+    if (host.includes('localhost')) {
+        // For Local Development
+        baseDomain = 'localhost:5173';
+    } else {
+        // For Production (Vercel/Render/Custom Domain)
+        // This logic removes the first part (subdomain) and keeps the rest
+        const parts = host.split('.');
+        if (parts.length > 2) {
+            // if it's "mohamed.myclinic.com" -> returns "myclinic.com"
+            // if it's "mohamed.clinic.vercel.app" -> returns "clinic.vercel.app"
+            baseDomain = parts.slice(1).join('.');
+        } else {
+            baseDomain = host;
+        }
+    }
+    
+    // Construct the final URL
+    const correctHostname = `${tenantSlug}.${baseDomain}`;
+    const correctUrl = `${protocol}//${correctHostname}${path}`;
+    
+    return correctUrl;
   };
 
   return (

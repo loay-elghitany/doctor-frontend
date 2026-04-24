@@ -1,4 +1,37 @@
 import { AnimatePresence, motion } from "framer-motion";
+import {
+  GlassCard,
+  Skeleton,
+  StatCardSkeleton,
+  AppointmentSkeleton,
+  EmptyState,
+  PremiumSearch,
+  PremiumProgressBar,
+  StatusBadge,
+  InvoiceCard,
+  TimelineEvent,
+  LoadingSpinner,
+  QuickActionButton,
+  BentoGridItem,
+  WizardStep,
+} from "./PremiumUI";
+
+export {
+  GlassCard,
+  Skeleton,
+  StatCardSkeleton,
+  AppointmentSkeleton,
+  EmptyState,
+  PremiumSearch,
+  PremiumProgressBar,
+  StatusBadge,
+  InvoiceCard,
+  TimelineEvent,
+  LoadingSpinner,
+  QuickActionButton,
+  BentoGridItem,
+  WizardStep,
+};
 
 // Button component
 export const Button = ({

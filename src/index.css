@@ -1,3 +1,7 @@
+/* Import Modern Design System - must come before other styles */
+@import "./styles/design-system.css";
+@import "./styles/rtl.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -7,6 +11,16 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* Apply modern font family */
+body {
+  font-family: var(--font-family);
+}
+
+/* RTL support for Arabic */
+[dir="rtl"] body {
+  font-family: var(--font-family-arabic);
 }
 
 :root {

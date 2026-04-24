@@ -24,8 +24,11 @@ import { SecretaryAppointmentDetails } from "../pages/SecretaryAppointmentDetail
 import { SecretaryPatientsList } from "../pages/SecretaryPatientsList.jsx";
 import { SecretaryPatientDetails } from "../pages/SecretaryPatientDetails.jsx";
 import { SecretaryCreateAppointment } from "../pages/SecretaryCreateAppointment.jsx";
+import { DoctorClinicProfile } from "../pages/DoctorClinicProfile.jsx";
+import { DoctorLandingPage } from "../components/DoctorLandingPage.jsx";
 import ProtectedRoute from "../components/auth/ProtectedRoute.jsx";
 import AdminRoute from "../components/auth/AdminRoute.jsx";
+import { isTenantSubdomain } from "../utils/subdomain.js";
 
 export const AppRoutes = () => {
   return (
@@ -37,12 +40,13 @@ export const AppRoutes = () => {
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  const renderTenantLanding = isTenantSubdomain();
 
   return (
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         {/* Public Routes */}
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={renderTenantLanding ? <DoctorLandingPage /> : <Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
@@ -118,6 +122,14 @@ const AnimatedRoutes = () => {
           element={
             <ProtectedRoute requiredRole="doctor">
               <DoctorPatientRecords />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/clinic-profile"
+          element={
+            <ProtectedRoute requiredRole="doctor">
+              <DoctorClinicProfile />
             </ProtectedRoute>
           }
         />

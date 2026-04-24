@@ -35,10 +35,14 @@ const authService = {
       });
   },
 
-  loginPatient: (email, password) => {
+  loginPatient: (email, password, clinicSlug) => {
     debugLog("authService:loginPatient", "Sending request", { email });
+    const payload = { email, password, role: "patient" };
+    if (clinicSlug) {
+      payload.clinicSlug = clinicSlug;
+    }
     return api
-      .post("/patients/login", { email, password, role: "patient" })
+      .post("/patients/login", payload)
       .then((res) => {
         debugLog("authService:loginPatient", "Success response received", {
           hasToken: !!res.data?.data?.token,

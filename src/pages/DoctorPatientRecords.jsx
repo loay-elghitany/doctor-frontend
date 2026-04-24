@@ -1,18 +1,43 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
-import { Spinner, Alert } from "../components/ui";
+import {
+  GlassCard,
+  BentoGridItem,
+  StatusBadge,
+  EmptyState,
+  LoadingSpinner,
+  PremiumSearch,
+} from "../components/ui";
 import { DoctorPatientTimeline } from "../components/DoctorPatientTimeline";
 import { handleApiError } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
 import api from "../services/api";
 import WhatsAppButtonForDoctor from "../components/WhatsAppButtonForDoctor";
+import {
+  Users,
+  Search,
+  Calendar,
+  Phone,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+  History,
+  Filter,
+  ArrowRight,
+  Activity,
+  Clock,
+  FileText,
+} from "lucide-react";
 
 export const DoctorPatientRecords = () => {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterType, setFilterType] = useState("all"); // all, upcoming, past, cancelled
+  const [filterType, setFilterType] = useState("all");
   const [expandedPatientId, setExpandedPatientId] = useState(null);
   const [selectedPatientForTimeline, setSelectedPatientForTimeline] =
     useState(null);
@@ -122,222 +147,394 @@ export const DoctorPatientRecords = () => {
     return true;
   });
 
+  // Calculate stats
+  const stats = {
+    total: patients.length,
+    withUpcoming: patients.filter(
+      (p) =>
+        p.lastAppointmentDate && new Date(p.lastAppointmentDate) >= new Date(),
+    ).length,
+    withPast: patients.filter(
+      (p) =>
+        p.lastAppointmentDate && new Date(p.lastAppointmentDate) < new Date(),
+    ).length,
+  };
+
+  const statCards = [
+    {
+      title: "Total Patients",
+      value: stats.total,
+      icon: Users,
+      gradient: "from-blue-500 to-cyan-400",
+    },
+    {
+      title: "Upcoming Appointments",
+      value: stats.withUpcoming,
+      icon: Calendar,
+      gradient: "from-emerald-500 to-green-400",
+    },
+    {
+      title: "Past Visits",
+      value: stats.withPast,
+      icon: Clock,
+      gradient: "from-amber-500 to-orange-400",
+    },
+  ];
+
   return (
     <MainLayout userType="doctor">
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold text-gray-900">Patient Records</h1>
+      <div className="space-y-8">
+        {/* Hero Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <GlassCard className="relative overflow-hidden" gradient>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/20 to-cyan-300/20 rounded-full blur-3xl" />
+            <div className="relative z-10">
+              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <motion.p
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-sm uppercase tracking-[0.32em] text-blue-600 dark:text-blue-400 mb-3 font-semibold"
+                  >
+                    Patient Management
+                  </motion.p>
+                  <motion.h1
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
+                  >
+                    Patient Records
+                  </motion.h1>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="mt-3 text-lg text-gray-600 dark:text-gray-300"
+                  >
+                    View and manage your patient history, appointments, and
+                    medical timelines.
+                  </motion.p>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+        </motion.div>
 
-        {error && <Alert type="danger" message={error} />}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {statCards.map((card, index) => {
+            const Icon = card.icon;
+            return (
+              <BentoGridItem key={card.title} delay={index * 0.1}>
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`p-4 rounded-2xl bg-gradient-to-br ${card.gradient} shadow-lg`}
+                  >
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      className="text-3xl font-bold text-gray-900 dark:text-white"
+                    >
+                      {card.value}
+                    </motion.div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {card.title}
+                    </p>
+                  </div>
+                </div>
+              </BentoGridItem>
+            );
+          })}
+        </div>
+
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl"
+          >
+            {error}
+          </motion.div>
+        )}
 
         {/* Timeline View - Show if patient selected */}
         {selectedPatientForTimeline ? (
-          <div className="card">
-            <button
+          <GlassCard>
+            <motion.button
               onClick={() => setSelectedPatientForTimeline(null)}
-              className="mb-4 text-blue-600 hover:text-blue-800 text-sm font-medium"
+              whileHover={{ x: -4 }}
+              className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
             >
-              ← Back to Patient List
-            </button>
+              <ArrowRight className="w-4 h-4 rotate-180" />
+              Back to Patient List
+            </motion.button>
             <DoctorPatientTimeline
               patientId={selectedPatientForTimeline.id}
               patientName={selectedPatientForTimeline.name}
             />
-          </div>
+          </GlassCard>
         ) : (
           <>
             {/* Search and Filter Section */}
-            <div className="card space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <GlassCard className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
                 {/* Search */}
-                <input
-                  type="text"
-                  placeholder="Search by name, email, or phone..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="md:col-span-8">
+                  <PremiumSearch
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search by name, email, or phone..."
+                    className="w-full"
+                  />
+                </div>
 
                 {/* Filter */}
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="all">All Patients</option>
-                  <option value="upcoming">
-                    Patients with Upcoming Appointments
-                  </option>
-                  <option value="past">Patients with Past Appointments</option>
-                  <option value="cancelled">
-                    Patients with Cancelled Appointments
-                  </option>
-                </select>
+                <div className="md:col-span-4">
+                  <div className="relative">
+                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <select
+                      value={filterType}
+                      onChange={(e) => setFilterType(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+                    >
+                      <option value="all">All Patients</option>
+                      <option value="upcoming">
+                        With Upcoming Appointments
+                      </option>
+                      <option value="past">With Past Appointments</option>
+                      <option value="cancelled">
+                        With Cancelled Appointments
+                      </option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  </div>
+                </div>
               </div>
 
-              <p className="text-sm text-gray-600">
-                Showing {filteredPatients.length} of {patients.length} patients
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                Showing{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {filteredPatients.length}
+                </span>{" "}
+                of{" "}
+                <span className="font-medium text-gray-900 dark:text-white">
+                  {patients.length}
+                </span>{" "}
+                patients
               </p>
-            </div>
+            </GlassCard>
 
             {/* Patients List */}
             {loading ? (
               <div className="flex justify-center py-12">
-                <Spinner size="lg" />
+                <LoadingSpinner size="lg" message="Loading patients..." />
               </div>
             ) : filteredPatients.length === 0 ? (
-              <div className="card text-center py-12">
-                <p className="text-gray-600">
-                  {searchTerm || filterType !== "all"
-                    ? "No patients match your search criteria."
-                    : "No patients found. Create the first appointment to add patients."}
-                </p>
-              </div>
+              <EmptyState
+                icon={Users}
+                title={
+                  searchTerm || filterType !== "all"
+                    ? "No patients found"
+                    : "No patients yet"
+                }
+                description={
+                  searchTerm || filterType !== "all"
+                    ? "No patients match your search criteria. Try adjusting your filters."
+                    : "Create appointments to start building your patient list."
+                }
+              />
             ) : (
-              <div className="space-y-3">
-                {filteredPatients.map((patient) => (
-                  <div key={patient.id} className="card">
-                    {/* Patient Header - Clickable to expand */}
-                    <div
-                      onClick={() => handleExpandPatient(patient.id)}
-                      className="cursor-pointer hover:bg-gray-50 p-4 rounded-lg transition-colors"
+              <div className="space-y-4">
+                <AnimatePresence>
+                  {filteredPatients.map((patient, index) => (
+                    <motion.div
+                      key={patient.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ delay: index * 0.05 }}
                     >
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {patient.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {patient.email}
-                          </p>
-                          {patient.phone && (
-                            <p className="text-sm text-gray-600">
-                              {patient.phone}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-medium text-gray-700">
-                            {patient.totalAppointments} appointment
-                            {patient.totalAppointments !== 1 ? "s" : ""}
-                          </p>
-                          {patient.lastAppointmentDate && (
-                            <p className="text-sm text-gray-600 mt-1">
-                              Last:{" "}
-                              {new Date(
-                                patient.lastAppointmentDate,
-                              ).toLocaleDateString()}
-                            </p>
-                          )}
-                          <span className="ml-4 text-gray-400">
-                            {expandedPatientId === patient.id ? "▼" : "▶"}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Status Summary Badges */}
-                      {patient.statusSummary &&
-                        patient.statusSummary.length > 0 && (
-                          <div className="mt-3 flex gap-2 flex-wrap">
-                            {Array.from(new Set(patient.statusSummary)).map(
-                              (status) => (
-                                <span
-                                  key={status}
-                                  className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                    status === "confirmed"
-                                      ? "bg-green-100 text-green-800"
-                                      : status === "pending"
-                                        ? "bg-yellow-100 text-yellow-800"
-                                        : status === "cancelled"
-                                          ? "bg-red-100 text-red-800"
-                                          : "bg-gray-100 text-gray-800"
-                                  }`}
-                                >
-                                  {status}
-                                </span>
-                              ),
-                            )}
-                          </div>
-                        )}
-                    </div>
-
-                    {/* Appointment History - Expandable */}
-                    {expandedPatientId === patient.id && (
-                      <div className="border-t pt-4 mt-4 space-y-4">
-                        {/* Medical Timeline Button */}
-                        <div>
-                          <button
-                            onClick={() =>
-                              setSelectedPatientForTimeline(patient)
-                            }
-                            className="w-full btn-primary bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
-                          >
-                            📊 View Medical Timeline
-                          </button>
-                        </div>
-
-                        {/* Appointments */}
-                        <div>
-                          <h4 className="font-semibold text-gray-900 mb-3">
-                            Appointment History
-                          </h4>
-
-                          {appointmentLoading[patient.id] ? (
-                            <div className="flex justify-center py-4">
-                              <Spinner size="sm" />
+                      <GlassCard className="overflow-hidden">
+                        {/* Patient Header - Clickable to expand */}
+                        <div
+                          onClick={() => handleExpandPatient(patient.id)}
+                          className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/50 p-5 transition-colors"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-semibold text-lg">
+                                {patient.name.charAt(0).toUpperCase()}
+                              </div>
+                              <div className="flex-1">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                  {patient.name}
+                                </h3>
+                                <div className="flex items-center gap-4 mt-1">
+                                  <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                                    <Mail className="w-4 h-4" />
+                                    {patient.email}
+                                  </span>
+                                  {patient.phone && (
+                                    <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
+                                      <Phone className="w-4 h-4" />
+                                      {patient.phone}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
                             </div>
-                          ) : patientAppointments[patient.id]?.length === 0 ? (
-                            <p className="text-gray-600 text-sm">
-                              No appointments found.
-                            </p>
-                          ) : (
-                            <div className="space-y-2">
-                              {patientAppointments[patient.id]?.map(
-                                (apt, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                                  >
-                                    <div className="flex-1">
-                                      <p className="font-medium text-gray-900">
-                                        {new Date(
-                                          apt.date,
-                                        ).toLocaleDateString()}{" "}
-                                        at {apt.timeSlot}
-                                      </p>
-                                      {apt.notes && (
-                                        <p className="text-sm text-gray-600 mt-1">
-                                          {apt.notes}
-                                        </p>
+                            <div className="text-right flex items-center gap-4">
+                              <div>
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  {patient.totalAppointments} appointment
+                                  {patient.totalAppointments !== 1 ? "s" : ""}
+                                </p>
+                                {patient.lastAppointmentDate && (
+                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                    Last:{" "}
+                                    {new Date(
+                                      patient.lastAppointmentDate,
+                                    ).toLocaleDateString()}
+                                  </p>
+                                )}
+                              </div>
+                              <motion.div
+                                animate={{
+                                  rotate:
+                                    expandedPatientId === patient.id ? 180 : 0,
+                                }}
+                                transition={{ duration: 0.2 }}
+                                className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+                              >
+                                <ChevronDown className="w-5 h-5 text-gray-500" />
+                              </motion.div>
+                            </div>
+                          </div>
+
+                          {/* Status Summary Badges */}
+                          {patient.statusSummary &&
+                            patient.statusSummary.length > 0 && (
+                              <div className="mt-4 flex gap-2 flex-wrap">
+                                {Array.from(new Set(patient.statusSummary)).map(
+                                  (status) => (
+                                    <StatusBadge
+                                      key={status}
+                                      status={status}
+                                      size="sm"
+                                    />
+                                  ),
+                                )}
+                              </div>
+                            )}
+                        </div>
+
+                        {/* Appointment History - Expandable */}
+                        <AnimatePresence>
+                          {expandedPatientId === patient.id && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="border-t border-gray-100 dark:border-gray-800"
+                            >
+                              <div className="p-5 space-y-5">
+                                {/* Medical Timeline Button */}
+                                <motion.button
+                                  onClick={() =>
+                                    setSelectedPatientForTimeline(patient)
+                                  }
+                                  whileHover={{ scale: 1.01 }}
+                                  whileTap={{ scale: 0.99 }}
+                                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all"
+                                >
+                                  <History className="w-5 h-5" />
+                                  View Medical Timeline
+                                </motion.button>
+
+                                {/* Appointments */}
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                    <FileText className="w-4 h-4" />
+                                    Appointment History
+                                  </h4>
+
+                                  {appointmentLoading[patient.id] ? (
+                                    <div className="flex justify-center py-4">
+                                      <LoadingSpinner size="sm" />
+                                    </div>
+                                  ) : patientAppointments[patient.id]
+                                      ?.length === 0 ? (
+                                    <EmptyState
+                                      icon={Calendar}
+                                      title="No appointments"
+                                      description="This patient has no appointment history yet."
+                                      size="sm"
+                                    />
+                                  ) : (
+                                    <div className="space-y-3">
+                                      {patientAppointments[patient.id]?.map(
+                                        (apt, idx) => (
+                                          <motion.div
+                                            key={idx}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl"
+                                          >
+                                            <div className="flex-1">
+                                              <div className="flex items-center gap-2">
+                                                <p className="font-medium text-gray-900 dark:text-white">
+                                                  {new Date(
+                                                    apt.date,
+                                                  ).toLocaleDateString()}
+                                                </p>
+                                                <span className="text-gray-400">
+                                                  •
+                                                </span>
+                                                <p className="text-gray-600 dark:text-gray-300">
+                                                  {apt.timeSlot}
+                                                </p>
+                                              </div>
+                                              {apt.notes && (
+                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                  {apt.notes}
+                                                </p>
+                                              )}
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                              <WhatsAppButtonForDoctor
+                                                patientId={patient.id}
+                                              />
+                                              <StatusBadge
+                                                status={apt.status}
+                                                size="sm"
+                                              />
+                                            </div>
+                                          </motion.div>
+                                        ),
                                       )}
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                      <WhatsAppButtonForDoctor
-                                        patientId={patient.id}
-                                      />
-                                      <span
-                                        className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                          apt.status === "confirmed"
-                                            ? "bg-green-100 text-green-800"
-                                            : apt.status === "pending"
-                                              ? "bg-yellow-100 text-yellow-800"
-                                              : apt.status === "cancelled"
-                                                ? "bg-red-100 text-red-800"
-                                                : "bg-gray-100 text-gray-800"
-                                        }`}
-                                      >
-                                        {apt.status}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ),
-                              )}
-                            </div>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
                           )}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                        </AnimatePresence>
+                      </GlassCard>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
           </>

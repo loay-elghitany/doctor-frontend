@@ -133,13 +133,13 @@ export const AuthProvider = ({ children }) => {
     };
   }, [isAuthenticated, logout]);
 
-  const login = useCallback(async (email, password, userType) => {
+  const login = useCallback(async (email, password, userType, options = {}) => {
     debugLog("AuthContext:login", "Starting login", { email, userType });
     try {
       debugLog("AuthContext:login", "Calling auth service");
       const response =
         userType === "patient"
-          ? await authService.loginPatient(email, password)
+          ? await authService.loginPatient(email, password, options.clinicSlug)
           : userType === "doctor"
             ? await authService.loginDoctor(email, password)
             : await authService.loginSecretary(email, password);

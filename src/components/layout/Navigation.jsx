@@ -33,6 +33,7 @@ export const Header = () => {
       { path: "/doctor/dashboard", label: "Dashboard" },
       { path: "/doctor/appointments", label: "Appointments" },
       { path: "/doctor/patient-records", label: "Patients" },
+      { path: "/doctor/clinic-profile", label: "Clinic Profile" },
     ],
     secretary: [
       { path: "/secretary/dashboard", label: "Dashboard" },
@@ -139,7 +140,7 @@ export const Header = () => {
 };
 
 // Sidebar component
-export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
+export const Sidebar = ({ isOpen, onClose, userType: _userType = "patient" }) => {
   const location = useLocation();
   const { role } = useCurrentRole();
   const { handleLogout } = useUnifiedLogout();
@@ -177,6 +178,12 @@ export const Sidebar = ({ isOpen, onClose, userType = "patient" }) => {
       path: "/doctor/patient-records",
       label: "Patient Records",
       icon: FolderOpen,
+    },
+    {
+      id: "clinic-profile",
+      path: "/doctor/clinic-profile",
+      label: "Clinic Profile",
+      icon: LayoutDashboard,
     },
   ];
 

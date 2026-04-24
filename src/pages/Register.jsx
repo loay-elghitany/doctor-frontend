@@ -1,14 +1,22 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, Button, Input } from "../components/ui";
 import { AuthLayout } from "../components/layout/Layout";
 import authService from "../services/authService";
+import { getMainDomain, getTenantSubdomain } from "../utils/subdomain";
 
 export const Register = () => {
   const navigate = useNavigate();
+  const clinicSlug = useMemo(() => getTenantSubdomain(), []);
+  const mainDomainUrl = useMemo(() => {
+    const domain = getMainDomain();
+    if (domain) {
+      return `${window.location.protocol}//${domain}`;
+    }
+    return `${window.location.protocol}//${window.location.host}`;
+  }, []);
   // Form state
   const [formData, setFormData] = useState({
-    clinicSlug: "",
     name: "",
     email: "",
     password: "",
@@ -31,15 +39,6 @@ export const Register = () => {
     const fieldErrors = {};
 
     switch (name) {
-      case "clinicSlug":
-        if (!value.trim()) {
-          fieldErrors.clinicSlug = "Clinic slug is required";
-        } else if (!/^[a-z0-9-]+$/.test(value.trim())) {
-          fieldErrors.clinicSlug =
-            "Use lowercase letters, numbers, and hyphens only";
-        }
-        break;
-
       case "name":
         if (!value.trim()) {
           fieldErrors.name = "Full name is required";
@@ -164,21 +163,22 @@ export const Register = () => {
     if (!validateForm()) {
       return;
     }
+    if (!clinicSlug) {
+      setErrorMessage("Please register from a clinic subdomain.");
+      return;
+    }
 
     setLoading(true);
 
     try {
-      console.log(
-        "Starting patient registration with clinic:",
-        formData.clinicSlug,
-      );
+      console.log("Starting patient registration with clinic:", clinicSlug);
 
       // Call registration API endpoint using authService
       const response = await authService.registerPatient(
         formData.name.trim(),
         formData.email.trim(),
         formData.password,
-        formData.clinicSlug.trim(),
+        clinicSlug,
         formData.phone && formData.phone.trim()
           ? formData.phone.trim()
           : undefined,
@@ -191,7 +191,7 @@ export const Register = () => {
       // Save patient ID and clinic slug to localStorage
       if (data.id) {
         localStorage.setItem("patientId", data.id);
-        localStorage.setItem("clinicSlug", formData.clinicSlug.trim());
+        localStorage.setItem("clinicSlug", clinicSlug);
       }
 
       // Show success message
@@ -240,20 +240,18 @@ export const Register = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Clinic Slug Input */}
-          <Input
-            label="Clinic Slug"
-            type="text"
-            name="clinicSlug"
-            placeholder="e.g., dr-ahmed"
-            value={formData.clinicSlug}
-            onChange={handleChange}
-            error={errors.clinicSlug}
-            required={true}
-            disabled={loading}
-          />
+        {!clinicSlug && (
+          <div className="mb-4 rounded border border-amber-300 bg-amber-50 p-4 text-amber-800">
+            Registration is available only from a clinic subdomain.
+            <div className="mt-3">
+              <a href={mainDomainUrl} className="font-medium underline">
+                Go to main website
+              </a>
+            </div>
+          </div>
+        )}
 
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Full Name Input */}
           <Input
             label="Full Name"
@@ -324,7 +322,7 @@ export const Register = () => {
             type="submit"
             variant="primary"
             className="w-full mt-6"
-            disabled={loading}
+            disabled={loading || !clinicSlug}
           >
             {loading ? "Creating Account..." : "Register"}
           </Button>

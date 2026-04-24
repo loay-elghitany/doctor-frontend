@@ -12,44 +12,52 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRight,
+  Users,
+  TrendingUp,
+  Activity,
+  FileText,
+  Plus,
+  UserPlus,
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { MedicalHeroIllustration } from "../components/illustrations/MedicalHeroIllustration";
+import { motion, AnimatePresence } from "framer-motion";
 import { GuidedTour } from "../components/GuidedTour";
-import { Modal, Button, Input } from "../components/ui";
+import {
+  GlassCard,
+  BentoGridItem,
+  StatusBadge,
+  EmptyState,
+  LoadingSpinner,
+  QuickActionButton,
+  PremiumSearch,
+} from "../components/ui";
 import authService from "../services/authService";
+import { Modal, Button, Input } from "../components/ui";
 
-// LOCAL DASHBOARD PRESENTATION LAYER MAPPING
-// This mapping is used ONLY for dashboard statistics display
-// It maps system appointment statuses to dashboard display categories
-// NOTE: This is NOT a system status change - it's purely for presentation
+// Dashboard Status Mapping
 const DASHBOARD_STATUS_MAPPING = {
-  // "Completed Appointments" = only appointments actually marked completed by doctor
   completedStatuses: ["completed"],
-  // "Upcoming Appointments" = scheduled appointments
   upcomingStatuses: ["scheduled"],
-  // "Pending Requests" = pending confirmation or awaiting patient choice on rescheduled times
   pendingStatuses: ["pending", "reschedule_proposed"],
 };
 
 const DOCTOR_TOUR_STEPS = [
   {
-    title: "Welcome to your clinic hub",
+    title: "Welcome to your premium clinic hub",
     description:
-      "This dashboard surfaces your most important appointments, patient flow, and daily metrics in one premium view.",
-    tip: "Use the theme toggle in the header to switch between light and dark mode.",
+      "Experience a beautifully redesigned dashboard with Bento Grid layout, glassmorphism effects, and smooth animations.",
+    tip: "Hover over cards to see the elegant lift effect and glowing borders.",
   },
   {
     title: "Live appointment stats",
     description:
-      "Track your daily appointment volume, pending confirmations, completed care, and cancellations instantly.",
-    tip: "Hover over a card to see smooth motion and priority feedback.",
+      "Track your daily appointment volume, pending confirmations, completed care, and cancellations in real-time.",
+    tip: "Each stat card features a unique gradient and icon for quick visual recognition.",
   },
   {
-    title: "Upcoming appointments",
+    title: "Quick actions & appointments",
     description:
-      "Access the next 7 days of appointments with a fast action button for the full schedule.",
-    tip: "Click the appointments button to open the full calendar experience.",
+      "Access common tasks with one click and view your upcoming appointments in a modern card layout.",
+    tip: "Use the search bar to quickly find patients or appointments.",
   },
 ];
 
@@ -65,6 +73,7 @@ export const DoctorDashboard = () => {
   const [error, setError] = useState("");
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Secretary modal state
   const [secretaryModalOpen, setSecretaryModalOpen] = useState(false);
@@ -82,30 +91,63 @@ export const DoctorDashboard = () => {
   const welcomeName = user?.name ? user.name.split(" ")[0] : "Doctor";
   const formattedDate = format(new Date(), "EEEE, MMMM do");
 
+  // Stat card configurations with premium styling
   const statCards = [
     {
       label: "Today's Appointments",
       value: stats.today,
       icon: CalendarDays,
-      accent: "bg-blue-500/10 text-blue-600",
+      gradient: "from-blue-500 to-cyan-400",
+      bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      accent: "text-blue-600 dark:text-blue-400",
     },
     {
       label: "Pending Confirmations",
       value: stats.pending,
       icon: Clock3,
-      accent: "bg-amber-500/10 text-amber-600",
+      gradient: "from-amber-500 to-orange-400",
+      bgColor: "bg-amber-50 dark:bg-amber-900/20",
+      accent: "text-amber-600 dark:text-amber-400",
     },
     {
       label: "Completed",
       value: stats.completed,
       icon: CheckCircle2,
-      accent: "bg-emerald-500/10 text-emerald-600",
+      gradient: "from-emerald-500 to-green-400",
+      bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
+      accent: "text-emerald-600 dark:text-emerald-400",
     },
     {
       label: "Cancelled",
       value: stats.cancelled,
       icon: XCircle,
-      accent: "bg-red-500/10 text-red-600",
+      gradient: "from-red-500 to-rose-400",
+      bgColor: "bg-red-50 dark:bg-red-900/20",
+      accent: "text-red-600 dark:text-red-400",
+    },
+  ];
+
+  // Quick actions configuration
+  const quickActions = [
+    {
+      icon: CalendarDays,
+      label: "Appointments",
+      onClick: () => navigate("/doctor/appointments"),
+    },
+    {
+      icon: Users,
+      label: "Patient Records",
+      onClick: () => navigate("/doctor/patient-records"),
+    },
+    {
+      icon: TrendingUp,
+      label: "Clinic Profile",
+      onClick: () => navigate("/doctor/clinic-profile"),
+    },
+    {
+      icon: UserPlus,
+      label: "Add Secretary",
+      onClick: () => setSecretaryModalOpen(true),
     },
   ];
 
@@ -117,13 +159,11 @@ export const DoctorDashboard = () => {
         debugLog("DoctorDashboard", "Fetching dashboard data");
         const response = await appointmentService.getAppointments();
 
-        // Extract appointments from nested data structure
         const appointments = response.data?.data || [];
         debugLog("DoctorDashboard", "Appointments retrieved", {
           count: appointments.length,
         });
 
-        // Calculate statistics
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -139,12 +179,11 @@ export const DoctorDashboard = () => {
         appointments.forEach((apt) => {
           const effectiveStatus =
             apt.status === "confirmed" ? "scheduled" : apt.status;
-          // Count by status
+
           if (
             DASHBOARD_STATUS_MAPPING.pendingStatuses.includes(effectiveStatus)
           )
             pendingCount++;
-          // Count actual completed appointments
           if (
             DASHBOARD_STATUS_MAPPING.completedStatuses.includes(effectiveStatus)
           )
@@ -179,7 +218,6 @@ export const DoctorDashboard = () => {
           cancelled: cancelledCount,
         });
 
-        // Sort upcoming by date and time
         upcomingList.sort((a, b) => {
           const aTime = parseDate(a.date)?.getTime() ?? Infinity;
           const bTime = parseDate(b.date)?.getTime() ?? Infinity;
@@ -187,7 +225,7 @@ export const DoctorDashboard = () => {
           return (a.timeSlot || "").localeCompare(b.timeSlot || "");
         });
 
-        setUpcomingAppointments(upcomingList.slice(0, 5)); // Show top 5
+        setUpcomingAppointments(upcomingList.slice(0, 5));
       } catch (err) {
         const errorMsg = handleApiError(err);
         debugError("DoctorDashboard", "Failed to fetch dashboard data", err);
@@ -267,252 +305,342 @@ export const DoctorDashboard = () => {
     localStorage.setItem("clinic-tour-seen", "true");
   };
 
+  // Filter appointments based on search query
+  const filteredAppointments = upcomingAppointments.filter((apt) => {
+    const patientName = apt.patientId?.name || "Unknown Patient";
+    return patientName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
+
+  if (loading) {
+    return (
+      <MainLayout userType="doctor">
+        <LoadingSpinner message="Loading your dashboard..." size="lg" />
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout userType="doctor">
       <div className="space-y-8">
-        <div className="rounded-[30px] bg-white p-8 shadow-sm border border-slate-200 overflow-hidden">
-          <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-            <div>
-              <p className="text-sm uppercase tracking-[0.32em] text-slate-500 mb-3">
-                Welcome back
-              </p>
-              <h1 className="text-4xl font-semibold text-slate-900">
-                Welcome, Dr. {welcomeName}
-              </h1>
-              <p className="mt-2 text-sm text-slate-500">{formattedDate}</p>
-              <p className="mt-4 max-w-xl text-sm text-slate-500">
-                Your clinic overview is ready — manage appointments, monitor
-                patient flow, and stay in control of every care detail.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <button
-                  onClick={() => setTourOpen(true)}
-                  className="btn-primary inline-flex items-center gap-2"
-                >
-                  Start tour
-                </button>
-                <button
-                  onClick={() => navigate("/doctor/appointments")}
-                  className="inline-flex items-center gap-2 rounded-xl bg-sky-100 px-4 py-2 text-sm font-semibold text-sky-700 transition hover:bg-sky-200"
-                >
-                  Explore schedule
-                  <ArrowRight className="h-4 w-4" />
-                </button>
+        {/* Hero Section with Glass Effect */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <GlassCard className="relative overflow-hidden" gradient>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/20 to-cyan-300/20 rounded-full blur-3xl" />
+            <div className="relative z-10">
+              <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
+                <div className="max-w-2xl">
+                  <motion.p
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="text-sm uppercase tracking-[0.32em] text-blue-600 dark:text-blue-400 mb-3 font-semibold"
+                  >
+                    Welcome back
+                  </motion.p>
+                  <motion.h1
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
+                  >
+                    Dr. {welcomeName}
+                  </motion.h1>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    className="mt-3 text-lg text-gray-600 dark:text-gray-300"
+                  >
+                    {formattedDate}
+                  </motion.p>
+                  <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5 }}
+                    className="mt-4 max-w-xl text-gray-500 dark:text-gray-400"
+                  >
+                    Your premium clinic overview is ready — manage appointments,
+                    monitor patient flow, and stay in control of every care
+                    detail.
+                  </motion.p>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
+                    className="mt-6 flex flex-wrap gap-3"
+                  >
+                    <button
+                      onClick={() => setTourOpen(true)}
+                      className="btn-premium btn-premium-primary px-6 py-3 flex items-center gap-2"
+                    >
+                      Start Tour
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => navigate("/doctor/appointments")}
+                      className="inline-flex items-center gap-2 rounded-xl bg-white/50 dark:bg-gray-800/50 px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200 backdrop-blur-sm border border-gray-200 dark:border-gray-700 transition hover:bg-white/70 dark:hover:bg-gray-800/70"
+                    >
+                      Explore Schedule
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </motion.div>
+                </div>
+                {/* Decorative Element */}
+                <div className="hidden xl:block">
+                  <div className="w-48 h-48 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 opacity-20 blur-2xl" />
+                </div>
               </div>
             </div>
-            <div className="hidden xl:block xl:w-96">
-              <MedicalHeroIllustration />
-            </div>
-          </div>
-        </div>
+          </GlassCard>
+        </motion.div>
 
+        {/* Error Display */}
         {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl"
+          >
             {error}
-          </div>
+          </motion.div>
         )}
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+        {/* Bento Grid Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {statCards.map((card, index) => {
             const Icon = card.icon;
             return (
-              <motion.div
+              <BentoGridItem
                 key={card.label}
-                className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: 0.35,
-                  ease: "easeInOut",
-                  delay: index * 0.1,
-                }}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
+                delay={index * 0.1}
+                className="h-full"
               >
-                <div
-                  className={`inline-flex h-12 w-12 items-center justify-center rounded-2xl ${card.accent}`}
-                >
-                  <Icon className="h-6 w-6" />
+                <div className="flex items-center gap-4">
+                  <div
+                    className={`p-4 rounded-2xl bg-gradient-to-br ${card.gradient} shadow-lg`}
+                  >
+                    <Icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 + index * 0.1 }}
+                      className="text-3xl font-bold text-gray-900 dark:text-white"
+                    >
+                      {loading ? "-" : card.value}
+                    </motion.div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      {card.label}
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-6 text-4xl font-semibold text-slate-900">
-                  {loading ? "-" : card.value}
-                </div>
-                <p className="mt-3 text-sm text-slate-500">{card.label}</p>
-              </motion.div>
+              </BentoGridItem>
             );
           })}
         </div>
 
-        <div className="card p-6">
-          <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        {/* Quick Actions Section */}
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+            Quick Actions
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => (
+              <QuickActionButton
+                key={action.label}
+                icon={action.icon}
+                label={action.label}
+                onClick={action.onClick}
+                delay={index * 0.1}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Upcoming Appointments Section */}
+        <GlassCard>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-2xl font-semibold text-slate-900">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Upcoming Appointments
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Next 7 days of scheduled appointments
               </p>
             </div>
-            <div className="flex gap-3">
-              <button
-                onClick={handleSecretaryModalOpen}
-                className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
-              >
-                Add Secretary
-              </button>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <PremiumSearch
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search patients..."
+                className="max-w-xs"
+              />
               <button
                 onClick={() => navigate("/doctor/appointments")}
-                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                className="btn-premium btn-premium-primary px-4 py-2 flex items-center gap-2"
               >
-                View all appointments
-                <ArrowRight className="h-4 w-4" />
+                View All
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
+
           {loading ? (
-            <p className="text-gray-500">Loading...</p>
-          ) : upcomingAppointments.length > 0 ? (
+            <LoadingSpinner message="Loading appointments..." />
+          ) : filteredAppointments.length > 0 ? (
             <div className="space-y-3">
-              {upcomingAppointments.map((apt) => {
-                const aptDate = new Date(apt.date);
-                const effectiveStatus =
-                  apt.status === "confirmed" ? "scheduled" : apt.status;
-                const patientName = apt.patientId?.name || "Unknown Patient";
-                return (
-                  <motion.div
-                    key={apt._id}
-                    layout
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
-                    className="flex flex-col gap-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4 transition hover:bg-white hover:shadow-sm md:flex-row md:items-center md:justify-between"
-                  >
-                    <div>
-                      <p className="text-base font-semibold text-slate-900">
-                        {patientName}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">
-                        {aptDate.toLocaleDateString()} • {apt.timeSlot}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span
-                        className={`badge ${
-                          effectiveStatus === "scheduled"
-                            ? "badge-scheduled"
-                            : effectiveStatus === "cancelled"
-                              ? "badge-cancelled"
-                              : "badge-pending"
-                        }`}
-                      >
-                        {effectiveStatus}
-                      </span>
-                      <button
-                        onClick={() => navigate("/doctor/appointments")}
-                        className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white transition hover:bg-slate-800"
-                      >
-                        View
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
+              <AnimatePresence>
+                {filteredAppointments.map((apt, index) => {
+                  const aptDate = new Date(apt.date);
+                  const effectiveStatus =
+                    apt.status === "confirmed" ? "scheduled" : apt.status;
+                  const patientName = apt.patientId?.name || "Unknown Patient";
+
+                  return (
+                    <motion.div
+                      key={apt._id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ delay: index * 0.05 }}
+                      whileHover={{ x: 4 }}
+                      className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all cursor-pointer"
+                      onClick={() => navigate("/doctor/appointments")}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-semibold">
+                          {patientName.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {patientName}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {aptDate.toLocaleDateString()} • {apt.timeSlot}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <StatusBadge status={effectiveStatus} />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate("/doctor/appointments");
+                          }}
+                          className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"
+                        >
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
+          ) : searchQuery ? (
+            <EmptyState
+              icon={Users}
+              title="No patients found"
+              description={`No patients match "${searchQuery}". Try a different search term.`}
+            />
           ) : (
-            <p className="text-slate-500">
-              No appointments scheduled.
-              <button
-                onClick={() => navigate("/doctor/appointments")}
-                className="font-semibold text-blue-600 hover:text-blue-700"
+            <EmptyState
+              icon={CalendarDays}
+              title="No upcoming appointments"
+              description="You have no appointments scheduled for the next 7 days."
+              actionLabel="View All Appointments"
+              onAction={() => navigate("/doctor/appointments")}
+            />
+          )}
+        </GlassCard>
+
+        {/* Secretary Creation Modal */}
+        <Modal
+          isOpen={secretaryModalOpen}
+          onClose={handleSecretaryModalClose}
+          title="Add New Secretary"
+          size="md"
+          footer={
+            <>
+              <Button
+                variant="secondary"
+                onClick={handleSecretaryModalClose}
+                disabled={secretaryLoading}
               >
-                View all appointments
-              </button>
-            </p>
-          )}
-        </div>
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleSecretarySubmit}
+                disabled={secretaryLoading}
+              >
+                {secretaryLoading ? "Creating..." : "Create Secretary"}
+              </Button>
+            </>
+          }
+        >
+          <form onSubmit={handleSecretarySubmit} className="space-y-4">
+            {secretaryError && (
+              <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-lg">
+                {secretaryError}
+              </div>
+            )}
+            {secretarySuccess && (
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-lg">
+                {secretarySuccess}
+              </div>
+            )}
+
+            <Input
+              label="Full Name"
+              type="text"
+              name="name"
+              placeholder="Enter secretary's full name"
+              value={secretaryForm.name}
+              onChange={handleSecretaryFormChange}
+              required
+              disabled={secretaryLoading}
+            />
+
+            <Input
+              label="Email Address"
+              type="email"
+              name="email"
+              placeholder="Enter secretary's email"
+              value={secretaryForm.email}
+              onChange={handleSecretaryFormChange}
+              required
+              disabled={secretaryLoading}
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              placeholder="Enter a secure password"
+              value={secretaryForm.password}
+              onChange={handleSecretaryFormChange}
+              required
+              disabled={secretaryLoading}
+            />
+          </form>
+        </Modal>
+
+        <GuidedTour
+          isOpen={tourOpen}
+          steps={DOCTOR_TOUR_STEPS}
+          currentStep={tourStep}
+          onNext={handleTourNext}
+          onBack={handleTourBack}
+          onClose={handleTourClose}
+        />
       </div>
-
-      {/* Secretary Creation Modal */}
-      <Modal
-        isOpen={secretaryModalOpen}
-        onClose={handleSecretaryModalClose}
-        title="Add New Secretary"
-        size="md"
-        footer={
-          <>
-            <Button
-              variant="secondary"
-              onClick={handleSecretaryModalClose}
-              disabled={secretaryLoading}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={handleSecretarySubmit}
-              disabled={secretaryLoading}
-            >
-              {secretaryLoading ? "Creating..." : "Create Secretary"}
-            </Button>
-          </>
-        }
-      >
-        <form onSubmit={handleSecretarySubmit} className="space-y-4">
-          {secretaryError && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {secretaryError}
-            </div>
-          )}
-          {secretarySuccess && (
-            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-              {secretarySuccess}
-            </div>
-          )}
-
-          <Input
-            label="Full Name"
-            type="text"
-            name="name"
-            placeholder="Enter secretary's full name"
-            value={secretaryForm.name}
-            onChange={handleSecretaryFormChange}
-            required
-            disabled={secretaryLoading}
-          />
-
-          <Input
-            label="Email Address"
-            type="email"
-            name="email"
-            placeholder="Enter secretary's email"
-            value={secretaryForm.email}
-            onChange={handleSecretaryFormChange}
-            required
-            disabled={secretaryLoading}
-          />
-
-          <Input
-            label="Password"
-            type="password"
-            name="password"
-            placeholder="Enter a secure password"
-            value={secretaryForm.password}
-            onChange={handleSecretaryFormChange}
-            required
-            disabled={secretaryLoading}
-          />
-        </form>
-      </Modal>
-
-      <GuidedTour
-        isOpen={tourOpen}
-        steps={DOCTOR_TOUR_STEPS}
-        currentStep={tourStep}
-        onNext={handleTourNext}
-        onBack={handleTourBack}
-        onClose={handleTourClose}
-      />
     </MainLayout>
   );
 };
