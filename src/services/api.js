@@ -2,17 +2,62 @@ import axios from "axios";
 import { debugLog, debugError } from "../utils/debug";
 
 // API base configuration using Vite env (must be prefixed with VITE_)
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-debugLog("api", "Initializing with base URL", { url: API_BASE_URL });
+// Debug: Log all available VITE_ environment variables in development
+if (import.meta.env.DEV) {
+  console.log("[API Debug] Available VITE_ variables:", {
+    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+    VITE_API_URL: import.meta.env.VITE_API_URL, // Check for wrong variable name
+    VITE_MAIN_DOMAIN: import.meta.env.VITE_MAIN_DOMAIN,
+  });
+}
+
+// Production validation - throw error if VITE_API_BASE_URL is missing in production
+if (!API_BASE_URL && import.meta.env.PROD) {
+  console.error(
+    "CRITICAL: VITE_API_BASE_URL environment variable is not set in production. " +
+      "This will cause API connection failures. Please configure this variable in your Vercel/Netlify settings.",
+  );
+}
+
+// Validate the URL format
+if (API_BASE_URL) {
+  try {
+    new URL(API_BASE_URL);
+  } catch (e) {
+    console.error(
+      "CRITICAL: VITE_API_BASE_URL is not a valid URL:",
+      API_BASE_URL,
+    );
+  }
+}
+
+// Fallback for development only
+const resolvedBaseUrl = API_BASE_URL || "http://localhost:5000/api";
+
+debugLog("api", "Initializing with base URL", {
+  url: resolvedBaseUrl,
+  isProduction: import.meta.env.PROD,
+  hasEnvVar: !!API_BASE_URL,
+  envType: typeof API_BASE_URL,
+});
+
+// Log in production for debugging
+if (import.meta.env.PROD) {
+  console.log("[API] Production configuration:");
+  console.log("  - VITE_API_BASE_URL:", API_BASE_URL || "NOT SET");
+  console.log("  - Resolved baseURL:", resolvedBaseUrl);
+  console.log("  - Window location:", window.location.href);
+}
 
 // Create Axios instance
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: resolvedBaseUrl,
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true, // Enable cross-domain cookie authentication
 });
 
 // Attach token to every request automatically
