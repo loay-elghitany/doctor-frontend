@@ -57,7 +57,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Enable cross-domain cookie authentication
+  withCredentials: true, // Allow cookies if needed in future; CORS now handles this correctly
 });
 
 // Attach token to every request automatically
