@@ -36,18 +36,27 @@ export const getMainDomain = () => {
 export const getTenantSubdomain = (host = window.location.hostname) => {
   const cleanHost = normalizeHost(host);
 
-  // Skip reserved hosts (localhost, etc.)
+  // تخطي الدومينات الأساسية المباشرة
   if (!cleanHost || RESERVED_HOSTS.has(cleanHost)) {
     return null;
   }
 
+  const mainDomain = getMainDomain();
+
+  // الطريقة الأذكى: هل الرابط ينتهي بالدومين الأساسي؟
+  // (مثال: هل loay.localhost تنتهي بـ .localhost ؟)
+  if (cleanHost.endsWith(`.${mainDomain}`)) {
+    const subdomain = cleanHost.replace(`.${mainDomain}`, "");
+    
+    if (subdomain && subdomain !== "www") {
+      return subdomain;
+    }
+  }
+
+  // خط الدفاع الثاني (نفس كودك القديم للإنتاج تحسباً لأي خطأ)
   const parts = cleanHost.split(".");
-  
-  // If we have more than 2 parts (e.g. doctorname.mydoc90.com), the first part is the subdomain
   if (parts.length > 2) {
     const subdomain = parts[0];
-    
-    // Ignore 'www' as it is generally used for the main landing page
     if (subdomain !== "www") {
       return subdomain;
     }
