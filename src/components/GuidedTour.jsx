@@ -35,7 +35,7 @@ export const GuidedTour = ({
                 </div>
                 <div>
                   <p className="text-sm uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
-                    Guided Tour
+                    جولة في الموقع
                   </p>
                   <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
                     {step.title}
@@ -75,13 +75,13 @@ export const GuidedTour = ({
                   className="btn-secondary text-sm"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  Back
+                  إلى الخلف
                 </button>
                 <button
                   onClick={currentStep === steps.length - 1 ? onClose : onNext}
                   className="btn-primary text-sm inline-flex items-center gap-2"
                 >
-                  {currentStep === steps.length - 1 ? "Finish" : "Next"}
+                  {currentStep === steps.length - 1 ? "إنهاء" : "التالي"}
                   <ArrowRight className="h-4 w-4" />
                 </button>
               </div>
@@ -90,8 +90,8 @@ export const GuidedTour = ({
             <div className="mt-6 flex items-center gap-3 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm dark:border-slate-700 dark:bg-slate-800">
               <CheckCircle2 className="h-5 w-5 text-emerald-500" />
               <span className="text-slate-600 dark:text-slate-300">
-                This tour is designed to help you explore the most important
-                workspace areas quickly.
+                هذه الجولة ستساعدك على التعرف على أهم الميزات في التطبيق. يمكنك
+                إغلاقها في أي وقت والعودة إليها لاحقًا من صفحة الإعدادات.
               </span>
             </div>
           </motion.div>

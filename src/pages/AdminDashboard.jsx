@@ -68,9 +68,9 @@ export const AdminDashboard = () => {
 
   // Tabs
   const tabs = [
-    { id: "all", label: "All Doctors" },
-    { id: "active", label: "Active" },
-    { id: "inactive", label: "Inactive" },
+    { id: "all", label: "كافة الأطباء" },
+    { id: "active", label: "نشط" },
+    { id: "inactive", label: "غير نشط" },
   ];
 
   // Fetch doctors on mount

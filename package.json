@@ -13,10 +13,13 @@
     "date-fns": "^2.30.0",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.547.0",
+    "node-telegram-bot-api": "^0.67.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.15.0",
-    "recharts": "^3.8.1"
+    "recharts": "^3.8.1",
+    "socket.io-client": "^4.8.3",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.0.3",

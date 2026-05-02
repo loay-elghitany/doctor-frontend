@@ -57,9 +57,10 @@ export const PatientTimeline = () => {
   if (timeline.length === 0) {
     return (
       <div className="text-center py-12 bg-gray-50 rounded-lg">
-        <p className="text-gray-500 text-lg">No medical records yet</p>
+        <p className="text-gray-500 text-lg">للا توجد أحداث طبية بعد</p>
         <p className="text-gray-400 text-sm mt-2">
-          Your appointments and prescriptions will appear here
+          لا توجد مواعيد أو وصفات طبية مسجلة لهذا المريض. بمجرد إضافة بيانات
+          جديدة، ستظهر هنا في هذا الجدول الزمني الطبي.
         </p>
       </div>
     );
@@ -69,7 +70,9 @@ export const PatientTimeline = () => {
     <div className="space-y-8">
       {/* Timeline Header */}
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Medical Timeline</h2>
+        <h2 className="text-2xl font-bold text-gray-900">
+          الجدول الزمني الطبي
+        </h2>
         <p className="text-gray-600 text-sm mt-1">
           {timeline.length} record{timeline.length !== 1 ? "s" : ""}
         </p>
@@ -139,7 +142,7 @@ export const PatientTimeline = () => {
                         </p>
                         {metadata.doctorSpecialization && (
                           <p className="text-gray-600">
-                            <span className="font-medium">Specialty:</span>{" "}
+                            <span className="font-medium">اسم التخصص:</span>{" "}
                             {metadata.doctorSpecialization}
                           </p>
                         )}
@@ -172,7 +175,7 @@ export const PatientTimeline = () => {
                       {metadata.notes && (
                         <div>
                           <p className="text-gray-600">
-                            <span className="font-medium">Notes:</span>
+                            <span className="font-medium">ملاحظات:</span>
                           </p>
                           <p className="text-gray-700 mt-1 italic">
                             {metadata.notes}
@@ -186,7 +189,7 @@ export const PatientTimeline = () => {
                     <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
                       <div>
                         <p className="text-gray-600">
-                          <span className="font-medium">Medications:</span>
+                          <span className="font-medium">الأدوية:</span>
                         </p>
                         <p className="text-gray-700 mt-1">
                           {metadata.medicationSummary ||
@@ -197,7 +200,7 @@ export const PatientTimeline = () => {
                       {metadata.diagnosis && (
                         <div>
                           <p className="text-gray-600">
-                            <span className="font-medium">Diagnosis:</span>
+                            <span className="font-medium">التشخيص:</span>
                           </p>
                           <p className="text-gray-700 mt-1">
                             {metadata.diagnosis}
@@ -208,7 +211,7 @@ export const PatientTimeline = () => {
                       {metadata.appointmentDate && (
                         <div>
                           <p className="text-gray-600 text-xs">
-                            Linked to appointment on{" "}
+                            مرتبط بالموعد على{" "}
                             {parseDate(metadata.appointmentDate)
                               ? parseDate(
                                   metadata.appointmentDate,

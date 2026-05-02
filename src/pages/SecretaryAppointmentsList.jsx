@@ -10,7 +10,7 @@ import {
   LoadingSpinner,
   QuickActionButton,
 } from "../components/ui";
-import { Button, Badge, Alert, Modal } from "../components/ui";
+import { Button, Badge, Alert, Modal, Spinner } from "../components/ui";
 import { appointmentService } from "../services/appointmentService";
 import { getStatusLabel, handleApiError } from "../utils/helpers";
 import {
@@ -144,6 +144,30 @@ export const SecretaryAppointmentsList = () => {
       handleActionError(err, "Failed to cancel appointment.");
     } finally {
       setRowLoading(appointmentId, "cancel", false);
+    }
+  };
+
+  const handleMarkCompleted = async (appointmentId) => {
+    setError("");
+    setSuccess("");
+    setRowLoading(appointmentId, "complete", true);
+
+    try {
+      const response =
+        await appointmentService.markAppointmentCompleted(appointmentId);
+      const updatedAppointment = response.data?.data;
+      if (updatedAppointment) {
+        setAppointments((prev) =>
+          prev.map((item) =>
+            item?._id === updatedAppointment._id ? updatedAppointment : item,
+          ),
+        );
+      }
+      setSuccess("Appointment marked as completed.");
+    } catch (err) {
+      handleActionError(err, "Failed to mark appointment as completed.");
+    } finally {
+      setRowLoading(appointmentId, "complete", false);
     }
   };
 
@@ -317,6 +341,18 @@ export const SecretaryAppointmentsList = () => {
                   : "Cancel"}
               </Button>
             )}
+            {permissions.canMarkCompleted && (
+              <Button
+                variant="success"
+                size="sm"
+                disabled={isRowLoading(appointment._id, "complete")}
+                onClick={() => handleMarkCompleted(appointment._id)}
+              >
+                {isRowLoading(appointment._id, "complete")
+                  ? "Completing..."
+                  : "Complete"}
+              </Button>
+            )}
             {permissions.canReschedule && (
               <Button
                 variant="warning"
@@ -361,11 +397,13 @@ export const SecretaryAppointmentsList = () => {
   // Calculate stats
   const stats = {
     total: appointments.length,
-    upcoming: appointments.filter(apt => {
+    upcoming: appointments.filter((apt) => {
       const status = normalizeStatus(apt.status);
       return status === "scheduled" || status === "confirmed";
     }).length,
-    pending: appointments.filter(apt => normalizeStatus(apt.status) === "pending").length,
+    pending: appointments.filter(
+      (apt) => normalizeStatus(apt.status) === "pending",
+    ).length,
   };
 
   const statCards = [
@@ -458,7 +496,9 @@ export const SecretaryAppointmentsList = () => {
             return (
               <BentoGridItem key={card.title} delay={index * 0.1}>
                 <div className="flex items-center gap-3">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
+                  <div
+                    className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}
+                  >
                     <Icon className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -527,9 +567,13 @@ export const SecretaryAppointmentsList = () => {
                 }`}
               >
                 {tab.label}
-                <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
-                  activeTab === tab.id ? "bg-white/20" : "bg-gray-200 dark:bg-gray-700"
-                }`}>
+                <span
+                  className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                    activeTab === tab.id
+                      ? "bg-white/20"
+                      : "bg-gray-200 dark:bg-gray-700"
+                  }`}
+                >
                   {tab.count}
                 </span>
               </button>
@@ -552,8 +596,11 @@ export const SecretaryAppointmentsList = () => {
           <div className="space-y-4">
             <AnimatePresence>
               {filteredAppointments.map((appointment, index) => {
-                const permissions = getAppointmentPermissions(appointment.status);
-                const patientName = appointment.patientId?.name || "Unknown Patient";
+                const permissions = getAppointmentPermissions(
+                  appointment.status,
+                );
+                const patientName =
+                  appointment.patientId?.name || "Unknown Patient";
 
                 return (
                   <motion.div
@@ -591,7 +638,9 @@ export const SecretaryAppointmentsList = () => {
                         {/* Status & Actions */}
                         <div className="flex items-center gap-3 flex-wrap">
                           <StatusBadge
-                            status={normalizeStatus(appointment.status) || "unknown"}
+                            status={
+                              normalizeStatus(appointment.status) || "unknown"
+                            }
                             size="md"
                           />
 
@@ -600,11 +649,18 @@ export const SecretaryAppointmentsList = () => {
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => handleConfirmAppointment(appointment._id)}
-                                disabled={isRowLoading(appointment._id, "confirm")}
+                                onClick={() =>
+                                  handleConfirmAppointment(appointment._id)
+                                }
+                                disabled={isRowLoading(
+                                  appointment._id,
+                                  "confirm",
+                                )}
                                 className="px-3 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition disabled:opacity-50"
                               >
-                                {isRowLoading(appointment._id, "confirm") ? "..." : "Confirm"}
+                                {isRowLoading(appointment._id, "confirm")
+                                  ? "..."
+                                  : "Confirm"}
                               </motion.button>
                             )}
 
@@ -612,8 +668,13 @@ export const SecretaryAppointmentsList = () => {
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => handleCancelAppointment(appointment._id)}
-                                disabled={isRowLoading(appointment._id, "cancel")}
+                                onClick={() =>
+                                  handleCancelAppointment(appointment._id)
+                                }
+                                disabled={isRowLoading(
+                                  appointment._id,
+                                  "cancel",
+                                )}
                                 className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition disabled:opacity-50"
                                 title="Cancel"
                               >
@@ -626,7 +687,10 @@ export const SecretaryAppointmentsList = () => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => openRescheduleModal(appointment)}
-                                disabled={isRowLoading(appointment._id, "reschedule")}
+                                disabled={isRowLoading(
+                                  appointment._id,
+                                  "reschedule",
+                                )}
                                 className="px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-sm font-medium hover:bg-amber-200 dark:hover:bg-amber-900/30 transition disabled:opacity-50"
                               >
                                 Reschedule
@@ -637,8 +701,13 @@ export const SecretaryAppointmentsList = () => {
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
-                                onClick={() => handleDeleteAppointment(appointment._id)}
-                                disabled={isRowLoading(appointment._id, "delete")}
+                                onClick={() =>
+                                  handleDeleteAppointment(appointment._id)
+                                }
+                                disabled={isRowLoading(
+                                  appointment._id,
+                                  "delete",
+                                )}
                                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-50"
                                 title="Delete"
                               >
@@ -652,7 +721,8 @@ export const SecretaryAppointmentsList = () => {
                       {appointment.notes && (
                         <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            <span className="font-medium">Notes:</span> {appointment.notes}
+                            <span className="font-medium">Notes:</span>{" "}
+                            {appointment.notes}
                           </p>
                         </div>
                       )}

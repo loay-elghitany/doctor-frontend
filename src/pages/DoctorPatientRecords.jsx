@@ -162,19 +162,19 @@ export const DoctorPatientRecords = () => {
 
   const statCards = [
     {
-      title: "Total Patients",
+      title: "إجمالي المرضى",
       value: stats.total,
       icon: Users,
       gradient: "from-blue-500 to-cyan-400",
     },
     {
-      title: "Upcoming Appointments",
+      title: "المواعيد القادمة",
       value: stats.withUpcoming,
       icon: Calendar,
       gradient: "from-emerald-500 to-green-400",
     },
     {
-      title: "Past Visits",
+      title: "الزيارات السابقة",
       value: stats.withPast,
       icon: Clock,
       gradient: "from-amber-500 to-orange-400",
@@ -201,7 +201,7 @@ export const DoctorPatientRecords = () => {
                     transition={{ delay: 0.2 }}
                     className="text-sm uppercase tracking-[0.32em] text-blue-600 dark:text-blue-400 mb-3 font-semibold"
                   >
-                    Patient Management
+                    إدارة المرضى
                   </motion.p>
                   <motion.h1
                     initial={{ opacity: 0, x: -20 }}
@@ -209,7 +209,7 @@ export const DoctorPatientRecords = () => {
                     transition={{ delay: 0.3 }}
                     className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
                   >
-                    Patient Records
+                    سجل المرضى
                   </motion.h1>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -217,8 +217,7 @@ export const DoctorPatientRecords = () => {
                     transition={{ delay: 0.4 }}
                     className="mt-3 text-lg text-gray-600 dark:text-gray-300"
                   >
-                    View and manage your patient history, appointments, and
-                    medical timelines.
+                    عرض و إدارة تاريخ المرضى، والمواعيد، والجداول الطبية.
                   </motion.p>
                 </div>
               </div>
@@ -276,7 +275,7 @@ export const DoctorPatientRecords = () => {
               className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-700 text-sm font-medium"
             >
               <ArrowRight className="w-4 h-4 rotate-180" />
-              Back to Patient List
+              العودة إلى قائمة المرضى
             </motion.button>
             <DoctorPatientTimeline
               patientId={selectedPatientForTimeline.id}
@@ -307,14 +306,10 @@ export const DoctorPatientRecords = () => {
                       onChange={(e) => setFilterType(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                     >
-                      <option value="all">All Patients</option>
-                      <option value="upcoming">
-                        With Upcoming Appointments
-                      </option>
-                      <option value="past">With Past Appointments</option>
-                      <option value="cancelled">
-                        With Cancelled Appointments
-                      </option>
+                      <option value="all">جميع المرضى</option>
+                      <option value="upcoming">مع مواعيد قادمة</option>
+                      <option value="past">مع مواعيد سابقة</option>
+                      <option value="cancelled">مع مواعيد ملغاة</option>
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   </div>
@@ -344,13 +339,13 @@ export const DoctorPatientRecords = () => {
                 icon={Users}
                 title={
                   searchTerm || filterType !== "all"
-                    ? "No patients found"
-                    : "No patients yet"
+                    ? "لم يتم العثور على مرضى"
+                    : "لا يوجد مرضى بعد"
                 }
                 description={
                   searchTerm || filterType !== "all"
-                    ? "No patients match your search criteria. Try adjusting your filters."
-                    : "Create appointments to start building your patient list."
+                    ? "لا يوجد مرضى يطابق معايير البحث. حاول تعديل الفلاتر."
+                    : "أنشئ مواعيد لبدء بناء قائمة المرضى."
                 }
               />
             ) : (
@@ -396,8 +391,10 @@ export const DoctorPatientRecords = () => {
                             <div className="text-right flex items-center gap-4">
                               <div>
                                 <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                  {patient.totalAppointments} appointment
-                                  {patient.totalAppointments !== 1 ? "s" : ""}
+                                  {patient.totalAppointments}
+                                  {patient.totalAppointments !== 1
+                                    ? "مواعيد"
+                                    : "موعد"}
                                 </p>
                                 {patient.lastAppointmentDate && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -459,14 +456,14 @@ export const DoctorPatientRecords = () => {
                                   className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-medium flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all"
                                 >
                                   <History className="w-5 h-5" />
-                                  View Medical Timeline
+                                  عرض الجدول الطبي
                                 </motion.button>
 
                                 {/* Appointments */}
                                 <div>
                                   <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                     <FileText className="w-4 h-4" />
-                                    Appointment History
+                                    تاريخ المواعيد
                                   </h4>
 
                                   {appointmentLoading[patient.id] ? (

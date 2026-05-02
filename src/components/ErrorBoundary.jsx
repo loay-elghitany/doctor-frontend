@@ -27,7 +27,8 @@ class ErrorBoundary extends React.Component {
               Something went wrong
             </h1>
             <p className="text-gray-700 mb-4">
-              An unexpected error occurred. Please try refreshing the page.
+              حصل خطأ غير متوقع أثناء عرض هذا الجزء من التطبيق. يرجى المحاولة
+              مرة أخرى لاحقًا أو العودة إلى الصفحة الرئيسية.
             </p>
             <details className="mb-6 bg-gray-50 p-4 rounded border border-gray-200">
               <summary className="font-semibold text-gray-800 cursor-pointer">
@@ -41,7 +42,7 @@ class ErrorBoundary extends React.Component {
               onClick={() => (window.location.href = "/")}
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
             >
-              Go Home
+              العودة إلى الصفحة الرئيسية
             </button>
           </div>
         </div>

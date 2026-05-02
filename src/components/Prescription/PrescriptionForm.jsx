@@ -85,7 +85,7 @@ export const PrescriptionForm = ({
           htmlFor="diagnosis"
           className="block text-sm font-medium text-gray-700"
         >
-          Diagnosis <span className="text-red-500">*</span>
+          التشخيص <span className="text-red-500">*</span>
         </label>
         <textarea
           id="diagnosis"
@@ -104,14 +104,14 @@ export const PrescriptionForm = ({
       <div>
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">
-            Medications <span className="text-red-500">*</span>
+            الأدوية <span className="text-red-500">*</span>
           </label>
           <button
             type="button"
             onClick={addMedication}
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            + Add Medication
+            + إضافة دواء
           </button>
         </div>
 
@@ -124,7 +124,7 @@ export const PrescriptionForm = ({
             <div key={index} className="bg-gray-50 p-4 rounded-md space-y-3">
               <div className="flex justify-between items-start">
                 <h4 className="text-sm font-medium text-gray-700">
-                  Medication {index + 1}
+                  دواء {index + 1}
                 </h4>
                 {medications.length > 1 && (
                   <button
@@ -132,7 +132,7 @@ export const PrescriptionForm = ({
                     onClick={() => removeMedication(index)}
                     className="text-xs text-red-600 hover:text-red-700 font-medium"
                   >
-                    Remove
+                    إزالة
                   </button>
                 )}
               </div>
@@ -141,7 +141,7 @@ export const PrescriptionForm = ({
                 {/* Medication Name */}
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Name <span className="text-red-500">*</span>
+                    الاسم <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -162,7 +162,7 @@ export const PrescriptionForm = ({
                 {/* Dosage */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Dosage <span className="text-red-500">*</span>
+                    الجرعة <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -183,7 +183,7 @@ export const PrescriptionForm = ({
                 {/* Frequency */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Frequency
+                    التكرار
                   </label>
                   <input
                     type="text"
@@ -199,7 +199,7 @@ export const PrescriptionForm = ({
                 {/* Duration */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Duration
+                    المدة
                   </label>
                   <input
                     type="text"
@@ -215,7 +215,7 @@ export const PrescriptionForm = ({
                 {/* Instructions */}
                 <div className="col-span-2">
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Instructions
+                    التعليمات
                   </label>
                   <input
                     type="text"
@@ -239,7 +239,7 @@ export const PrescriptionForm = ({
           htmlFor="notes"
           className="block text-sm font-medium text-gray-700"
         >
-          Additional Notes
+          ملاحظات إضافية
         </label>
         <textarea
           id="notes"
@@ -254,14 +254,14 @@ export const PrescriptionForm = ({
       {/* Form Actions */}
       <div className="flex justify-end gap-3 pt-4">
         <button type="button" onClick={onCancel} className="btn-secondary">
-          Cancel
+          إلغاء
         </button>
         <button
           type="submit"
           disabled={isLoading}
           className="btn-primary disabled:opacity-50"
         >
-          {isLoading ? "Saving..." : "Save Prescription"}
+          {isLoading ? "جاري الحفظ..." : "حفظ الوصفة"}
         </button>
       </div>
     </form>
@@ -288,7 +288,7 @@ export const DoctorPrescriptionView = ({
     <div className="space-y-4">
       {/* Diagnosis */}
       <div>
-        <label className="text-sm font-medium text-gray-700">Diagnosis</label>
+        <label className="text-sm font-medium text-gray-700">التشخيص</label>
         <p className="text-gray-900 mt-1 whitespace-pre-wrap">
           {prescription.diagnosis}
         </p>
@@ -296,7 +296,7 @@ export const DoctorPrescriptionView = ({
 
       {/* Medications */}
       <div>
-        <label className="text-sm font-medium text-gray-700">Medications</label>
+        <label className="text-sm font-medium text-gray-700">الأدوية</label>
         <div className="mt-2 space-y-3">
           {prescription.medications?.length > 0 ? (
             prescription.medications.map((med, index) => (
@@ -307,23 +307,22 @@ export const DoctorPrescriptionView = ({
                 <p className="font-medium text-gray-900">{med.name}</p>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-700">
                   <p>
-                    <span className="font-medium">Dosage:</span> {med.dosage}
+                    <span className="font-medium">الجرعة:</span> {med.dosage}
                   </p>
                   {med.frequency && (
                     <p>
-                      <span className="font-medium">Frequency:</span>{" "}
+                      <span className="font-medium">التكرار:</span>{" "}
                       {med.frequency}
                     </p>
                   )}
                   {med.duration && (
                     <p>
-                      <span className="font-medium">Duration:</span>{" "}
-                      {med.duration}
+                      <span className="font-medium">المدة:</span> {med.duration}
                     </p>
                   )}
                   {med.instructions && (
                     <p className="col-span-2">
-                      <span className="font-medium">Instructions:</span>{" "}
+                      <span className="font-medium">التعليمات:</span>{" "}
                       {med.instructions}
                     </p>
                   )}
@@ -331,7 +330,7 @@ export const DoctorPrescriptionView = ({
               </div>
             ))
           ) : (
-            <p className="text-gray-500 italic">No medications prescribed</p>
+            <p className="text-gray-500 italic">لا توجد أدوية موصى بها</p>
           )}
         </div>
       </div>
@@ -340,7 +339,7 @@ export const DoctorPrescriptionView = ({
       {prescription.notes && (
         <div>
           <label className="text-sm font-medium text-gray-700">
-            Additional Notes
+            ملاحظات إضافية
           </label>
           <p className="text-gray-900 mt-1 whitespace-pre-wrap">
             {prescription.notes}
@@ -350,7 +349,9 @@ export const DoctorPrescriptionView = ({
 
       {/* Created Date */}
       <div>
-        <label className="text-sm font-medium text-gray-700">Created</label>
+        <label className="text-sm font-medium text-gray-700">
+          تاريخ الإنشاء
+        </label>
         <p className="text-gray-900 mt-1">
           {new Date(prescription.createdAt).toLocaleString()}
         </p>
@@ -365,18 +366,18 @@ export const DoctorPrescriptionView = ({
                 onClick={() => setShowDeleteConfirm(true)}
                 className="btn-secondary bg-red-100 text-red-700 hover:bg-red-200"
               >
-                Delete Prescription
+                حذف الروشتة
               </button>
             ) : (
               <>
                 <p className="text-sm text-red-600 font-medium self-center">
-                  Confirm delete?
+                  هل أنت متأكد أنك تريد حذف هذه الروشتة؟
                 </p>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   className="btn-secondary text-sm"
                 >
-                  Cancel
+                  إلغاء
                 </button>
                 <button
                   onClick={handleDeleteClick}
@@ -400,7 +401,7 @@ export const PatientPrescriptionView = ({ prescription }) => {
     <div className="space-y-4">
       {/* Diagnosis */}
       <div>
-        <label className="text-sm font-medium text-gray-700">Diagnosis</label>
+        <label className="text-sm font-medium text-gray-700">التشخيص</label>
         <p className="text-gray-900 mt-1 whitespace-pre-wrap">
           {prescription.diagnosis}
         </p>
@@ -408,7 +409,7 @@ export const PatientPrescriptionView = ({ prescription }) => {
 
       {/* Medications */}
       <div>
-        <label className="text-sm font-medium text-gray-700">Medications</label>
+        <label className="text-sm font-medium text-gray-700">الأدوية</label>
         <div className="mt-2 space-y-3">
           {prescription.medications?.length > 0 ? (
             prescription.medications.map((med, index) => (
@@ -419,23 +420,22 @@ export const PatientPrescriptionView = ({ prescription }) => {
                 <p className="font-medium text-gray-900">{med.name}</p>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-700">
                   <p>
-                    <span className="font-medium">Dosage:</span> {med.dosage}
+                    <span className="font-medium">الجرعة:</span> {med.dosage}
                   </p>
                   {med.frequency && (
                     <p>
-                      <span className="font-medium">Frequency:</span>{" "}
+                      <span className="font-medium">التكرار:</span>{" "}
                       {med.frequency}
                     </p>
                   )}
                   {med.duration && (
                     <p>
-                      <span className="font-medium">Duration:</span>{" "}
-                      {med.duration}
+                      <span className="font-medium">المدة:</span> {med.duration}
                     </p>
                   )}
                   {med.instructions && (
                     <p className="col-span-2">
-                      <span className="font-medium">Instructions:</span>{" "}
+                      <span className="font-medium">التعليمات:</span>{" "}
                       {med.instructions}
                     </p>
                   )}
@@ -443,7 +443,7 @@ export const PatientPrescriptionView = ({ prescription }) => {
               </div>
             ))
           ) : (
-            <p className="text-gray-500 italic">No medications prescribed</p>
+            <p className="text-gray-500 italic">لا توجد أدوية موصى بها</p>
           )}
         </div>
       </div>
@@ -451,7 +451,7 @@ export const PatientPrescriptionView = ({ prescription }) => {
       {/* Additional Notes */}
       {prescription.notes && (
         <div>
-          <label className="text-sm font-medium text-gray-700">Notes</label>
+          <label className="text-sm font-medium text-gray-700">الملاحظات</label>
           <p className="text-gray-900 mt-1 whitespace-pre-wrap">
             {prescription.notes}
           </p>
@@ -460,7 +460,9 @@ export const PatientPrescriptionView = ({ prescription }) => {
 
       {/* Created Date */}
       <div>
-        <label className="text-sm font-medium text-gray-700">Issued Date</label>
+        <label className="text-sm font-medium text-gray-700">
+          تاريخ الإنشاء
+        </label>
         <p className="text-gray-900 mt-1">
           {new Date(prescription.createdAt).toLocaleString()}
         </p>

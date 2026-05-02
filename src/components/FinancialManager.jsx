@@ -186,7 +186,7 @@ const FinancialManager = ({ patientId }) => {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h3 className="font-semibold text-gray-900 dark:text-white">
-                Overall Payment Progress
+                الملخص المالي العام
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {formatCurrency(totalStats.totalPaid)} of{" "}
@@ -210,10 +210,10 @@ const FinancialManager = ({ patientId }) => {
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-            Treatment Plans & Billing
+            خطط العلاج
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Manage payment plans and track outstanding balances
+            إدارة خطط الدفع وتتبع الرصيد المعلق
           </p>
         </div>
         {role === "doctor" && (
@@ -224,7 +224,7 @@ const FinancialManager = ({ patientId }) => {
             className="btn-premium btn-premium-primary px-4 py-2 flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            New Plan
+            خطة جديدة
           </motion.button>
         )}
       </div>
@@ -262,7 +262,7 @@ const FinancialManager = ({ patientId }) => {
                   <div className="grid grid-cols-3 gap-4 mb-4">
                     <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50">
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                        Total
+                        الإجمالي
                       </p>
                       <p className="font-semibold text-gray-900 dark:text-white">
                         {formatCurrency(plan.totalCost)}
@@ -270,7 +270,7 @@ const FinancialManager = ({ patientId }) => {
                     </div>
                     <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20">
                       <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-1">
-                        Paid
+                        مدفوع
                       </p>
                       <p className="font-semibold text-emerald-700 dark:text-emerald-300">
                         {formatCurrency(plan.amountPaid)}
@@ -278,7 +278,7 @@ const FinancialManager = ({ patientId }) => {
                     </div>
                     <div className="p-3 rounded-xl bg-red-50 dark:bg-red-900/20">
                       <p className="text-xs text-red-600 dark:text-red-400 mb-1">
-                        Due
+                        معلق
                       </p>
                       <p className="font-semibold text-red-700 dark:text-red-300">
                         {formatCurrency(plan.remainingBalance)}
@@ -290,7 +290,7 @@ const FinancialManager = ({ patientId }) => {
                   <div className="mb-4">
                     <div className="flex items-center justify-between text-sm mb-2">
                       <span className="text-gray-500 dark:text-gray-400">
-                        Payment Progress
+                        تقدم الدفع
                       </span>
                       <span className="font-medium text-blue-600 dark:text-blue-400">
                         {plan.totalCost > 0
@@ -320,14 +320,14 @@ const FinancialManager = ({ patientId }) => {
                       className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-green-400 text-white font-semibold flex items-center justify-center gap-2 hover:shadow-lg transition"
                     >
                       <CreditCard className="w-4 h-4" />
-                      Record Payment
+                      تسجيل الدفع
                     </motion.button>
                   )}
 
                   {plan.remainingBalance <= 0 && (
                     <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 justify-center">
                       <CheckCircle className="w-5 h-5" />
-                      <span className="font-medium">Plan Fully Paid</span>
+                      <span className="font-medium">الخطة مدفوعة بالكامل</span>
                     </div>
                   )}
                 </GlassCard>

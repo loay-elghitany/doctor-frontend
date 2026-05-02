@@ -57,7 +57,7 @@ export const AppointmentCard = ({
           <p className="text-sm text-gray-500 mt-1">{patientLabel}</p>
           {isCancelled && (
             <p className="text-sm font-medium text-red-600 mt-2">
-              Doctor Cancelled
+              تم إلغاء هذا الموعد من قبل الدكتور
             </p>
           )}
         </div>
@@ -71,14 +71,14 @@ export const AppointmentCard = ({
 
       <div className="space-y-2 mb-4">
         <p>
-          <span className="font-medium text-gray-700">Date:</span>{" "}
+          <span className="font-medium text-gray-700">التاريخ:</span>{" "}
           <span className="text-gray-600">
             {formatDateSafe(appointment.date)} {appointment.timeSlot || ""}
           </span>
         </p>
         {appointment.notes && (
           <p>
-            <span className="font-medium text-gray-700">Notes:</span>{" "}
+            <span className="font-medium text-gray-700">الملاحظات:</span>{" "}
             <span className="text-gray-600">{appointment.notes}</span>
           </p>
         )}
@@ -89,14 +89,14 @@ export const AppointmentCard = ({
           onClick={() => onView(appointment)}
           className="btn-primary text-sm"
         >
-          View Details
+          عرض التفاصيل
         </button>
         {appointment.status === "reschedule_proposed" && (
           <button
             onClick={() => onAction?.(appointment)}
             className="btn-primary text-sm bg-purple-600 hover:bg-purple-700"
           >
-            Choose New Time
+            اختر وقتًا جديدًا
           </button>
         )}
         {(() => {
@@ -108,7 +108,7 @@ export const AppointmentCard = ({
                   onClick={() => onMarkCompleted(appointment)}
                   className="btn-primary text-sm bg-green-600 hover:bg-green-700"
                 >
-                  Mark Completed
+                  تحديد كمكتمل
                 </button>
               )}
               {permissions.canDelete && onHide && (
@@ -116,7 +116,7 @@ export const AppointmentCard = ({
                   onClick={() => onHide(appointment)}
                   className="btn-secondary text-sm bg-red-100 text-red-700 hover:bg-red-200"
                 >
-                  Remove
+                  حذف
                 </button>
               )}
             </>
@@ -154,23 +154,23 @@ export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
     <div>
       <div className="space-y-4">
         <div>
-          <label className="text-sm font-medium text-gray-700">Doctor</label>
+          <label className="text-sm font-medium text-gray-700">الدكتور</label>
           <p className="text-gray-900">{appointment.doctor?.name || "N/A"}</p>
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Patient</label>
+          <label className="text-sm font-medium text-gray-700">المريض</label>
           <p className="text-gray-900">{patientLabel}</p>
         </div>
         <div>
           <label className="text-sm font-medium text-gray-700">
-            Date & Time
+            التاريخ والوقت
           </label>
           <p className="text-gray-900">
             {formatDateSafe(appointment.date)} {appointment.timeSlot || ""}
           </p>
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Status</label>
+          <label className="text-sm font-medium text-gray-700">الحالة</label>
           <p className="text-gray-900 mt-1">
             <span
               className={`badge badge-${String(appointment.status || "unknown").replace(/_/g, "-")}`}
@@ -181,14 +181,16 @@ export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
         </div>
         {appointment.notes && (
           <div>
-            <label className="text-sm font-medium text-gray-700">Notes</label>
+            <label className="text-sm font-medium text-gray-700">
+              الملاحظات
+            </label>
             <p className="text-gray-900">{appointment.notes}</p>
           </div>
         )}
         {appointment.rescheduleOptions?.length > 0 && (
           <div>
             <label className="text-sm font-medium text-gray-700">
-              Reschedule Options
+              خيارات إعادة الجدولة
             </label>
             <ul className="mt-2 space-y-2">
               {appointment.rescheduleOptions.map((opt, idx) => (
@@ -206,11 +208,11 @@ export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
 
       <div className="flex justify-end gap-3 mt-6">
         <button onClick={onClose} className="btn-secondary">
-          Close
+          إغلاق
         </button>
         {onAction && (
           <button onClick={onAction} className="btn-primary">
-            Take Action
+            أخذ إجراء
           </button>
         )}
       </div>

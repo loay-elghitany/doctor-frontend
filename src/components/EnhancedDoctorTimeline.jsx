@@ -239,11 +239,11 @@ const EnhancedDoctorTimeline = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800">
-            Patient Timeline Events
+            الجدول الزمني الطبي المتقدم
           </h1>
           <p className="text-gray-600 mt-2">
-            View and manage all appointments and prescriptions across your
-            patients
+            قم بإدارة ومراجعة الأحداث الطبية لمرضاك، مع إمكانية البحث والتصفية
+            لسهولة الوصول إلى المعلومات المهمة.
           </p>
         </div>
 
@@ -257,7 +257,8 @@ const EnhancedDoctorTimeline = () => {
                 {pagination.newEventsCount !== 1 ? "s" : ""}
               </p>
               <p className="text-blue-700 text-sm">
-                You have recent updates since your last login
+                لقد تم إضافة أحداث جديدة منذ آخر زيارة لك. قم بتحديث الصفحة
+                لعرضها.
               </p>
             </div>
           </div>
@@ -267,25 +268,25 @@ const EnhancedDoctorTimeline = () => {
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white rounded-lg shadow p-4">
-              <p className="text-gray-600 text-sm">Total Events</p>
+              <p className="text-gray-600 text-sm">إجمالي الأحداث</p>
               <p className="text-2xl font-bold text-blue-600">
                 {stats.totalEvents}
               </p>
             </div>
             <div className="bg-white rounded-lg shadow p-4">
-              <p className="text-gray-600 text-sm">Completed</p>
+              <p className="text-gray-600 text-sm">مكتمل</p>
               <p className="text-2xl font-bold text-green-600">
                 {stats.completedCount || 0}
               </p>
             </div>
             <div className="bg-white rounded-lg shadow p-4">
-              <p className="text-gray-600 text-sm">Cancelled</p>
+              <p className="text-gray-600 text-sm">ملغى</p>
               <p className="text-2xl font-bold text-red-600">
                 {stats.cancelledCount || 0}
               </p>
             </div>
             <div className="bg-white rounded-lg shadow p-4">
-              <p className="text-gray-600 text-sm">Unique Patients</p>
+              <p className="text-gray-600 text-sm">مرضى فريدون</p>
               <p className="text-2xl font-bold text-purple-600">
                 {stats.uniquePatients || 0}
               </p>
@@ -298,14 +299,14 @@ const EnhancedDoctorTimeline = () => {
           <div className="flex items-center gap-2 mb-4">
             <Filter size={20} className="text-blue-600" />
             <h2 className="text-lg font-bold text-gray-800">
-              Filters & Search
+              بحث وتصفية الأحداث
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Event Type
+                نوع الحدث
               </label>
               <select
                 name="eventType"
@@ -313,17 +314,17 @@ const EnhancedDoctorTimeline = () => {
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">All Events</option>
-                <option value="appointment">Appointments</option>
-                <option value="prescription">Prescriptions</option>
-                <option value="note">Doctor Notes</option>
+                <option value="all">جميع الأحداث</option>
+                <option value="appointment">المواعيد</option>
+                <option value="prescription">الروشتات</option>
+                <option value="note">ملاحظات الطبيب</option>
               </select>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 <Search size={16} className="inline mr-1" />
-                Quick Search
+                بحث سريع
               </label>
               <div className="flex gap-2">
                 <input
@@ -341,7 +342,7 @@ const EnhancedDoctorTimeline = () => {
                   onClick={handleSearch}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none"
                 >
-                  Search
+                  بحث
                 </button>
               </div>
             </div>
@@ -352,7 +353,7 @@ const EnhancedDoctorTimeline = () => {
               onClick={handleApplyFilters}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none"
             >
-              Apply Filters
+              تطبيق التصفية
             </button>
 
             <button
@@ -367,7 +368,7 @@ const EnhancedDoctorTimeline = () => {
               }}
               className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 focus:outline-none"
             >
-              Clear Filters
+              تصفية جديدة
             </button>
           </div>
         </div>
@@ -380,7 +381,7 @@ const EnhancedDoctorTimeline = () => {
                 className="animate-spin mx-auto text-blue-600"
                 size={32}
               />
-              <p className="mt-2 text-gray-600">Loading timeline...</p>
+              <p className="mt-2 text-gray-600">تحميل رجاءً الانتظار...</p>
             </div>
           ) : error ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
@@ -393,7 +394,7 @@ const EnhancedDoctorTimeline = () => {
           ) : events.length === 0 ? (
             <div className="text-center py-12 bg-white rounded-lg">
               <FileText className="mx-auto text-gray-400 mb-3" size={48} />
-              <p className="text-gray-600">No events found</p>
+              <p className="text-gray-600">لم يتم العثور على أحداث طبية بعد</p>
             </div>
           ) : (
             <>
@@ -416,7 +417,7 @@ const EnhancedDoctorTimeline = () => {
                           {event.isNew && (
                             <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-full">
                               <Zap size={12} />
-                              NEW
+                              جديد
                             </span>
                           )}
                         </div>
@@ -425,7 +426,7 @@ const EnhancedDoctorTimeline = () => {
                         {event.patient && (
                           <div className="mt-2 text-sm">
                             <p className="text-gray-700">
-                              <span className="font-medium">Patient:</span>{" "}
+                              <span className="font-medium">المريض:</span>{" "}
                               {event.patient.name}
                             </p>
                             <p className="text-gray-600">
@@ -467,7 +468,7 @@ const EnhancedDoctorTimeline = () => {
                       {event.metadata?.status && (
                         <div>
                           <p className="text-xs text-gray-600 uppercase">
-                            Status
+                            الحالة
                           </p>
                           <p className="font-medium text-gray-800">
                             {event.metadata.status}
@@ -478,7 +479,7 @@ const EnhancedDoctorTimeline = () => {
                       {event.metadata?.timeSlot && (
                         <div>
                           <p className="text-xs text-gray-600 uppercase">
-                            Time
+                            الوقت
                           </p>
                           <p className="font-medium text-gray-800">
                             {event.metadata.timeSlot}
@@ -489,7 +490,7 @@ const EnhancedDoctorTimeline = () => {
                       {event.metadata?.medications && (
                         <div>
                           <p className="text-xs text-gray-600 uppercase">
-                            Medications
+                            الأدوية
                           </p>
                           <p className="font-medium text-gray-800">
                             {event.metadata.medications}
@@ -500,7 +501,7 @@ const EnhancedDoctorTimeline = () => {
                       {event.metadata?.diagnosis && (
                         <div>
                           <p className="text-xs text-gray-600 uppercase">
-                            Diagnosis
+                            التشخيص
                           </p>
                           <p className="font-medium text-gray-800">
                             {event.metadata.diagnosis}
@@ -511,7 +512,7 @@ const EnhancedDoctorTimeline = () => {
                       {event.metadata?.notes && (
                         <div className="md:col-span-2">
                           <p className="text-xs text-gray-600 uppercase">
-                            Notes
+                            الملاحظات
                           </p>
                           <p className="font-medium text-gray-800">
                             {event.metadata.notes.substring(0, 100)}...
@@ -530,7 +531,7 @@ const EnhancedDoctorTimeline = () => {
                       >
                         <span className="flex items-center gap-2">
                           <Clock size={16} />
-                          View Full Details
+                          عرض التفاصيل الكاملة
                         </span>
                         {expandedIds.has(event.id) ? (
                           <ChevronUp size={20} />
@@ -559,14 +560,14 @@ const EnhancedDoctorTimeline = () => {
                     onClick={handleLoadMore}
                     className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none"
                   >
-                    Load More Events
+                    تحميل المزيد من الأحداث
                   </button>
                 </div>
               )}
 
               {/* Pagination Info */}
               <div className="text-center text-sm text-gray-600 py-4">
-                Showing {events.length} of {pagination.total} events
+                عرض {events.length} من {pagination.total} أحداث طبية
               </div>
             </>
           )}

@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
-import {
-  GlassCard,
-  WizardStep,
-  PremiumProgressBar,
-} from "../components/ui";
+import { GlassCard, WizardStep, PremiumProgressBar } from "../components/ui";
 import {
   Calendar,
   FileText,
@@ -43,20 +39,20 @@ export const CreateAppointment = () => {
   const wizardSteps = [
     {
       id: 1,
-      title: "Reason for Appointment",
-      description: "Briefly describe your medical concern",
+      title: "سبب حجز الموعد",
+      description: "رجاءاً ! أخبرنا بسبب رغبتك في مقابلة الدكتور",
       icon: Stethoscope,
     },
     {
       id: 2,
-      title: "Select Date & Time",
-      description: "Pick a convenient time for your visit",
+      title: "إختر الموعد والتاريخ",
+      description: "فقط أخبرنا بالموعد المناسب لك",
       icon: Calendar,
     },
     {
       id: 3,
-      title: "Review & Confirm",
-      description: "Review your appointment details",
+      title: "المراجعة والتأكيد",
+      description: "هل كل شئ جيد؟؟",
       icon: CheckCircle,
     },
   ];
@@ -81,6 +77,19 @@ export const CreateAppointment = () => {
     "16:30",
     "17:00",
     "17:30",
+    "18:00",
+    "18:30",
+    "19:00",
+    "19:30",
+    "20:00",
+    "20:30",
+    "21:00",
+    "21:30",
+    "22:00",
+    "22:30",
+    "23:00",
+    "23:30",
+    "00:00",
   ];
 
   // Handle form input changes
@@ -137,19 +146,19 @@ export const CreateAppointment = () => {
     setSuccess("");
 
     if (!formData.date) {
-      setError("Please select a date");
+      setError("رجاءاً ! أختر تاريخ الزيارة");
       setLoading(false);
       return;
     }
 
     if (!formData.timeSlot) {
-      setError("Please select a time slot");
+      setError("رجاءاً ! أختر وقت الزيارة");
       setLoading(false);
       return;
     }
 
     if (!formData.notes.trim()) {
-      setError("Please provide a reason for the appointment");
+      setError("رجاءاً ! أدخل سبب الموعد");
       setLoading(false);
       return;
     }
@@ -171,10 +180,10 @@ export const CreateAppointment = () => {
         undefined, // doctorId not provided - backend resolves it
         appointmentDate.toISOString(),
         formData.timeSlot,
-        formData.notes
+        formData.notes,
       );
 
-      setSuccess("Appointment created successfully!");
+      setSuccess("تم إنشاء الموعد بنجاح");
       setCurrentStep(2); // In case they are on a different step or to ensure it stays here
 
       // Redirect to patient dashboard after brief delay
@@ -193,14 +202,14 @@ export const CreateAppointment = () => {
   // Navigation functions
   const handleNext = () => {
     if (currentStep === 0 && !formData.notes.trim()) {
-      setError("Please provide a reason for your appointment");
+      setError("رجاءاً ! أدخل سبب الموعد");
       return;
     }
     if (currentStep === 1 && (!formData.date || !formData.timeSlot)) {
-      setError("Please select both a date and time slot");
+      setError("رجاءاً ! أختر التاريخ والوقت المناسبين");
       return;
     }
-    
+
     setError("");
     if (currentStep < wizardSteps.length - 1) {
       setCurrentStep(currentStep + 1);
@@ -236,10 +245,10 @@ export const CreateAppointment = () => {
           className="text-center mb-8"
         >
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
-            Book New Appointment
+            احجز موعد جديد
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Follow the steps below to schedule your visit
+            اتبع الخطوات التالية لحجز موعد جديد
           </p>
         </motion.div>
 
@@ -307,17 +316,17 @@ export const CreateAppointment = () => {
               >
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    Reason for Appointment
+                    سبب الزيارة
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    Briefly describe your medical concern or reason for visit
+                    من فضلك اكتب سبب رغبتك في زيارة الدكتور
                   </p>
                 </div>
 
                 <div className="space-y-6 max-w-2xl mx-auto">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Details
+                      تفاصيل
                     </label>
                     <textarea
                       name="notes"
@@ -342,10 +351,10 @@ export const CreateAppointment = () => {
               >
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    Select Date & Time
+                    اختر التاريخ والوقت
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    Choose a convenient time for your visit
+                    اختر موعداً مناسباً لموعدك
                   </p>
                 </div>
 
@@ -353,7 +362,7 @@ export const CreateAppointment = () => {
                   {/* Date Selection */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Select Date
+                      اختر التاريخ
                     </label>
                     <input
                       type="date"
@@ -368,7 +377,7 @@ export const CreateAppointment = () => {
                   {/* Time Slots */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      Available Time Slots
+                      المواعيد المتاحة
                     </label>
                     {loading ? (
                       <div className="space-y-3">
@@ -400,8 +409,8 @@ export const CreateAppointment = () => {
                     ) : (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
                         {formData.date
-                          ? "No slots available for this date"
-                          : "Please select a date first"}
+                          ? "لا يوجد مواعيد متاحة في هذا التاريخ"
+                          : "من فضلك اختر التاريخ أولاً"}
                       </div>
                     )}
                   </div>
@@ -422,10 +431,10 @@ export const CreateAppointment = () => {
                     <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                   </div>
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                    Review Your Appointment
+                    راجع موعدك
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    Please review the details before confirming
+                    من فضلك قم بمراجعة تفاصيل حجز
                   </p>
                 </div>
 
@@ -433,12 +442,12 @@ export const CreateAppointment = () => {
                   {/* Appointment Details */}
                   <GlassCard className="p-6">
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-                      Appointment Details
+                      تفاصيل الموعد
                     </h3>
                     <div className="space-y-3">
                       <div className="flex justify-between">
                         <span className="text-gray-500 dark:text-gray-400">
-                          Date
+                          التاريخ
                         </span>
                         <span className="font-medium text-gray-900 dark:text-white">
                           {formData.date
@@ -448,7 +457,7 @@ export const CreateAppointment = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-gray-500 dark:text-gray-400">
-                          Time
+                          الوقت
                         </span>
                         <span className="font-medium text-gray-900 dark:text-white">
                           {formData.timeSlot}
@@ -460,17 +469,17 @@ export const CreateAppointment = () => {
                   {/* Patient Info */}
                   <GlassCard className="p-6">
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-4">
-                      Patient Information
+                      معلومات المريض
                     </h3>
                     <div className="space-y-3">
                       <div className="flex items-center gap-3">
                         <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">
-                            Name
+                            الاسم
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            Current Patient
+                            المريض الحالي
                           </p>
                         </div>
                       </div>
@@ -489,7 +498,7 @@ export const CreateAppointment = () => {
                         <Phone className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <div>
                           <span className="text-gray-500 dark:text-gray-400">
-                            Phone
+                            الهاتف
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
                             +1 (555) 123-4567
@@ -504,7 +513,7 @@ export const CreateAppointment = () => {
                 {formData.notes && (
                   <GlassCard className="p-6 mt-6">
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                      Reason for Appointment
+                      سبب الزيارة
                     </h3>
                     <p className="text-gray-600 dark:text-gray-300">
                       {formData.notes}
@@ -524,14 +533,14 @@ export const CreateAppointment = () => {
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Back
+                الرجوع للخلف
               </button>
               <button
                 onClick={handleStartOver}
                 className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
               >
                 <Plus className="w-4 h-4" />
-                Start Over
+                إبدأ من جديد
               </button>
             </div>
 
@@ -541,7 +550,7 @@ export const CreateAppointment = () => {
                   onClick={handleNext}
                   className="btn-premium btn-premium-primary px-6 py-2 flex items-center gap-2"
                 >
-                  Next
+                  التالي
                   <ArrowRight className="w-4 h-4" />
                 </button>
               )}

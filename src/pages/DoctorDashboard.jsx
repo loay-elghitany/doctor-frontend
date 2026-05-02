@@ -42,22 +42,22 @@ const DASHBOARD_STATUS_MAPPING = {
 
 const DOCTOR_TOUR_STEPS = [
   {
-    title: "Welcome to your premium clinic hub",
+    title: "مرحبًا بك في لوحة القيادة الجديدة",
     description:
-      "Experience a beautifully redesigned dashboard with Bento Grid layout, glassmorphism effects, and smooth animations.",
-    tip: "Hover over cards to see the elegant lift effect and glowing borders.",
+      "اكتشف تصميمنا الجديد والأنيق الذي يضع كل ما تحتاجه في متناول يدك. من نظرة سريعة، يمكنك رؤية إحصائيات المواعيد الحية، الوصول إلى الإجراءات السريعة، ومراجعة مواعيدك القادمة في لمحة.",
+    tip: "تجربة مستخدم محسنة مع تصميم حديث وألوان مهدئة تركز على الوضوح وسهولة الاستخدام.",
   },
   {
-    title: "Live appointment stats",
+    title: "إحصائيات المواعيد الحية",
     description:
-      "Track your daily appointment volume, pending confirmations, completed care, and cancellations in real-time.",
-    tip: "Each stat card features a unique gradient and icon for quick visual recognition.",
+      "تابع تدفق المرضى الخاص بك مع إحصائيات المواعيد الحية التي تعرض عدد المواعيد اليوم، المواعيد المعلقة، المكتملة، والملغاة في بطاقات ملونة وجذابة.",
+    tip: "تحديثات في الوقت الحقيقي تعكس التغييرات فور حدوثها، مما يتيح لك البقاء على اطلاع دائم دون الحاجة إلى تحديث الصفحة.",
   },
   {
-    title: "Quick actions & appointments",
+    title: "إجراءات سريعة بنقرة واحدة",
     description:
-      "Access common tasks with one click and view your upcoming appointments in a modern card layout.",
-    tip: "Use the search bar to quickly find patients or appointments.",
+      "قم بالوصول بسرعة إلى الإجراءات الأكثر استخدامًا مثل عرض جدول المواعيد، سجلات المرضى، ملف العيادة، وإضافة سكرتير جديد من قسم الإجراءات السريعة الجديد.",
+    tip: "أزرار واضحة ومميزة تضمن أن الإجراءات الأكثر أهمية لا تبعد أكثر من نقرة واحدة.",
   },
 ];
 
@@ -94,7 +94,7 @@ export const DoctorDashboard = () => {
   // Stat card configurations with premium styling
   const statCards = [
     {
-      label: "Today's Appointments",
+      label: "مواعيد اليوم",
       value: stats.today,
       icon: CalendarDays,
       gradient: "from-blue-500 to-cyan-400",
@@ -102,7 +102,7 @@ export const DoctorDashboard = () => {
       accent: "text-blue-600 dark:text-blue-400",
     },
     {
-      label: "Pending Confirmations",
+      label: "مواعيد مفترحة",
       value: stats.pending,
       icon: Clock3,
       gradient: "from-amber-500 to-orange-400",
@@ -110,7 +110,7 @@ export const DoctorDashboard = () => {
       accent: "text-amber-600 dark:text-amber-400",
     },
     {
-      label: "Completed",
+      label: "مكتملة",
       value: stats.completed,
       icon: CheckCircle2,
       gradient: "from-emerald-500 to-green-400",
@@ -118,7 +118,7 @@ export const DoctorDashboard = () => {
       accent: "text-emerald-600 dark:text-emerald-400",
     },
     {
-      label: "Cancelled",
+      label: "ملغاة",
       value: stats.cancelled,
       icon: XCircle,
       gradient: "from-red-500 to-rose-400",
@@ -131,22 +131,22 @@ export const DoctorDashboard = () => {
   const quickActions = [
     {
       icon: CalendarDays,
-      label: "Appointments",
+      label: "المواعيد",
       onClick: () => navigate("/doctor/appointments"),
     },
     {
       icon: Users,
-      label: "Patient Records",
+      label: "سجلات المرضى",
       onClick: () => navigate("/doctor/patient-records"),
     },
     {
       icon: TrendingUp,
-      label: "Clinic Profile",
+      label: "ملف العيادة",
       onClick: () => navigate("/doctor/clinic-profile"),
     },
     {
       icon: UserPlus,
-      label: "Add Secretary",
+      label: "إضافة سكرتير",
       onClick: () => setSecretaryModalOpen(true),
     },
   ];
@@ -278,7 +278,7 @@ export const DoctorDashboard = () => {
         secretaryForm.password,
       );
 
-      setSecretarySuccess("Secretary created successfully!");
+      setSecretarySuccess("تم إنشاء السكرتير بنجاح!");
       setTimeout(() => {
         handleSecretaryModalClose();
       }, 2000);
@@ -339,7 +339,7 @@ export const DoctorDashboard = () => {
                     transition={{ delay: 0.2 }}
                     className="text-sm uppercase tracking-[0.32em] text-blue-600 dark:text-blue-400 mb-3 font-semibold"
                   >
-                    Welcome back
+                    مرحباً بك في لوحة القيادة الخاصة بك
                   </motion.p>
                   <motion.h1
                     initial={{ opacity: 0, x: -20 }}
@@ -363,9 +363,8 @@ export const DoctorDashboard = () => {
                     transition={{ delay: 0.5 }}
                     className="mt-4 max-w-xl text-gray-500 dark:text-gray-400"
                   >
-                    Your premium clinic overview is ready — manage appointments,
-                    monitor patient flow, and stay in control of every care
-                    detail.
+                    استعرض إحصائيات مواعيدك، قم بإدارة جدولك، وتفاعل مع مرضاك
+                    بسهولة من لوحة القيادة الجديدة والمحسنة.
                   </motion.p>
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -377,14 +376,14 @@ export const DoctorDashboard = () => {
                       onClick={() => setTourOpen(true)}
                       className="btn-premium btn-premium-primary px-6 py-3 flex items-center gap-2"
                     >
-                      Start Tour
+                      أبدأ الجولة
                       <ArrowRight className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => navigate("/doctor/appointments")}
                       className="inline-flex items-center gap-2 rounded-xl bg-white/50 dark:bg-gray-800/50 px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200 backdrop-blur-sm border border-gray-200 dark:border-gray-700 transition hover:bg-white/70 dark:hover:bg-gray-800/70"
                     >
-                      Explore Schedule
+                      استعرض الجدول
                       <ArrowRight className="h-4 w-4" />
                     </button>
                   </motion.div>
@@ -447,7 +446,7 @@ export const DoctorDashboard = () => {
         {/* Quick Actions Section */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Quick Actions
+            إجراءات سريعة
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {quickActions.map((action, index) => (
@@ -467,10 +466,10 @@ export const DoctorDashboard = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Upcoming Appointments
+                المواعيد القادمة
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Next 7 days of scheduled appointments
+                الأيام 7 القادمة من المواعيد المجدولة
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
@@ -484,7 +483,7 @@ export const DoctorDashboard = () => {
                 onClick={() => navigate("/doctor/appointments")}
                 className="btn-premium btn-premium-primary px-4 py-2 flex items-center gap-2"
               >
-                View All
+                عرض الجدول الكامل
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -546,15 +545,15 @@ export const DoctorDashboard = () => {
           ) : searchQuery ? (
             <EmptyState
               icon={Users}
-              title="No patients found"
-              description={`No patients match "${searchQuery}". Try a different search term.`}
+              title="لا توجد مواعيد تطابق بحثك"
+              description={`لم يتم العثور على أي مواعيد ل "${searchQuery}". حاول تعديل معايير البحث الخاصة بك.`}
             />
           ) : (
             <EmptyState
               icon={CalendarDays}
-              title="No upcoming appointments"
-              description="You have no appointments scheduled for the next 7 days."
-              actionLabel="View All Appointments"
+              title="لا توجد مواعيد قادمة"
+              description="ليس لديك أي مواعيد مجدولة للأسابيع القادمة."
+              actionLabel="عرض الجدول الكامل"
               onAction={() => navigate("/doctor/appointments")}
             />
           )}
@@ -564,7 +563,7 @@ export const DoctorDashboard = () => {
         <Modal
           isOpen={secretaryModalOpen}
           onClose={handleSecretaryModalClose}
-          title="Add New Secretary"
+          title="إضافة سكرتير جديد"
           size="md"
           footer={
             <>
@@ -573,7 +572,7 @@ export const DoctorDashboard = () => {
                 onClick={handleSecretaryModalClose}
                 disabled={secretaryLoading}
               >
-                Cancel
+                إلغاء
               </Button>
               <Button
                 variant="primary"
@@ -598,10 +597,10 @@ export const DoctorDashboard = () => {
             )}
 
             <Input
-              label="Full Name"
+              label="اسم السكرتير الكامل"
               type="text"
               name="name"
-              placeholder="Enter secretary's full name"
+              placeholder="أدخل اسم السكرتير الكامل"
               value={secretaryForm.name}
               onChange={handleSecretaryFormChange}
               required
@@ -609,10 +608,10 @@ export const DoctorDashboard = () => {
             />
 
             <Input
-              label="Email Address"
+              label="عنوان البريد الإلكتروني"
               type="email"
               name="email"
-              placeholder="Enter secretary's email"
+              placeholder="أدخل بريد السكرتير الإلكتروني"
               value={secretaryForm.email}
               onChange={handleSecretaryFormChange}
               required
@@ -620,10 +619,10 @@ export const DoctorDashboard = () => {
             />
 
             <Input
-              label="Password"
+              label="كلمة المرور"
               type="password"
               name="password"
-              placeholder="Enter a secure password"
+              placeholder="أدخل كلمة مرور آمنة"
               value={secretaryForm.password}
               onChange={handleSecretaryFormChange}
               required

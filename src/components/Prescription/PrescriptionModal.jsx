@@ -51,7 +51,7 @@ export const PrescriptionModal = ({
       await prescriptionService.createPrescription(prescriptionData);
       setShowForm(false);
       setSelectedPrescription(null);
-      setSuccessMessage("✓ Prescription created successfully!");
+      setSuccessMessage("تم إنشاء الروشتة الطبية بنجاح!");
       // Auto-dismiss success message after 3 seconds
       setTimeout(() => setSuccessMessage(null), 3000);
       await loadPrescriptions();
@@ -90,7 +90,7 @@ export const PrescriptionModal = ({
       <div className="flex items-center justify-between mb-4 pb-4 border-b">
         <h3 className="text-lg font-semibold text-gray-900">
           {selectedPrescription
-            ? "Prescription Details"
+            ? "تفاصيل الروشتة الطبية"
             : showForm
               ? "Create New Prescription"
               : "Prescriptions"}
@@ -133,7 +133,7 @@ export const PrescriptionModal = ({
                   onClick={() => setShowForm(true)}
                   className="btn-primary text-sm"
                 >
-                  Create Prescription
+                  إضافة روشتة طبية
                 </button>
               )}
             </div>
@@ -141,7 +141,7 @@ export const PrescriptionModal = ({
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-600">
-                  {prescriptions.length} prescription
+                  {prescriptions.length} روشته طبية
                   {prescriptions.length !== 1 ? "s" : ""}
                 </p>
                 {userRole === "doctor" && (
@@ -149,7 +149,7 @@ export const PrescriptionModal = ({
                     onClick={() => setShowForm(true)}
                     className="btn-primary text-sm"
                   >
-                    + Add Prescription
+                    + إضافة روشتة طبية
                   </button>
                 )}
               </div>
@@ -163,17 +163,17 @@ export const PrescriptionModal = ({
                   <div className="flex justify-between items-start">
                     <div>
                       <p className="font-medium text-gray-900">
-                        Prescription {index + 1}
+                        الروشتة الطبية {index + 1}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">
                         {prescription.diagnosis
                           ? `${prescription.diagnosis.substring(0, 100)}${
                               prescription.diagnosis.length > 100 ? "..." : ""
                             }`
-                          : "No diagnosis provided."}
+                          : "لا يوجد تشخيص مقدم."}
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
-                        {prescription.medications?.length || 0} medication
+                        {prescription.medications?.length || 0} دواء
                         {prescription.medications?.length !== 1 ? "s" : ""}
                       </p>
                     </div>
@@ -217,7 +217,7 @@ export const PrescriptionModal = ({
             onClick={() => setSelectedPrescription(null)}
             className="btn-secondary"
           >
-            Back
+            العودة إلى القائمة
           </button>
         )}
         {!showForm && (

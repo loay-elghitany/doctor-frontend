@@ -101,6 +101,13 @@ const socialConfig = [
     hoverColor: "hover:text-[#1DA1F2]",
     label: "Twitter",
   },
+  {
+    key: "whatsApp",
+    Icon: MessageCircle,
+    color: "#25D366",
+    hoverColor: "hover:text-[#25D366]",
+    label: "WhatsApp",
+  },
 ];
 
 // Individual social icon component with animation
@@ -155,7 +162,7 @@ const FloatingWhatsAppButton = ({ phoneNumber }) => {
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
       aria-label="Contact us on WhatsApp"
-      title="Chat on WhatsApp"
+      title="تواصل معنا عبر WhatsApp"
     >
       <MessageCircle size={24} strokeWidth={2} />
     </motion.a>
@@ -208,13 +215,14 @@ export const DoctorLandingPage = () => {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
         <h1 className="text-3xl font-bold text-slate-900">Clinic Not Found</h1>
         <p className="text-slate-600">
-          This clinic subdomain does not exist. Please verify the URL.
+          هذا العنوان غير مرتبط بأي عيادة مسجلة لدينا. يرجى التحقق من الرابط أو
+          العودة إلى الموقع الرئيسي للعثور على العيادة الصحيحة.
         </p>
         <a
           href={mainDomainUrl}
           className="rounded-xl bg-blue-600 px-6 py-3 text-white hover:bg-blue-700"
         >
-          Go to main website
+          العودة إلى الصفحة الرئيسية
         </a>
       </div>
     );
@@ -228,7 +236,7 @@ export const DoctorLandingPage = () => {
           href={mainDomainUrl}
           className="rounded-xl bg-slate-900 px-6 py-3 text-white"
         >
-          Back to home
+          العودة إلى الصفحة الرئيسية
         </a>
       </div>
     );
@@ -278,7 +286,7 @@ export const DoctorLandingPage = () => {
               to="/login"
               className="rounded-xl border border-white/40 bg-white/10 px-4 py-2 text-sm font-medium text-white backdrop-blur hover:bg-white/20"
             >
-              Doctor portal
+              إبدأ من هنا
             </Link>
           </header>
 
@@ -300,7 +308,7 @@ export const DoctorLandingPage = () => {
             </h2>
             <p className="mt-4 max-w-2xl text-base leading-7 text-slate-200 md:text-lg">
               {profile.bio ||
-                "Personalized, patient-first care with modern digital workflows and trusted clinical expertise."}
+                "اكتشف رعاية صحية مخصصة تجمع بين الخبرة الطبية والتكنولوجيا الحديثة لتوفير تجربة علاجية استثنائية تضع راحتك وصحتك في المقام الأول."}
             </p>
             <motion.button
               onClick={() => navigate("/login")}
@@ -318,7 +326,7 @@ export const DoctorLandingPage = () => {
               className="mt-8 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-teal-400 to-blue-500 px-7 py-3 text-base font-semibold text-white shadow-[0_12px_35px_rgba(14,165,233,0.45)] cursor-pointer"
             >
               <CalendarClock size={18} />
-              Book Appointment
+              حجز موعد
             </motion.button>
           </motion.div>
         </div>
@@ -338,7 +346,7 @@ export const DoctorLandingPage = () => {
               />
             ) : (
               <div className="flex h-28 w-28 items-center justify-center rounded-2xl bg-slate-200 text-slate-500 sm:h-36 sm:w-36">
-                No image
+                لا يوجد صور
               </div>
             )}
           </motion.div>
@@ -355,18 +363,18 @@ export const DoctorLandingPage = () => {
         >
           <StatCard
             icon={ShieldCheck}
-            title="Trusted Care"
-            text="Evidence-based treatment plans with quality and privacy at the center of every visit."
+            title="علاج موثوق وآمن"
+            text="رعاية صحية موثوقة وآمنة مع التزام صارم بأعلى معايير الجودة والسلامة في كل خطوة من رحلتك العلاجية."
           />
           <StatCard
             icon={Stethoscope}
-            title={profile.specialty || "General Practice"}
-            text="Specialized expertise tailored to your symptoms, history, and long-term wellness goals."
+            title="الطب العام"
+            text="خبرة متخصصة مصممة لاحتياجاتك وسجلك الطبي وأهدافك الصحية طويلة المدى."
           />
           <StatCard
             icon={HeartPulse}
-            title="Human-Centered Experience"
-            text="Clear communication, compassionate support, and a seamless digital-first patient journey."
+            title="تجربة مخصصة"
+            text="تجربة رعاية صحية مخصصة تجمع بين الخبرة الطبية والتكنولوجيا الحديثة لتوفير تجربة علاجية استثنائية تضع راحتك وصحتك في المقام الأول."
           />
         </motion.section>
 
@@ -380,10 +388,10 @@ export const DoctorLandingPage = () => {
           <div className="mb-6 flex items-end justify-between gap-3">
             <div>
               <h3 className="text-2xl font-semibold text-slate-900">
-                Clinic Gallery
+                معرض العيادة
               </h3>
               <p className="mt-1 text-sm text-slate-500">
-                A quick look at our care environment and facilities.
+                نظرة سريعة على بيئة الرعاية ومرافقنا في العيادة.
               </p>
             </div>
             <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
@@ -410,7 +418,7 @@ export const DoctorLandingPage = () => {
             </div>
           ) : (
             <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-slate-500">
-              Clinic photos will appear here soon.
+              لا توجد صور للعيادة حالياً.
             </div>
           )}
         </motion.section>
@@ -421,11 +429,10 @@ export const DoctorLandingPage = () => {
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="text-center md:text-left">
-              <h3 className="text-lg font-semibold">
-                Connect with {profile.name}
-              </h3>
+              <h3 className="text-lg font-semibold">تواصل مع {profile.name}</h3>
               <p className="mt-2 text-sm text-slate-400">
-                Stay updated with our latest news and services
+                تابعنا على وسائل التواصل الاجتماعي للبقاء على اطلاع بأحدث
+                الأخبار والعروض من عيادتنا. نحن هنا لدعمك في رحلتك الصحية!
               </p>
             </div>
 
@@ -448,10 +455,16 @@ export const DoctorLandingPage = () => {
                 const link = profile.publicContactInfo?.[config.key];
                 if (!link) return null;
 
+                // Format WhatsApp link with wa.me prefix
+                const formattedLink =
+                  config.key === "whatsApp"
+                    ? `https://wa.me/${cleanPhoneNumber(link)}`
+                    : link;
+
                 return (
                   <SocialIcon
                     key={config.key}
-                    link={link}
+                    link={formattedLink}
                     config={config}
                     index={index}
                   />
@@ -475,7 +488,7 @@ export const DoctorLandingPage = () => {
         className="fixed bottom-5 right-4 z-50 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-400 to-blue-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(14,165,233,0.45)] md:bottom-8 md:right-8 md:px-6 md:text-base cursor-pointer border-0"
       >
         <CalendarClock size={18} />
-        Book Appointment
+        احجز موعد
       </motion.button>
     </div>
   );

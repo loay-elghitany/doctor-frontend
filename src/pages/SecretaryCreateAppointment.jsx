@@ -70,7 +70,9 @@ export const SecretaryCreateAppointment = () => {
     try {
       await appointmentService.createSecretaryAppointment(appointmentData);
 
-      setSuccess("Appointment created successfully");
+      setSuccess(
+        "الموعد تم إنشاؤه بنجاح! سيتم إعادة التوجيه إلى قائمة المواعيد...",
+      );
       setTimeout(() => {
         navigate("/secretary/appointments");
       }, 2000);
@@ -124,7 +126,7 @@ export const SecretaryCreateAppointment = () => {
             className="flex items-center gap-2 text-amber-600 hover:text-amber-700 text-sm font-medium mb-4"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Appointments
+            العودة إلى قائمة المواعيد
           </motion.button>
 
           <GlassCard className="relative overflow-hidden" gradient>
@@ -136,7 +138,7 @@ export const SecretaryCreateAppointment = () => {
                 transition={{ delay: 0.2 }}
                 className="text-sm uppercase tracking-[0.32em] text-amber-600 dark:text-amber-400 mb-3 font-semibold"
               >
-                New Booking
+                حجز موعد جديد
               </motion.p>
               <motion.h1
                 initial={{ opacity: 0, x: -20 }}
@@ -144,7 +146,7 @@ export const SecretaryCreateAppointment = () => {
                 transition={{ delay: 0.3 }}
                 className="text-4xl font-bold text-gray-900 dark:text-white"
               >
-                Create Appointment
+                إضافة موعد جديد
               </motion.h1>
               <motion.p
                 initial={{ opacity: 0 }}
@@ -152,7 +154,7 @@ export const SecretaryCreateAppointment = () => {
                 transition={{ delay: 0.4 }}
                 className="mt-3 text-lg text-gray-600 dark:text-gray-300"
               >
-                Schedule a new appointment for a patient.
+                جدولة مواعيد لمرضاك .
               </motion.p>
             </div>
           </GlassCard>
@@ -194,7 +196,7 @@ export const SecretaryCreateAppointment = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   <span className="flex items-center gap-2">
                     <User className="w-4 h-4 text-amber-500" />
-                    Select Patient
+                    إختر المريض
                   </span>
                 </label>
                 <div className="relative">
@@ -209,7 +211,7 @@ export const SecretaryCreateAppointment = () => {
                     required
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 appearance-none cursor-pointer"
                   >
-                    <option value="">Select a patient</option>
+                    <option value="">إختر المريض</option>
                     {patients.map((patient) => (
                       <option key={patient._id} value={patient._id}>
                         {patient.name} ({patient.email})
@@ -217,8 +219,18 @@ export const SecretaryCreateAppointment = () => {
                     ))}
                   </select>
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </div>
                 </div>
@@ -230,14 +242,17 @@ export const SecretaryCreateAppointment = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     <span className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-amber-500" />
-                      Date
+                      التاريخ
                     </span>
                   </label>
                   <input
                     type="date"
                     value={appointmentData.date}
                     onChange={(e) =>
-                      setAppointmentData({ ...appointmentData, date: e.target.value })
+                      setAppointmentData({
+                        ...appointmentData,
+                        date: e.target.value,
+                      })
                     }
                     min={new Date().toISOString().split("T")[0]}
                     required
@@ -249,7 +264,7 @@ export const SecretaryCreateAppointment = () => {
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                     <span className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-amber-500" />
-                      Time Slot
+                      الوقت الزمني
                     </span>
                   </label>
                   <div className="relative">
@@ -281,7 +296,7 @@ export const SecretaryCreateAppointment = () => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                   <span className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-amber-500" />
-                    Notes (Optional)
+                    ملاحظات (اختياري)
                   </span>
                 </label>
                 <textarea
@@ -306,7 +321,7 @@ export const SecretaryCreateAppointment = () => {
                   onClick={() => navigate("/secretary/appointments")}
                   disabled={loading}
                 >
-                  Cancel
+                  إلغاء
                 </Button>
                 <motion.button
                   type="submit"
@@ -320,7 +335,7 @@ export const SecretaryCreateAppointment = () => {
                   ) : (
                     <>
                       <Plus className="w-5 h-5" />
-                      Create Appointment
+                      إضافة الموعد
                     </>
                   )}
                 </motion.button>

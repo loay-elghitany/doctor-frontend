@@ -1,8 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { Toaster } from "sonner";
 import { AppRoutes } from "./routes";
 import { AuthProvider } from "./context/AuthContext";
 import { AdminAuthProvider } from "./context/AdminAuthContext";
+import { SocketProvider } from "./context/SocketContext";
 import ErrorBoundary from "./components/ErrorBoundary";
 import "./index.css";
 
@@ -24,7 +26,15 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <ErrorBoundary>
       <AdminAuthProvider>
         <AuthProvider>
-          <AppRoutes />
+          <SocketProvider>
+            <AppRoutes />
+            <Toaster
+              position="top-left"
+              richColors
+              closeButton
+              style={{ direction: "rtl" }}
+            />
+          </SocketProvider>
         </AuthProvider>
       </AdminAuthProvider>
     </ErrorBoundary>

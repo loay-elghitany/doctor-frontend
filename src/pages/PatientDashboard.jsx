@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
 import { AppointmentCard } from "../components/Appointment/AppointmentCard";
@@ -10,6 +10,8 @@ import {
   TimelineEvent,
   PremiumProgressBar,
 } from "../components/ui";
+import TelegramConnectButton from "../components/ui/TelegramConnectButton.jsx";
+import { useAuth } from "../context/AuthContext";
 import {
   Calendar,
   Clock,
@@ -35,22 +37,22 @@ import PatientFinancials from "../components/PatientFinancials";
 
 const PATIENT_TOUR_STEPS = [
   {
-    title: "Welcome to your premium care dashboard",
+    title: "مرحبا بك في لوحة التحكم الخاصة بك",
     description:
-      "Experience a beautifully redesigned dashboard with glassmorphism effects, modern timelines, and smooth animations.",
-    tip: "Hover over cards to see elegant lift effects and glowing borders.",
+      "من خلال موقعنا الإلكتروني ستتمكن من حجز مواعيد و الإطلاع على الروشتات الخاصة بك و متابعة خططك المالية بكل سرعة وسهولة",
+    tip: "وأيضاً يمكنك الإطلاع على ملفك الطبي لتتابع نشاطك كاملاً منذ أن اشتركت معنا",
   },
   {
-    title: "Upcoming appointments",
+    title: "المواعيد القادمة",
     description:
-      "Review appointment details, view prescriptions, and manage reschedule requests from one place.",
-    tip: "Tap any appointment card to open detailed information.",
+      "راجع مواعيدك القادمة و اعرف روشتاتك ونظم جدولك وكل هذا من مكان واحد",
+    tip: "إضغط على أي كارت خاص بالموعد لتظهر تفاصيله",
   },
   {
-    title: "Medical timeline",
+    title: "الجدول الطبي",
     description:
-      "Switch to your medical timeline to see all past care entries and progress over time with a sleek vertical flow.",
-    tip: "Each event is color-coded for quick visual recognition.",
+      "اذهب إلى ملفك الطبي لترى كل نشاطك منذ أن اشتركت معنا وإلى الإن وتعلم كل شئ خاص بك ",
+    tip: "هذا النظام صمم مخصوصاً ليساعد وييسر تعاملك مع طبيبك الخاص",
   },
 ];
 
@@ -59,7 +61,7 @@ const getEventIcon = (eventType) => {
   const iconMap = {
     appointment_created: Calendar,
     appointment_approved: Activity,
-    appointment_rejected: XRay,
+    appointment_rejected: Activity,
     appointment_completed: Stethoscope,
     prescription_created: Pill,
     doctor_note_added: FileText,
@@ -82,6 +84,7 @@ const formatEventType = (type) => {
 
 export const PatientDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [patientName, setPatientName] = useState("");
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -241,9 +244,9 @@ export const PatientDashboard = () => {
   };
 
   const tabs = [
-    { id: "appointments", label: "Upcoming Appointments", icon: Calendar },
-    { id: "timeline", label: "Medical Timeline", icon: Activity },
-    { id: "financials", label: "My Financials", icon: CreditCard },
+    { id: "appointments", label: "مواعيدي القادمة", icon: Calendar },
+    { id: "timeline", label: "التقرير الطبي", icon: Activity },
+    { id: "financials", label: "خططي المالية", icon: CreditCard },
   ];
 
   if (loading) {
@@ -274,7 +277,7 @@ export const PatientDashboard = () => {
                     transition={{ delay: 0.2 }}
                     className="text-sm uppercase tracking-[0.32em] text-emerald-600 dark:text-emerald-400 mb-3 font-semibold"
                   >
-                    Welcome back
+                    مرحباً بعودتك
                   </motion.p>
                   <motion.h1
                     initial={{ opacity: 0, x: -20 }}
@@ -290,7 +293,7 @@ export const PatientDashboard = () => {
                     transition={{ delay: 0.4 }}
                     className="mt-3 text-lg text-gray-600 dark:text-gray-300"
                   >
-                    Your health journey, beautifully organized.
+                    رحلة صحتك، منظمة بجمال.
                   </motion.p>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -298,8 +301,9 @@ export const PatientDashboard = () => {
                     transition={{ delay: 0.5 }}
                     className="mt-4 max-w-xl text-gray-500 dark:text-gray-400"
                   >
-                    Track your care, review upcoming visits, and keep every
-                    health update organized in one premium dashboard.
+                    من خلال لوحة التحكم الخاصة بك، يمكنك بسهولة إدارة مواعيدك
+                    القادمة، مراجعة تاريخك الطبي، ومتابعة خططك المالية - كل ذلك
+                    في مكان واحد مصمم خصيصًا لك.
                   </motion.p>
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -311,16 +315,22 @@ export const PatientDashboard = () => {
                       onClick={() => setTourOpen(true)}
                       className="btn-premium btn-premium-primary px-6 py-3 flex items-center gap-2"
                     >
-                      Explore Tour
+                      اذهب في جولة
                       <ArrowRight className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setActiveTab("timeline")}
                       className="inline-flex items-center gap-2 rounded-xl bg-white/50 dark:bg-gray-800/50 px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200 backdrop-blur-sm border border-gray-200 dark:border-gray-700 transition hover:bg-white/70 dark:hover:bg-gray-800/70"
                     >
-                      View Timeline
+                      استعرض ملفي الطبي
                       <ArrowRight className="h-4 w-4" />
                     </button>
+                    <TelegramConnectButton
+                      userRole="patient"
+                      userId={user?._id || user?.id}
+                      isLinked={Boolean(user?.telegramChatId)}
+                      botUsername={import.meta.env.VITE_TELEGRAM_BOT_USERNAME}
+                    />
                   </motion.div>
                 </div>
                 <div className="hidden lg:block">
@@ -376,9 +386,9 @@ export const PatientDashboard = () => {
               ) : appointments.length === 0 ? (
                 <EmptyState
                   icon={Calendar}
-                  title="No upcoming appointments"
-                  description="You don't have any scheduled appointments at the moment."
-                  actionLabel="Book New Appointment"
+                  title="لا توجد مواعيد قادمة"
+                  description="ليس لديك أي مواعيد مجدولة للأسابيع القادمة."
+                  actionLabel="حجز موعد جديد"
                   onAction={() => navigate("/patient/appointments/new")}
                 />
               ) : (
@@ -437,8 +447,8 @@ export const PatientDashboard = () => {
               ) : (
                 <EmptyState
                   icon={Activity}
-                  title="No medical history yet"
-                  description="Your medical timeline will appear here once you have appointments or treatments."
+                  title="لا يوجد تاريخ طبي بعد"
+                  description="سيظهر تاريخك الطبي هنا بمجرد أن يكون لديك مواعيد أو علاجات."
                 />
               )}
             </motion.div>
@@ -477,7 +487,7 @@ export const PatientDashboard = () => {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Appointment Details
+                    تفاصيل الموعد
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {formatDate(selectedAppointment.date)} •{" "}
@@ -508,11 +518,12 @@ export const PatientDashboard = () => {
               {selectedAppointment.status === "cancelled" && (
                 <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-800 dark:text-red-300">
                   <p className="font-semibold">
-                    Doctor Cancelled This Appointment
+                    للأسف، تم إلغاء هذا الموعد. يرجى التواصل مع طبيبك إذا كان
+                    لديك أي أسئلة أو لجدولة موعد جديد.
                   </p>
                   <p className="text-sm mt-1">
-                    Your doctor has cancelled this appointment. You may remove
-                    it from your dashboard if you no longer need to see it.
+                    طبياً، يمكنك إزالة هذا الموعد من لوحة التحكم الخاصة بك إذا
+                    لم تعد بحاجة إلى رؤيته.
                   </p>
                 </div>
               )}
@@ -524,7 +535,7 @@ export const PatientDashboard = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Doctor
+                      الطبيب
                     </p>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {selectedAppointment.doctor?.name ||
@@ -540,7 +551,7 @@ export const PatientDashboard = () => {
                   </div>
                   <div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Status
+                      الحالة
                     </p>
                     <StatusBadge status={selectedAppointment.status} />
                   </div>
@@ -549,7 +560,7 @@ export const PatientDashboard = () => {
                 {selectedAppointment.notes && (
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
-                      Notes
+                      ملاحظات
                     </p>
                     <p className="text-gray-900 dark:text-white">
                       {selectedAppointment.notes}
@@ -562,7 +573,7 @@ export const PatientDashboard = () => {
                   selectedAppointment.rescheduleOptions?.length > 0 && (
                     <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                       <h4 className="font-bold text-gray-900 dark:text-white mb-3">
-                        Proposed Times
+                        الأوقات المقترحة
                       </h4>
                       <div className="space-y-2">
                         {selectedAppointment.rescheduleOptions.map(
@@ -595,14 +606,14 @@ export const PatientDashboard = () => {
                   onClick={() => setSelectedAppointment(null)}
                   className="btn-secondary px-4 py-2 rounded-xl"
                 >
-                  Close
+                  إغلاق
                 </button>
                 {selectedAppointment.status !== "cancelled" && (
                   <button
                     onClick={() => setShowPrescriptions(true)}
                     className="btn-premium btn-premium-primary px-4 py-2 rounded-xl"
                   >
-                    View Prescriptions
+                    عرض الروشتات
                   </button>
                 )}
                 {selectedAppointment.status === "reschedule_proposed" && (
@@ -613,7 +624,7 @@ export const PatientDashboard = () => {
                     }}
                     className="btn-premium btn-premium-primary px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700"
                   >
-                    Choose Time
+                    اختيار الوقت
                   </button>
                 )}
                 {selectedAppointment.status === "cancelled" && (
@@ -621,7 +632,7 @@ export const PatientDashboard = () => {
                     onClick={() => handleHideAppointment(selectedAppointment)}
                     className="btn-secondary px-4 py-2 rounded-xl bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-300"
                   >
-                    Remove from Dashboard
+                    إزالة من لوحة التحكم
                   </button>
                 )}
               </div>

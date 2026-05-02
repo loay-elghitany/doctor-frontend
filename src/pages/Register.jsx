@@ -223,7 +223,7 @@ export const Register = () => {
     <AuthLayout>
       <Card className="w-full">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Create Account
+          إنشاء حساب جديد
         </h2>
 
         {/* Success Message */}
@@ -242,10 +242,10 @@ export const Register = () => {
 
         {!clinicSlug && (
           <div className="mb-4 rounded border border-amber-300 bg-amber-50 p-4 text-amber-800">
-            Registration is available only from a clinic subdomain.
+            عفواً!!! التسجيل متاح فقط عن طريق العيادة الخاصة بك 
             <div className="mt-3">
               <a href={mainDomainUrl} className="font-medium underline">
-                Go to main website
+                اذهب إلى الموقع الرئيسي
               </a>
             </div>
           </div>
@@ -257,7 +257,7 @@ export const Register = () => {
             label="Full Name"
             type="text"
             name="name"
-            placeholder="John Doe"
+            placeholder="أحمد محمد"
             value={formData.name}
             onChange={handleChange}
             error={errors.name}
@@ -270,7 +270,7 @@ export const Register = () => {
             label="Email Address"
             type="email"
             name="email"
-            placeholder="john@example.com"
+            placeholder="ahmed@gmail.com"
             value={formData.email}
             onChange={handleChange}
             error={errors.email}
@@ -324,18 +324,18 @@ export const Register = () => {
             className="w-full mt-6"
             disabled={loading || !clinicSlug}
           >
-            {loading ? "Creating Account..." : "Register"}
+            {loading ? "جاري إنشاء الحساب..." : "تسجيل"}
           </Button>
         </form>
 
         {/* Login Link */}
         <p className="text-center text-gray-600 mt-4">
-          Already have an account?{" "}
+          هل تملك حساباً بالفعل؟؟{" "}
           <a
             href="/login"
             className="text-blue-600 hover:underline font-medium"
           >
-            Login here
+            سجل دخول
           </a>
         </p>
       </Card>

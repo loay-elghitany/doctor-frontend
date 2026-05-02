@@ -38,12 +38,12 @@ export const ChooseAppointmentTime = () => {
         const appt = appointments.find((a) => a._id === id);
 
         if (!appt) {
-          setError("Appointment not found");
+          setError("الموعد غير موجود");
           return;
         }
 
         if (!appt.rescheduleOptions || appt.rescheduleOptions.length === 0) {
-          setError("No reschedule options available for this appointment");
+          setError("لا توجد خيارات لإعادة الجدولة لهذا الموعد");
           return;
         }
 
@@ -78,7 +78,7 @@ export const ChooseAppointmentTime = () => {
 
       await appointmentService.chooseAppointmentTime(id, optionIndex);
 
-      setSuccess("Time selected successfully!");
+      setSuccess("تم حجز الموعد بنجاح");
       debugLog("ChooseAppointmentTime", "Choice submitted successfully");
 
       // Redirect to patient dashboard after brief delay
@@ -88,7 +88,7 @@ export const ChooseAppointmentTime = () => {
     } catch (err) {
       const errorMsg = handleApiError(err);
       debugError("ChooseAppointmentTime", "Failed to choose time", err);
-      setError(errorMsg || "Failed to choose time");
+      setError(errorMsg || "فشل اختيار الموعد");
     } finally {
       setSubmitting(false);
     }
@@ -122,7 +122,7 @@ export const ChooseAppointmentTime = () => {
     <MainLayout userType="patient">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Choose Appointment Time
+          اختيار وقت الزيارة
         </h1>
 
         {error && (
@@ -136,7 +136,7 @@ export const ChooseAppointmentTime = () => {
           />
         )}
 
-        <Card header={<h2 className="text-xl font-bold">Available Times</h2>}>
+        <Card header={<h2 className="text-xl font-bold">المواعيد المتاحة</h2>}>
           <div className="space-y-4">
             {appointment.rescheduleOptions.map((option, index) => (
               <div
@@ -180,7 +180,7 @@ export const ChooseAppointmentTime = () => {
               disabled={submitting}
               onClick={() => navigate("/patient/dashboard")}
             >
-              Cancel
+              إلغاء الموعد
             </Button>
           </div>
         </Card>

@@ -215,10 +215,12 @@ const NotificationPreferencesPanel = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800">
-            Notification Preferences
+            تفضيلات الإشعارات
           </h1>
           <p className="text-gray-600 mt-2">
-            Control how and when you receive notifications
+            التحكم في كيفية تلقيك للإشعارات من التطبيق. يمكنك تمكين أو تعطيل
+            الإشعارات لكل قناة، وتحديد أنواع الإشعارات التي تريد تلقيها، وضبط
+            ساعات الهدوء لمنع الإزعاج أثناء أوقات معينة.
           </p>
         </div>
 
@@ -238,7 +240,7 @@ const NotificationPreferencesPanel = () => {
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 flex items-start gap-3">
             <CheckCircle className="text-green-600 mt-0.5" size={20} />
             <div>
-              <p className="font-medium text-green-800">Success</p>
+              <p className="font-medium text-green-800">نجاح!</p>
               <p className="text-green-700 text-sm">{successMessage}</p>
             </div>
           </div>
@@ -247,18 +249,16 @@ const NotificationPreferencesPanel = () => {
         {/* Global Settings */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-lg font-bold text-gray-800 mb-4">
-            Global Settings
+            الإعدادات العامة
           </h2>
 
           <div className="space-y-4">
             {/* Mute All */}
             <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <div>
-                <p className="font-medium text-gray-800">
-                  Mute All Notifications
-                </p>
+                <p className="font-medium text-gray-800">كتم جميع الإشعارات</p>
                 <p className="text-sm text-gray-600">
-                  Temporarily disable all notifications
+                  تعطيل جميع الإشعارات مؤقتًا
                 </p>
               </div>
               <button
@@ -315,7 +315,7 @@ const NotificationPreferencesPanel = () => {
               <div>
                 <p className="font-medium text-gray-800">Enable WhatsApp</p>
                 <p className="text-sm text-gray-600">
-                  Receive notifications via WhatsApp
+                  استلام الإشعارات عبر WhatsApp
                 </p>
               </div>
               <button
@@ -341,7 +341,7 @@ const NotificationPreferencesPanel = () => {
                 <div className="border-t pt-4">
                   <div className="flex items-center gap-2 mb-3">
                     <Clock size={18} className="text-gray-600" />
-                    <p className="font-medium text-gray-800">Quiet Hours</p>
+                    <p className="font-medium text-gray-800">ساعات الهدوء</p>
                   </div>
 
                   <div className="flex items-center gap-2 mb-3">
@@ -357,7 +357,7 @@ const NotificationPreferencesPanel = () => {
                       htmlFor="whatsappQuietHours"
                       className="text-gray-700"
                     >
-                      Enable quiet hours
+                      تمكين ساعات الهدوء لمنع الإشعارات خلال أوقات معينة
                     </label>
                   </div>
 
@@ -365,7 +365,7 @@ const NotificationPreferencesPanel = () => {
                     <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Start Time (24hr)
+                          وقت البداية (24hr)
                         </label>
                         <input
                           type="time"
@@ -377,7 +377,7 @@ const NotificationPreferencesPanel = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          End Time (24hr)
+                          وقت النهاية (24hr)
                         </label>
                         <input
                           type="time"
@@ -394,7 +394,7 @@ const NotificationPreferencesPanel = () => {
                 {/* Notification Types */}
                 <div className="border-t pt-4">
                   <p className="font-medium text-gray-800 mb-3">
-                    Notification Types
+                    أنواع الإشعارات
                   </p>
                   <div className="space-y-2">
                     {NOTIFICATION_TYPES.map((type) => (
@@ -437,7 +437,7 @@ const NotificationPreferencesPanel = () => {
               <div>
                 <p className="font-medium text-gray-800">Enable SMS</p>
                 <p className="text-sm text-gray-600">
-                  Receive notifications via SMS
+                  استلام الإشعارات عبر SMS
                 </p>
               </div>
               <button
@@ -462,7 +462,7 @@ const NotificationPreferencesPanel = () => {
                 {/* Phone Number */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phone Number
+                    رقم الهاتف
                   </label>
                   <input
                     type="tel"
@@ -473,7 +473,7 @@ const NotificationPreferencesPanel = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <p className="text-xs text-gray-600 mt-1">
-                    Include country code (e.g., +1 for USA)
+                    أضف رمز البلد (e.g., +1 for USA)
                   </p>
                 </div>
 
@@ -488,14 +488,14 @@ const NotificationPreferencesPanel = () => {
                     className="w-4 h-4 text-blue-600 rounded"
                   />
                   <label htmlFor="smsFallbackOnly" className="text-gray-700">
-                    Use SMS as fallback only when WhatsApp fails
+                    استخدم SMS كاحتياط فقط عندما يفشل WhatsApp
                   </label>
                 </div>
 
                 {/* Notification Types */}
                 <div>
                   <p className="font-medium text-gray-800 mb-3">
-                    Notification Types
+                    أنواع الإشعارات
                   </p>
                   <div className="space-y-2">
                     {NOTIFICATION_TYPES.map((type) => (
@@ -538,7 +538,7 @@ const NotificationPreferencesPanel = () => {
               <div>
                 <p className="font-medium text-gray-800">Enable Email</p>
                 <p className="text-sm text-gray-600">
-                  Receive notifications via Email
+                  استلام الإشعارات عبر البريد الإلكتروني
                 </p>
               </div>
               <button
@@ -561,7 +561,7 @@ const NotificationPreferencesPanel = () => {
             {formData.emailEnabled && (
               <div>
                 <p className="font-medium text-gray-800 mb-3">
-                  Notification Types
+                  أنواع الإشعارات
                 </p>
                 <div className="space-y-2">
                   {NOTIFICATION_TYPES.map((type) => (

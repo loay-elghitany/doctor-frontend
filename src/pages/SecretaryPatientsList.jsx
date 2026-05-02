@@ -98,23 +98,23 @@ export const SecretaryPatientsList = () => {
   const handleAddPatient = async () => {
     // Validation
     if (!newPatient.name || !newPatient.name.trim()) {
-      setError("Patient name is required");
+      setError("اسم المريض مطلوب");
       return;
     }
 
     if (!newPatient.email || !newPatient.email.trim()) {
-      setError("Patient email is required");
+      setError("بريد المريض الإلكتروني مطلوب");
       return;
     }
 
     if (!newPatient.password || !newPatient.password.trim()) {
-      setError("Patient password is required");
+      setError("كلمة مرور المريض مطلوبة");
       return;
     }
 
     const clinicSlug = newPatient.clinicSlug || user?.clinicSlug;
     if (!clinicSlug) {
-      setError("Clinic information is missing. Please contact support.");
+      setError("معلومات العيادة مفقودة. يرجى التواصل مع الدعم.");
       return;
     }
 
@@ -154,7 +154,7 @@ export const SecretaryPatientsList = () => {
         setPatients((prevPatients) => [...prevPatients, createdPatient]);
       }
 
-      setSuccess("Patient added successfully!");
+      setSuccess("تم إضافة المريض بنجاح!");
 
       // Reset form and close modal
       setNewPatient({
@@ -170,7 +170,7 @@ export const SecretaryPatientsList = () => {
       const errorMsg =
         err.response?.data?.message ||
         err.message ||
-        "Failed to add patient. Please try again.";
+        "فشل إضافة المريض. يرجى المحاولة مرة أخرى.";
       setError(errorMsg);
       debugError("SecretaryPatientsList", "Failed to add patient", err);
     } finally {
@@ -219,7 +219,7 @@ export const SecretaryPatientsList = () => {
               navigate(`/secretary/patients/${patient?._id ?? ""}`)
             }
           >
-            View
+            عرض التفاصيل
           </Button>
         </div>
       ),
@@ -229,9 +229,7 @@ export const SecretaryPatientsList = () => {
   if (loading) {
     return (
       <MainLayout userType="secretary">
-        <div className="flex justify-center items-center min-h-96">
-          <Spinner size="lg" />
-        </div>
+        <div className="flex justify-center items-center min-h-96"></div>
       </MainLayout>
     );
   }
@@ -239,18 +237,18 @@ export const SecretaryPatientsList = () => {
   // Calculate stats
   const stats = {
     total: patients.length,
-    withPhone: patients.filter(p => p.phoneNumber).length,
+    withPhone: patients.filter((p) => p.phoneNumber).length,
   };
 
   const statCards = [
     {
-      title: "Total Patients",
+      title: "إجمالي المرضى",
       value: stats.total,
       icon: Users,
       gradient: "from-blue-500 to-cyan-400",
     },
     {
-      title: "With Phone",
+      title: "مع رقم هاتف",
       value: stats.withPhone,
       icon: Phone,
       gradient: "from-emerald-500 to-green-400",
@@ -260,12 +258,12 @@ export const SecretaryPatientsList = () => {
   const quickActions = [
     {
       icon: Plus,
-      label: "Add Patient",
+      label: "أضف المريض",
       onClick: () => setShowAddModal(true),
     },
     {
       icon: Calendar,
-      label: "Appointments",
+      label: "المواعيد",
       onClick: () => navigate("/secretary/appointments"),
     },
   ];
@@ -290,7 +288,7 @@ export const SecretaryPatientsList = () => {
                     transition={{ delay: 0.2 }}
                     className="text-sm uppercase tracking-[0.32em] text-amber-600 dark:text-amber-400 mb-3 font-semibold"
                   >
-                    Patient Directory
+                    دليل المرضى
                   </motion.p>
                   <motion.h1
                     initial={{ opacity: 0, x: -20 }}
@@ -298,7 +296,7 @@ export const SecretaryPatientsList = () => {
                     transition={{ delay: 0.3 }}
                     className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
                   >
-                    Patients
+                    المرضى
                   </motion.h1>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -306,7 +304,7 @@ export const SecretaryPatientsList = () => {
                     transition={{ delay: 0.4 }}
                     className="mt-3 text-lg text-gray-600 dark:text-gray-300"
                   >
-                    Manage patient records and contact information.
+                    إدارة سجلات المرضى ومعلومات الاتصال.
                   </motion.p>
                 </div>
               </div>
@@ -321,7 +319,9 @@ export const SecretaryPatientsList = () => {
             return (
               <BentoGridItem key={card.title} delay={index * 0.1}>
                 <div className="flex items-center gap-3">
-                  <div className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}>
+                  <div
+                    className={`p-3 rounded-xl bg-gradient-to-br ${card.gradient} shadow-lg`}
+                  >
                     <Icon className="w-5 h-5 text-white" />
                   </div>
                   <div>
@@ -385,7 +385,7 @@ export const SecretaryPatientsList = () => {
           <EmptyState
             icon={Users}
             title="No patients yet"
-            description="Add your first patient to get started."
+            description="أضف المريض الأول لبدء العمل."
             actionLabel="Add Patient"
             onAction={() => setShowAddModal(true)}
           />
@@ -430,10 +430,14 @@ export const SecretaryPatientsList = () => {
                       <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => navigate(`/secretary/patients/${patient._id || patient.id}`)}
+                        onClick={() =>
+                          navigate(
+                            `/secretary/patients/${patient._id || patient.id}`,
+                          )
+                        }
                         className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-white text-sm font-medium hover:bg-amber-600 transition"
                       >
-                        View Details
+                        عرض التفاصيل
                         <ArrowRight className="w-4 h-4" />
                       </motion.button>
                     </div>
@@ -448,11 +452,11 @@ export const SecretaryPatientsList = () => {
         <Modal
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
-          title="Add New Patient"
+          title="أضف مريض جديد"
         >
           <div className="space-y-4">
             <Input
-              label="Full Name"
+              label="الاسم الكامل"
               value={newPatient.name}
               onChange={(e) =>
                 setNewPatient({ ...newPatient, name: e.target.value })
@@ -462,7 +466,7 @@ export const SecretaryPatientsList = () => {
               disabled={addingPatient}
             />
             <Input
-              label="Email"
+              label="البريد الإلكتروني"
               type="email"
               value={newPatient.email}
               onChange={(e) =>
@@ -473,7 +477,7 @@ export const SecretaryPatientsList = () => {
               disabled={addingPatient}
             />
             <Input
-              label="Password"
+              label="كلمة المرور"
               type="password"
               value={newPatient.password}
               onChange={(e) =>
@@ -484,7 +488,7 @@ export const SecretaryPatientsList = () => {
               disabled={addingPatient}
             />
             <Input
-              label="Phone Number"
+              label="رقم الهاتف"
               value={newPatient.phoneNumber}
               onChange={(e) =>
                 setNewPatient({ ...newPatient, phoneNumber: e.target.value })
@@ -512,7 +516,7 @@ export const SecretaryPatientsList = () => {
                 }}
                 disabled={addingPatient}
               >
-                Cancel
+                إلغاء
               </Button>
               <Button
                 variant="primary"

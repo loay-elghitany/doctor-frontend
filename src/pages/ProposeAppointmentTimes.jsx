@@ -50,13 +50,13 @@ export const ProposeAppointmentTimes = () => {
 
     // Validate options count and content
     if (options.length < 1) {
-      setError("Add at least one proposed time option.");
+      setError("اقترح على الأقل موعد واحد");
       setLoading(false);
       return;
     }
 
     if (options.length > MAX_RESCHEDULE_OPTIONS) {
-      setError(`You can provide up to ${MAX_RESCHEDULE_OPTIONS} options only.`);
+      setError(` فقط ${MAX_RESCHEDULE_OPTIONS} يمكنك اقتراح`);
       setLoading(false);
       return;
     }
@@ -64,7 +64,7 @@ export const ProposeAppointmentTimes = () => {
     if (
       options.some((opt) => !opt.date || !opt.timeSlot || !parseDate(opt.date))
     ) {
-      setError("Please provide valid dates and times for all options.");
+      setError("رجاءاً إختار مواعيد وتواريخ مناسبة.");
       setLoading(false);
       return;
     }
@@ -73,7 +73,7 @@ export const ProposeAppointmentTimes = () => {
       options.map((opt) => `${opt.date}|${opt.timeSlot}`),
     );
     if (uniqueSet.size !== options.length) {
-      setError("Remove duplicate date/time combinations.");
+      setError("إزالة مجموعات التاريخ/الوقت المكررة.");
       setLoading(false);
       return;
     }
@@ -92,7 +92,7 @@ export const ProposeAppointmentTimes = () => {
 
       await appointmentService.proposeRescheduleTimes(id, rescheduleOptions);
 
-      setSuccess("Alternative times proposed successfully!");
+      setSuccess("تم اقتراح أوقات بديلة بنجاح!");
       debugLog("ProposeAppointmentTimes", "Times proposed successfully");
 
       // Redirect back to appointments list after brief delay
@@ -101,8 +101,8 @@ export const ProposeAppointmentTimes = () => {
       }, 1500);
     } catch (err) {
       const errorMsg = handleApiError(err);
-      debugError("ProposeAppointmentTimes", "Failed to propose times", err);
-      setError(errorMsg || "Failed to propose times");
+      debugError("ProposeAppointmentTimes", "فشل في اقتراح أوقات", err);
+      setError(errorMsg || "فشل في اقتراح أوقات");
     } finally {
       setLoading(false);
     }
@@ -112,7 +112,7 @@ export const ProposeAppointmentTimes = () => {
     <MainLayout userType="doctor">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Propose New Appointment Times
+          اقتراح أوقات جديدة للحجز
         </h1>
 
         {error && (
@@ -129,8 +129,7 @@ export const ProposeAppointmentTimes = () => {
         <Card>
           <form onSubmit={handleSubmit} className="space-y-6">
             <p className="text-gray-600 mb-4">
-              Propose between 1 and {MAX_RESCHEDULE_OPTIONS} time options for
-              the patient to choose from.
+              اقترح بين 1 و {MAX_RESCHEDULE_OPTIONS} خيارات زمنية للمرضى للاختيار منها.
             </p>
 
             {options.map((option, index) => (
@@ -138,7 +137,7 @@ export const ProposeAppointmentTimes = () => {
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-4">
-                      Option {index + 1}
+                      الخيار {index + 1}
                     </h3>
                   </div>
                   <div className="flex items-center gap-2">
@@ -149,7 +148,7 @@ export const ProposeAppointmentTimes = () => {
                       disabled={loading || options.length === 1}
                       onClick={() => removeOption(index)}
                     >
-                      Remove
+                      إزالة
                     </Button>
                   </div>
                 </div>
@@ -195,12 +194,12 @@ export const ProposeAppointmentTimes = () => {
                 onClick={addOption}
                 disabled={loading || options.length >= MAX_RESCHEDULE_OPTIONS}
               >
-                + Add time option
+                + إضافة خيار زمني
               </Button>
 
               <div className="flex gap-4">
                 <Button type="submit" variant="primary" disabled={loading}>
-                  {loading ? "Proposing..." : "Propose Times"}
+                  {loading ? "جاري الاقتراح..." : "اقتراح الأوقات"}
                 </Button>
                 <Button
                   type="button"
@@ -208,7 +207,7 @@ export const ProposeAppointmentTimes = () => {
                   disabled={loading}
                   onClick={() => navigate("/doctor/appointments")}
                 >
-                  Cancel
+                  إلغاء
                 </Button>
               </div>
             </div>

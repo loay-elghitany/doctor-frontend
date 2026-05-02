@@ -26,7 +26,9 @@ const WhatsAppButton = () => {
 
   return (
     <div className="mb-6">
-      <h3 className="text-lg font-semibold mb-3">Contact Your Doctor</h3>
+      <h3 className="text-lg font-semibold mb-3">
+        تواصل مع طبيبك من خلال WhatsApp
+      </h3>
       <div className="space-y-2">
         <button
           onClick={handleWhatsAppClick}

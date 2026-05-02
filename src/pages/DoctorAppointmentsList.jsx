@@ -114,7 +114,8 @@ export const DoctorAppointmentsList = () => {
 
   // Format display data
   const columns = [
-    { key: "patientName", label: "Patient" },
+    { key: "patientName", label: "اسم المريض" },
+    { key: "date", label: "تاريخ  الوقت" },
     {
       key: "date",
       label: "Date & Time",
@@ -150,7 +151,7 @@ export const DoctorAppointmentsList = () => {
         appointment.timeSlot,
       );
 
-      setSuccess("Appointment scheduled!");
+      setSuccess("تم تأكيد الموعد!");
       setAppointments((prev) =>
         prev.map((apt) =>
           apt._id === appointment._id ? { ...apt, status: "scheduled" } : apt,
@@ -171,7 +172,7 @@ export const DoctorAppointmentsList = () => {
       });
       await appointmentService.cancelDoctorAppointment(appointment._id);
 
-      setSuccess("Appointment cancelled!");
+      setSuccess("تم إلغاء الموعد!");
       setAppointments((prev) =>
         prev.map((apt) =>
           apt._id === appointment._id ? { ...apt, status: "cancelled" } : apt,
@@ -192,7 +193,7 @@ export const DoctorAppointmentsList = () => {
       });
       await appointmentService.markAppointmentCompleted(appointment._id);
 
-      setSuccess("Appointment marked as completed!");
+      setSuccess("تم وضع علامة على الموعد كمكتمل!");
       setAppointments((prev) =>
         prev.map((apt) =>
           apt._id === appointment._id ? { ...apt, status: "completed" } : apt,
@@ -239,7 +240,7 @@ export const DoctorAppointmentsList = () => {
     try {
       setLoading(true);
       await appointmentService.softDeleteAppointment(deletingAppointment._id);
-      setSuccess("Appointment removed from dashboard.");
+      setSuccess("تم حذف الموعد من لوحة التحكم.");
       setAppointments((prev) =>
         prev.filter((a) => a._id !== deletingAppointment._id),
       );
@@ -363,7 +364,7 @@ export const DoctorAppointmentsList = () => {
                     transition={{ delay: 0.2 }}
                     className="text-sm uppercase tracking-[0.32em] text-blue-600 dark:text-blue-400 mb-3 font-semibold"
                   >
-                    Appointment Management
+                    إدارة المواعيد
                   </motion.p>
                   <motion.h1
                     initial={{ opacity: 0, x: -20 }}
@@ -371,7 +372,7 @@ export const DoctorAppointmentsList = () => {
                     transition={{ delay: 0.3 }}
                     className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
                   >
-                    Appointments
+                    المواعيد
                   </motion.h1>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -379,7 +380,8 @@ export const DoctorAppointmentsList = () => {
                     transition={{ delay: 0.4 }}
                     className="mt-3 text-lg text-gray-600 dark:text-gray-300"
                   >
-                    Manage your schedule, accept or reschedule appointments.
+                    إدارة مواعيدك، تتبع الحالات، وتواصل مع مرضاك بسهولة من لوحة
+                    تحكم واحدة.
                   </motion.p>
                 </div>
               </div>
@@ -488,17 +490,17 @@ export const DoctorAppointmentsList = () => {
                 variant="secondary"
                 onClick={() => setShowDeleteModal(false)}
               >
-                Cancel
+                إلغاء
               </Button>
               <Button variant="danger" onClick={handleDeleteConfirm}>
-                Delete
+                حذف
               </Button>
             </>
           }
         >
           <p>
-            Are you sure you want to delete this appointment? This action will
-            only remove it from your dashboard.
+            هل أنت متأكد أنك تريد حذف هذا الموعد؟ سيؤدي هذا إلى إزالته من لوحة
+            التحكم الخاصة بك.
           </p>
         </Modal>
 
@@ -512,7 +514,7 @@ export const DoctorAppointmentsList = () => {
                 variant="secondary"
                 onClick={() => setShowCleanupModal(false)}
               >
-                Cancel
+                إلغاء
               </Button>
               <Button
                 variant="danger"
@@ -525,9 +527,9 @@ export const DoctorAppointmentsList = () => {
           }
         >
           <p>
-            This will remove all cancelled, completed, and expired appointments
-            from your dashboard. You will be shown how many will be removed and
-            can cancel.
+            هذا الإجراء سيؤدي إلى حذف جميع المواعيد القديمة التي تم إلغاؤها أو
+            إكمالها من لوحة التحكم الخاصة بك. لا يمكن التراجع عن هذا الإجراء. هل
+            ترغب في المتابعة؟
           </p>
           <p className="mt-4 font-semibold">
             {appointments.filter(isDeletable).length} appointment(s) will be
@@ -604,7 +606,7 @@ export const DoctorAppointmentsList = () => {
                                 setShowPrescriptions(true);
                               }}
                               className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition"
-                              title="Prescriptions"
+                              title="الروشتة"
                             >
                               <FileText className="w-4 h-4" />
                             </motion.button>
@@ -615,7 +617,7 @@ export const DoctorAppointmentsList = () => {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleAccept(appointment)}
                                 className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition"
-                                title="Accept"
+                                title="قبول"
                               >
                                 <CheckCircle className="w-4 h-4" />
                               </motion.button>
@@ -627,7 +629,7 @@ export const DoctorAppointmentsList = () => {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleReject(appointment)}
                                 className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition"
-                                title="Cancel"
+                                title="إلغاء"
                               >
                                 <XCircle className="w-4 h-4" />
                               </motion.button>
@@ -639,7 +641,7 @@ export const DoctorAppointmentsList = () => {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => handleProposeTimes(appointment)}
                                 className="p-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition"
-                                title="Reschedule"
+                                title="‘اقتراح إعادة جدولة"
                               >
                                 <RotateCcw className="w-4 h-4" />
                               </motion.button>
@@ -652,7 +654,7 @@ export const DoctorAppointmentsList = () => {
                                 onClick={() => handleMarkCompleted(appointment)}
                                 className="px-3 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition"
                               >
-                                Complete
+                                مكتمل
                               </motion.button>
                             )}
 
@@ -662,7 +664,7 @@ export const DoctorAppointmentsList = () => {
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => confirmDelete(appointment)}
                                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-                                title="Delete"
+                                title="حذف"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </motion.button>
@@ -673,14 +675,14 @@ export const DoctorAppointmentsList = () => {
 
                       {appointment.status === "reschedule_proposed" && (
                         <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-sm text-amber-700 dark:text-amber-300">
-                          Awaiting patient response to reschedule proposal
+                          إقتراح إعادة جدولة قيد الانتظار من المريض..
                         </div>
                       )}
 
                       {appointment.notes && (
                         <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            <span className="font-medium">Notes:</span>{" "}
+                            <span className="font-medium">ملاحظة:</span>{" "}
                             {appointment.notes}
                           </p>
                         </div>

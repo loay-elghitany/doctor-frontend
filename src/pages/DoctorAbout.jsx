@@ -65,7 +65,9 @@ export const DoctorAbout = () => {
             {error || "Doctor profile not found"}
           </p>
           <p className="text-sm text-gray-500">
-            The doctor profile you are looking for is not available.
+            حسبنا، لا يمكننا العثور على ملف الطبيب الذي تبحث عنه. قد يكون غير
+            متاح أو تم حذفه. يرجى التحقق من الرابط أو العودة إلى الصفحة
+            الرئيسية.
           </p>
         </div>
       </MainLayout>
@@ -92,7 +94,7 @@ export const DoctorAbout = () => {
                 />
               ) : (
                 <div className="w-48 h-48 rounded-lg bg-gray-200 flex items-center justify-center shadow-md mb-4">
-                  <span className="text-gray-500 text-lg">No Image</span>
+                  <span className="text-gray-500 text-lg">لا يوجد صورة</span>
                 </div>
               )}
               <h2 className="text-2xl font-bold text-gray-900">
@@ -118,7 +120,7 @@ export const DoctorAbout = () => {
                 </div>
               ) : (
                 <div className="text-gray-500">
-                  <span>No bio information available.</span>
+                  <span>لا توجد معلومات حول الطبيب.</span>
                 </div>
               )}
             </div>
@@ -128,7 +130,7 @@ export const DoctorAbout = () => {
           {doctor.certificates && doctor.certificates.length > 0 && (
             <div className="mb-8 pb-8 border-b">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Certificates & Qualifications
+                الشهادات والمؤهلات
               </h3>
               <div className="space-y-3">
                 {doctor.certificates.map((cert, index) => (
@@ -152,13 +154,13 @@ export const DoctorAbout = () => {
           {doctor.publicContactInfo && (
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Quick Contact
+                التواصل السريع
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {doctor.publicContactInfo.phone && (
                   <div className="flex items-start">
                     <span className="text-blue-600 font-medium w-24">
-                      Phone:
+                      الهاتف:
                     </span>
                     <a
                       href={`tel:${doctor.publicContactInfo.phone}`}
@@ -202,7 +204,7 @@ export const DoctorAbout = () => {
                 {doctor.publicContactInfo.address && (
                   <div className="flex items-start">
                     <span className="text-blue-600 font-medium w-24">
-                      Address:
+                      العنوان:
                     </span>
                     <span className="text-gray-700">
                       {doctor.publicContactInfo.address}

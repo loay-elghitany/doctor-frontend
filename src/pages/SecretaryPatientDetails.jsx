@@ -126,14 +126,15 @@ export const SecretaryPatientDetails = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Patient Details
+                تفاصيل المريض: {patient?.name || "—"}
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-2">
-                View patient information and appointments
+                عرض معلومات المريض، مواعيده، وخططه المالية في مكان واحد. يمكنك
+                إدارة كل شيء بسهولة من هنا.
               </p>
             </div>
             <Button variant="secondary" onClick={() => navigate(-1)}>
-              Back
+              عودة
             </Button>
           </div>
         </div>
@@ -142,14 +143,14 @@ export const SecretaryPatientDetails = () => {
         <Card className="mb-6">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Patient Information
+              معلومات المريض
             </h3>
           </div>
           <div className="px-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Name
+                  الاسم
                 </label>
                 <p className="mt-1 text-sm text-gray-900 dark:text-white">
                   {patient?.name || "—"}
@@ -157,7 +158,7 @@ export const SecretaryPatientDetails = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email
+                  البريد الإلكتروني
                 </label>
                 <p className="mt-1 text-sm text-gray-900 dark:text-white">
                   {patient?.email || "—"}
@@ -165,7 +166,7 @@ export const SecretaryPatientDetails = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Phone
+                  رقم الهاتف
                 </label>
                 <p className="mt-1 text-sm text-gray-900 dark:text-white">
                   {patient?.phoneNumber || "Not provided"}
@@ -173,7 +174,7 @@ export const SecretaryPatientDetails = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Created
+                  تم الإنشاء
                 </label>
                 <p className="mt-1 text-sm text-gray-900 dark:text-white">
                   {formatDateSafe(patient?.createdAt)}
@@ -187,13 +188,14 @@ export const SecretaryPatientDetails = () => {
         <Card>
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Appointments ({appointments.length})
+              المواعيد ({appointments.length})
             </h3>
           </div>
           <div className="px-6 py-4">
             {appointments.length === 0 ? (
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                No appointments found for this patient.
+                لم يتم جدولة أي مواعيد لهذا المريض بعد. يمكنك إضافة مواعيد جديدة
+                من صفحة المواعيد.
               </p>
             ) : (
               <div className="space-y-4">
@@ -229,7 +231,7 @@ export const SecretaryPatientDetails = () => {
                         navigate(`/secretary/appointments/${appointment._id}`)
                       }
                     >
-                      View Details
+                      عرض التفاصيل
                     </Button>
                   </div>
                 ))}
@@ -242,7 +244,7 @@ export const SecretaryPatientDetails = () => {
         <Card className="mt-6">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Billing & Plans
+              الفواتير والخطط المالية
             </h3>
           </div>
           <div className="px-6 py-4">

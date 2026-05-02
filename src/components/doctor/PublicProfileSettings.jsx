@@ -108,13 +108,13 @@ export const PublicProfileSettings = () => {
 
       // Validate lengths
       if (bio && bio.length > 1000) {
-        setErrorMessage("Bio must not exceed 1000 characters");
+        setErrorMessage("يجب ألا تزيد السيرة الذاتية عن 1000 حرف");
         setSaving(false);
         return;
       }
 
       if (specialization && specialization.length > 500) {
-        setErrorMessage("Specialization must not exceed 500 characters");
+        setErrorMessage("يجب ألا تزيد التخصص عن 500 حرف");
         setSaving(false);
         return;
       }
@@ -144,12 +144,12 @@ export const PublicProfileSettings = () => {
       const response = await doctorService.updateProfileSettings(payload);
 
       if (response.data?.success) {
-        setSuccessMessage("Profile updated successfully!");
+        setSuccessMessage("ملفك الشخصي تم تحديثه بنجاح");
         debugLog("PublicProfileSettings", "Profile saved");
 
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
-        setErrorMessage(response.data?.message || "Failed to update profile");
+        setErrorMessage(response.data?.message || "فشل تحديث الملف الشخصي");
       }
     } catch (error) {
       debugError("PublicProfileSettings", "Failed to save profile", error);
@@ -166,7 +166,7 @@ export const PublicProfileSettings = () => {
   if (loading) {
     return (
       <div className="card">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Public Profile</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">الملف الشخصي</h2>
         <p className="text-gray-500">Loading profile settings...</p>
       </div>
     );
@@ -174,9 +174,11 @@ export const PublicProfileSettings = () => {
 
   return (
     <div className="card">
-      <h2 className="text-xl font-bold text-gray-900 mb-4">Public Profile</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-4">الملف الشخصي</h2>
       <p className="text-sm text-gray-600 mb-6">
-        Manage the profile information that patients see about you.
+        قم بإدارة ملفك الشخصي الذي يظهر للمرضى. يمكنك تحديث سيرتك الذاتية،
+        تخصصك، شهاداتك، ومعلومات الاتصال الخاصة بك. تأكد من حفظ التغييرات بعد
+        الانتهاء.
       </p>
 
       {/* Success Message */}
@@ -197,7 +199,7 @@ export const PublicProfileSettings = () => {
         {/* Bio */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Bio / About You
+            السيرة الذاتية / عنك
           </label>
           <textarea
             value={bio}
@@ -218,7 +220,7 @@ export const PublicProfileSettings = () => {
         {/* Profile Image URL */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Profile Image URL
+            URL للصورة الشخصية
           </label>
           <input
             type="url"
@@ -231,14 +233,15 @@ export const PublicProfileSettings = () => {
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Paste the URL of your profile image
+            الصق URL للصورة الشخصية الخاصة بك. تأكد من أن الصورة عامة ويمكن
+            الوصول إليها عبر الإنترنت.
           </p>
         </div>
 
         {/* Specialization */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Specialization
+            التخصص / التخصصات
           </label>
           <input
             type="text"
@@ -259,7 +262,7 @@ export const PublicProfileSettings = () => {
         {/* Certificates */}
         <div className="border-t pt-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Certificates & Qualifications
+            الشهادات والمؤهلات
           </h3>
 
           {certificates.length > 0 && (
@@ -281,7 +284,7 @@ export const PublicProfileSettings = () => {
                     onClick={() => handleRemoveCertificate(index)}
                     className="ml-2 px-2 py-1 text-xs text-red-600 hover:bg-red-100 rounded"
                   >
-                    Remove
+                    حذف
                   </button>
                 </div>
               ))}
@@ -291,7 +294,7 @@ export const PublicProfileSettings = () => {
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Certificate Title
+                عنوان الشهادة
               </label>
               <input
                 type="text"
@@ -307,7 +310,7 @@ export const PublicProfileSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description (optional)
+                الوصف (إختيارياً)
               </label>
               <input
                 type="text"
@@ -326,7 +329,7 @@ export const PublicProfileSettings = () => {
               disabled={!newCertTitle.trim()}
               className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
             >
-              Add Certificate
+              أضف شهادة
             </button>
           </div>
         </div>
@@ -334,13 +337,13 @@ export const PublicProfileSettings = () => {
         {/* Contact Information */}
         <div className="border-t pt-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-3">
-            Contact Information
+            معلومات الاتصال
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone
+                الهاتف
               </label>
               <input
                 type="tel"
@@ -356,7 +359,7 @@ export const PublicProfileSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                WhatsApp
+                الواتساب
               </label>
               <input
                 type="tel"
@@ -388,7 +391,7 @@ export const PublicProfileSettings = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address
+                العنوان
               </label>
               <input
                 type="text"
@@ -479,7 +482,8 @@ export const PublicProfileSettings = () => {
           {saving ? "Saving..." : "Save Profile"}
         </button>
         <p className="text-xs text-gray-500 self-center">
-          This information is visible to patients on your About page
+          هذا الملف الشخصي يظهر للمرضى عند حجز المواعيد أو عرض ملفك. تأكد من
+          تحديثه بانتظام ليعكس خبرتك ومؤهلاتك الحالية.
         </p>
       </div>
     </div>

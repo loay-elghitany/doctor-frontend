@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
 import { useAuth } from "../context/AuthContext";
+import TelegramConnectButton from "../components/ui/TelegramConnectButton.jsx";
 import doctorService from "../services/doctorService";
 import { uploadImageToCloudinary } from "../utils/cloudinaryStorage";
 import { getMainDomain } from "../utils/subdomain";
@@ -204,7 +205,9 @@ const EmptyState = ({ icon: Icon, title, description, action }) => (
 
 // Loading Skeleton Component
 const Skeleton = ({ className = "" }) => (
-  <div className={`animate-pulse bg-slate-200 dark:bg-slate-700 rounded-lg ${className}`} />
+  <div
+    className={`animate-pulse bg-slate-200 dark:bg-slate-700 rounded-lg ${className}`}
+  />
 );
 
 // Main Component
@@ -260,7 +263,9 @@ export const DoctorClinicProfile = () => {
           },
         }));
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to load clinic profile");
+        setError(
+          err.response?.data?.message || "Failed to load clinic profile",
+        );
       } finally {
         setLoading(false);
       }
@@ -319,7 +324,7 @@ export const DoctorClinicProfile = () => {
     try {
       setUploading(true);
       const uploaded = await Promise.all(
-        fileArray.map((file) => uploadImageToCloudinary(file))
+        fileArray.map((file) => uploadImageToCloudinary(file)),
       );
       setForm((prev) => ({
         ...prev,
@@ -398,11 +403,19 @@ export const DoctorClinicProfile = () => {
           transition={{ duration: 0.4 }}
         >
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            Clinic Profile
+            ملف العيادة
           </h1>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
-            Configure your public landing page and clinic branding.
+            قم بإدارة معلومات عيادتك، صورك، وروابط التواصل الاجتماعي التي تظهر
           </p>
+          <div className="mt-6">
+            <TelegramConnectButton
+              userRole="doctor"
+              userId={user?._id || user?.id}
+              isLinked={Boolean(user?.telegramChatId)}
+              botUsername={import.meta.env.VITE_TELEGRAM_BOT_USERNAME}
+            />
+          </div>
         </motion.div>
 
         {/* Alerts */}
@@ -476,12 +489,12 @@ export const DoctorClinicProfile = () => {
                 <GlassCard className="p-6">
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <User className="w-5 h-5 text-blue-600" />
-                    Basic Information
+                    المعلومات الأساسية
                   </h2>
                   <div className="space-y-6">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                        Clinic Bio
+                        نبذة عن العيادة
                       </label>
                       <textarea
                         value={form.bio}
@@ -493,11 +506,13 @@ export const DoctorClinicProfile = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                        Specialty
+                        التخصص
                       </label>
                       <input
                         value={form.specialty}
-                        onChange={(e) => updateField("specialty", e.target.value)}
+                        onChange={(e) =>
+                          updateField("specialty", e.target.value)
+                        }
                         placeholder="e.g., Cardiology, Dermatology, General Practice"
                         className="input-base"
                       />
@@ -516,7 +531,9 @@ export const DoctorClinicProfile = () => {
                       <Facebook className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input
                         value={form.socialLinks.facebook}
-                        onChange={(e) => updateSocial("facebook", e.target.value)}
+                        onChange={(e) =>
+                          updateSocial("facebook", e.target.value)
+                        }
                         placeholder="Facebook URL"
                         className="input-base pl-10"
                       />
@@ -525,7 +542,9 @@ export const DoctorClinicProfile = () => {
                       <Instagram className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input
                         value={form.socialLinks.instagram}
-                        onChange={(e) => updateSocial("instagram", e.target.value)}
+                        onChange={(e) =>
+                          updateSocial("instagram", e.target.value)
+                        }
                         placeholder="Instagram URL"
                         className="input-base pl-10"
                       />
@@ -534,7 +553,9 @@ export const DoctorClinicProfile = () => {
                       <Twitter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                       <input
                         value={form.socialLinks.twitter}
-                        onChange={(e) => updateSocial("twitter", e.target.value)}
+                        onChange={(e) =>
+                          updateSocial("twitter", e.target.value)
+                        }
                         placeholder="Twitter URL"
                         className="input-base pl-10"
                       />
@@ -561,23 +582,23 @@ export const DoctorClinicProfile = () => {
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ImageUploadPreview
-                      label="Profile Picture"
+                      label="صورة الملف الشخصي"
                       imageSrc={form.profilePicture}
                       onUpload={handleProfilePictureUpload}
                       onRemove={handleRemoveProfilePicture}
                       uploading={uploading}
                       aspectRatio="square"
-                      placeholder="Upload profile picture"
+                      placeholder="رفع صورة ملف شخصي"
                       icon={User}
                     />
                     <ImageUploadPreview
-                      label="Cover Image"
+                      label="صورة الغلاف"
                       imageSrc={form.coverImage}
                       onUpload={handleCoverImageUpload}
                       onRemove={handleRemoveCoverImage}
                       uploading={uploading}
                       aspectRatio="wide"
-                      placeholder="Upload cover image"
+                      placeholder="قم بتحميل صورة غلاف "
                       icon={Image}
                     />
                   </div>
@@ -591,7 +612,8 @@ export const DoctorClinicProfile = () => {
                       Clinic Photos Gallery
                     </h2>
                     <span className="text-sm text-slate-500 dark:text-slate-400">
-                      {form.clinicPhotos.length} photo{form.clinicPhotos.length !== 1 ? "s" : ""}
+                      {form.clinicPhotos.length} photo
+                      {form.clinicPhotos.length !== 1 ? "s" : ""}
                     </span>
                   </div>
 
@@ -608,7 +630,9 @@ export const DoctorClinicProfile = () => {
                               url={url}
                               index={idx}
                               onDelete={handleDeletePhoto}
-                              uploading={uploading && uploadingPhotoIndex === idx}
+                              uploading={
+                                uploading && uploadingPhotoIndex === idx
+                              }
                             />
                           ))}
                         </AnimatePresence>
@@ -620,7 +644,9 @@ export const DoctorClinicProfile = () => {
                           type="file"
                           accept="image/*"
                           multiple
-                          onChange={(e) => handleClinicPhotosUpload(e.target.files)}
+                          onChange={(e) =>
+                            handleClinicPhotosUpload(e.target.files)
+                          }
                           className="hidden"
                         />
                         <motion.button
@@ -631,15 +657,15 @@ export const DoctorClinicProfile = () => {
                           whileTap={{ scale: 0.99 }}
                         >
                           <Plus className="w-5 h-5" />
-                          <span className="font-medium">Add More Photos</span>
+                          <span className="font-medium">أضف مزيد من الصور</span>
                         </motion.button>
                       </div>
                     </>
                   ) : (
                     <EmptyState
                       icon={Image}
-                      title="No Photos Yet"
-                      description="Add photos of your clinic to help patients recognize your location and feel more comfortable before their visit."
+                      title="ليس هناك صور بعد"
+                      description="أضف صور للعيادة لتساعد المرضى على رؤية المزيد عنك وعن عيادتك"
                       action={
                         <motion.button
                           type="button"
@@ -649,7 +675,7 @@ export const DoctorClinicProfile = () => {
                           whileTap={{ scale: 0.98 }}
                         >
                           <Plus className="w-4 h-4" />
-                          Upload First Photo
+                          ارفع صورتك الأولى
                         </motion.button>
                       }
                     />
@@ -684,7 +710,10 @@ export const DoctorClinicProfile = () => {
                             type="color"
                             value={form.landingPageSettings.themeColor}
                             onChange={(e) =>
-                              updateLandingSettings("themeColor", e.target.value)
+                              updateLandingSettings(
+                                "themeColor",
+                                e.target.value,
+                              )
                             }
                             className="w-14 h-14 rounded-xl cursor-pointer border-2 border-slate-200 dark:border-slate-600"
                           />
@@ -699,7 +728,10 @@ export const DoctorClinicProfile = () => {
                         />
                         <div
                           className="px-4 py-2 rounded-lg text-white font-medium"
-                          style={{ backgroundColor: form.landingPageSettings.themeColor }}
+                          style={{
+                            backgroundColor:
+                              form.landingPageSettings.themeColor,
+                          }}
                         >
                           Preview
                         </div>
@@ -708,18 +740,21 @@ export const DoctorClinicProfile = () => {
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                         <MessageSquare className="w-4 h-4 inline mr-1" />
-                        Welcome Message
+                        رسالة ترحيبية
                       </label>
                       <input
                         value={form.landingPageSettings.welcomeMessage}
                         onChange={(e) =>
-                          updateLandingSettings("welcomeMessage", e.target.value)
+                          updateLandingSettings(
+                            "welcomeMessage",
+                            e.target.value,
+                          )
                         }
                         placeholder="Welcome to our clinic..."
                         className="input-base"
                       />
                       <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        This message will be displayed on your landing page.
+                        هذة الرسالة ستظهر على واجهة ملفك الشخصي
                       </p>
                     </div>
                   </div>
@@ -735,7 +770,10 @@ export const DoctorClinicProfile = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            <GlassCard className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4" hover={false}>
+            <GlassCard
+              className="p-4 flex flex-col sm:flex-row items-center justify-between gap-4"
+              hover={false}
+            >
               <div className="flex items-center gap-3">
                 {uploading && (
                   <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
@@ -773,7 +811,7 @@ export const DoctorClinicProfile = () => {
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      Save Changes
+                      حفظ التغيرات
                     </>
                   )}
                 </motion.button>

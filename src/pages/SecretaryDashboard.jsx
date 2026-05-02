@@ -27,26 +27,26 @@ import { patientService } from "../services/patientService";
 import { debugLog, debugError } from "../utils/debug";
 import { GuidedTour } from "../components/GuidedTour";
 import { useAuth } from "../context/AuthContext";
+import TelegramConnectButton from "../components/ui/TelegramConnectButton.jsx";
 import { Button } from "../components/ui";
 
 const SECRETARY_TOUR_STEPS = [
   {
-    title: "Welcome to the Premium Secretary Dashboard",
+    title: "أهلاً بك في لوحة التحكم الخاصة بك",
     description:
-      "Manage clinic operations, appointments, and patient records from this beautifully redesigned central hub.",
-    tip: "Use the Bento Grid layout to quickly access all important metrics at a glance.",
+      "قم بإدارة كل مواعيد المرضى وسجلاتهم ونظم العيادة بكل تنظيم وسهولة",
+    tip: "تنقل في حسابك وبين المرضى وسجلاتهم عن طريق ضغطات يسيرة",
   },
   {
-    title: "Today's Overview",
+    title: "نظرة عامة على اليوم",
     description:
-      "See today's appointments, pending tasks, and patient statistics with modern glassmorphism cards.",
-    tip: "Click on any stat card to view detailed information.",
+      "تابع مواعيد اليوم والمواعيد التي تنتظر الموافقة واحصاءيات المرضى وكل ذلك في مكان واحد",
+    tip: "نقرة واحدة فوق الموعد تظهر لك كل التفاصيل الخاصة بالموعد وبالمريض",
   },
   {
-    title: "Quick Actions",
-    description:
-      "Access common tasks like creating appointments or managing patients with one click.",
-    tip: "Use the search bar to quickly find patients or appointments.",
+    title: "إجراءات سريعة",
+    description: "تنقل في حسابك عن طريق ازرار قريبة وواضحة",
+    tip: "استخدم مؤشر البحث لتبحث عن كل التفاصيل الخاصة بأي مريض في عيادتك",
   },
 ];
 
@@ -173,21 +173,21 @@ export const SecretaryDashboard = () => {
   // Stat cards configuration
   const statCards = [
     {
-      title: "Today's Appointments",
+      title: "مواعيد اليوم",
       value: stats.todayAppointments,
       icon: CalendarDays,
       gradient: "from-blue-500 to-cyan-400",
       onClick: () => navigate("/secretary/appointments"),
     },
     {
-      title: "Pending Tasks",
+      title: "المهام المعلقة",
       value: stats.pendingAppointments,
       icon: Clock,
       gradient: "from-amber-500 to-orange-400",
       onClick: () => navigate("/secretary/appointments"),
     },
     {
-      title: "Total Patients",
+      title: "إجمالي المرضى",
       value: stats.totalPatients,
       icon: Users,
       gradient: "from-emerald-500 to-green-400",
@@ -199,23 +199,18 @@ export const SecretaryDashboard = () => {
   const quickActions = [
     {
       icon: Plus,
-      label: "New Appointment",
+      label: "موعد جديد",
       onClick: () => navigate("/secretary/appointments/new"),
     },
     {
       icon: Users,
-      label: "Patient List",
+      label: "قائمة المرضى",
       onClick: () => navigate("/secretary/patients"),
     },
     {
       icon: FileText,
-      label: "Reports",
-      onClick: () => navigate("/secretary/reports"),
-    },
-    {
-      icon: Phone,
-      label: "Contact Doctor",
-      onClick: () => navigate("/secretary/contact"),
+      label: "قائمة المواعيد",
+      onClick: () => navigate("/secretary/appointments"),
     },
   ];
 
@@ -261,7 +256,7 @@ export const SecretaryDashboard = () => {
                     transition={{ delay: 0.2 }}
                     className="text-sm uppercase tracking-[0.32em] text-amber-600 dark:text-amber-400 mb-3 font-semibold"
                   >
-                    Welcome back
+                    مرحباً بعودتك
                   </motion.p>
                   <motion.h1
                     initial={{ opacity: 0, x: -20 }}
@@ -290,9 +285,9 @@ export const SecretaryDashboard = () => {
                     transition={{ delay: 0.5 }}
                     className="mt-4 max-w-xl text-gray-500 dark:text-gray-400"
                   >
-                    Your clinic management center is ready — handle
-                    appointments, manage patient records, and keep operations
-                    running smoothly.
+                    من هنا يمكنك إدارة جميع عمليات العيادة، من تنظيم المواعيد
+                    إلى الوصول إلى سجلات المرضى، كل ذلك في مكان واحد أنيق وسهل
+                    الاستخدام.
                   </motion.p>
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
@@ -304,9 +299,15 @@ export const SecretaryDashboard = () => {
                       onClick={() => setTourOpen(true)}
                       className="btn-premium btn-premium-primary px-6 py-3 flex items-center gap-2"
                     >
-                      Take Tour
+                      ابدأ الجولة
                       <ArrowRight className="w-4 h-4" />
                     </button>
+                    <TelegramConnectButton
+                      userRole="secretary"
+                      userId={user?._id || user?.id}
+                      isLinked={Boolean(user?.telegramChatId)}
+                      botUsername={import.meta.env.VITE_TELEGRAM_BOT_USERNAME}
+                    />
                   </motion.div>
                 </div>
                 <div className="hidden lg:block">
@@ -391,17 +392,17 @@ export const SecretaryDashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Recent Activity
+                  أحداث سريعة
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Latest appointments and updates
+                  أحدث مواعيد تمت جدولتها أو تحديثها
                 </p>
               </div>
               <button
                 onClick={() => navigate("/secretary/appointments")}
                 className="text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline flex items-center gap-1"
               >
-                View All
+                عرض الكل
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -448,17 +449,17 @@ export const SecretaryDashboard = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Today's Schedule
+                  مواعيد اليوم
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Appointments for today
+                  مواعيد اليوم
                 </p>
               </div>
               <button
                 onClick={() => navigate("/secretary/appointments")}
                 className="text-blue-600 dark:text-blue-400 text-sm font-medium hover:underline flex items-center gap-1"
               >
-                View All
+                عرض الكل
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>

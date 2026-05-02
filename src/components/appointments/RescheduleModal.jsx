@@ -17,12 +17,12 @@ const buildValidation = (options) => {
   const used = new Set();
 
   if (normalized.length < 1) {
-    errors[0] = ["Add at least one proposed time option."];
+    errors[0] = ["أضف خيار وقت واحد على الأقل."];
   }
 
   if (normalized.length > MAX_RESCHEDULE_OPTIONS) {
     errors[0].push(
-      `You can propose up to ${MAX_RESCHEDULE_OPTIONS} time options only.`,
+      `يمكنك اقتراح ما يصل إلى ${MAX_RESCHEDULE_OPTIONS} خيارات وقت فقط.`,
     );
   }
 
@@ -31,19 +31,19 @@ const buildValidation = (options) => {
     const timeSlot = String(option?.timeSlot || "").trim();
 
     if (!date) {
-      errors[index].push("Date is required.");
+      errors[index].push("التاريخ مطلوب.");
     } else if (!isValidDate(date)) {
-      errors[index].push("Enter a valid date.");
+      errors[index].push("أدخل تاريخًا صالحًا.");
     }
 
     if (!timeSlot) {
-      errors[index].push("Time is required.");
+      errors[index].push("الوقت مطلوب.");
     }
 
     if (date && timeSlot) {
       const key = `${date}|${timeSlot}`;
       if (used.has(key)) {
-        errors[index].push("Duplicate date and time combination.");
+        errors[index].push("تكرار التاريخ والوقت المحدد مسبقا.");
       } else {
         used.add(key);
       }
@@ -86,7 +86,7 @@ export const RescheduleModal = ({
   const addOption = () => {
     if (options.length >= MAX_RESCHEDULE_OPTIONS) {
       setSubmitError(
-        `You can propose up to ${MAX_RESCHEDULE_OPTIONS} time options only.`,
+        `يمكنك اقتراح ما يصل إلى ${MAX_RESCHEDULE_OPTIONS} خيارات وقت فقط.`,
       );
       return;
     }
@@ -109,24 +109,24 @@ export const RescheduleModal = ({
     setSubmitError("");
 
     if (normalized.length < 1) {
-      setSubmitError("Add at least one proposed time option.");
+      setSubmitError("أضف خيار وقت واحد على الأقل.");
       return;
     }
 
     if (normalized.length > MAX_RESCHEDULE_OPTIONS) {
       setSubmitError(
-        `You can propose up to ${MAX_RESCHEDULE_OPTIONS} time options only.`,
+        `يمكنك اقتراح ما يصل إلى ${MAX_RESCHEDULE_OPTIONS} خيارات وقت فقط.`,
       );
       return;
     }
 
     if (!isValid) {
-      setSubmitError("Please fix any issues before submitting.");
+      setSubmitError("من فضلك صحح الأخطاء في الخيارات المقترحة قبل الإرسال.");
       return;
     }
 
     if (!appointmentId) {
-      setSubmitError("Missing appointment reference.");
+      setSubmitError("معرف الموعد غير صالح.");
       return;
     }
 
@@ -142,7 +142,8 @@ export const RescheduleModal = ({
       onSuccess?.();
       onClose?.();
     } catch (err) {
-      const errorMsg = handleApiError(err) || "Unable to propose times.";
+      const errorMsg =
+        handleApiError(err) || "فشل إرسال الاقتراحات. حاول مرة أخرى.";
       setSubmitError(errorMsg);
     } finally {
       setSubmitting(false);
@@ -153,11 +154,11 @@ export const RescheduleModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Propose New Times"
+      title="اقتراح أوقات جديدة"
       footer={
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
           <Button variant="secondary" onClick={onClose} disabled={submitting}>
-            Cancel
+            إلغاء
           </Button>
           <Button
             variant="primary"
@@ -166,10 +167,10 @@ export const RescheduleModal = ({
           >
             {submitting ? (
               <span className="inline-flex items-center gap-2">
-                <Spinner size="sm" /> Sending
+                <Spinner size="sm" /> إرسال
               </span>
             ) : (
-              "Send proposal"
+              "إرسال الاقتراح"
             )}
           </Button>
         </div>
@@ -177,11 +178,10 @@ export const RescheduleModal = ({
     >
       <div className="space-y-4">
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          Select available time slots for the patient. These options will be
-          sent for patient review.
+          اقترح أوقاتًا جديدة لهذا الموعد. سيتمكن الطرف الآخر من رؤية هذه
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Proposing slots as <span className="font-medium">{role}</span>.
+          اقتراح الأوقات كـ <span className="font-medium">{role}</span>.
         </p>
 
         {submitError && <Alert type="error" message={submitError} />}
@@ -197,7 +197,7 @@ export const RescheduleModal = ({
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div className="grid w-full gap-4 sm:grid-cols-2">
                     <Input
-                      label={`Proposed date ${index + 1}`}
+                      label={`التاريخ المقترح ${index + 1}`}
                       type="date"
                       value={option.date}
                       onChange={(e) =>
@@ -207,7 +207,7 @@ export const RescheduleModal = ({
                       required
                     />
                     <Input
-                      label={`Proposed time ${index + 1}`}
+                      label={`الوقت المقترح ${index + 1}`}
                       type="time"
                       value={option.timeSlot}
                       onChange={(e) =>
@@ -223,7 +223,7 @@ export const RescheduleModal = ({
                       onClick={() => removeOption(index)}
                       disabled={options.length === 1 || submitting}
                     >
-                      × Remove
+                      × حذف
                     </Button>
                   </div>
                 </div>
@@ -247,7 +247,7 @@ export const RescheduleModal = ({
             disabled={submitting}
             className="inline-flex items-center gap-2"
           >
-            + Add time slot
+            + أضف خيار وقت جديد
           </Button>
         </div>
       </div>

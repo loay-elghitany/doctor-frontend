@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useCurrentRole } from "../../hooks/useCurrentRole";
 import { useUnifiedLogout } from "../../hooks/useUnifiedLogout";
+import { NotificationBell } from "../NotificationBell";
 
 const MotionLink = motion.create(Link);
 
@@ -26,32 +27,32 @@ export const Header = () => {
 
   const roleNavItems = {
     patient: [
-      { path: "/patient/dashboard", label: "Dashboard" },
-      { path: "/patient/appointments/new", label: "Book Appointment" },
+      { path: "/patient/dashboard", label: "الصفحة الرئيسية" },
+      { path: "/patient/appointments/new", label: "احجز موعدك" },
     ],
     doctor: [
-      { path: "/doctor/dashboard", label: "Dashboard" },
-      { path: "/doctor/appointments", label: "Appointments" },
-      { path: "/doctor/patient-records", label: "Patients" },
-      { path: "/doctor/clinic-profile", label: "Clinic Profile" },
+      { path: "/doctor/dashboard", label: "الصفحة الريسية" },
+      { path: "/doctor/appointments", label: "المواعيد" },
+      { path: "/doctor/patient-records", label: "المرضى" },
+      { path: "/doctor/clinic-profile", label: "ملف العيادة" },
     ],
     secretary: [
-      { path: "/secretary/dashboard", label: "Dashboard" },
-      { path: "/secretary/appointments", label: "Appointments" },
-      { path: "/secretary/patients", label: "Patients" },
+      { path: "/secretary/dashboard", label: "الصفحة الرئيسية" },
+      { path: "/secretary/appointments", label: "المواعيد" },
+      { path: "/secretary/patients", label: "المرضى" },
     ],
     admin: [
-      { path: "/admin/dashboard", label: "Dashboard" },
-      { path: "/admin/doctors", label: "Doctors" },
-      { path: "/admin/analytics", label: "Analytics" },
+      { path: "/admin/dashboard", label: "الصفحة الرئيسية" },
+      { path: "/admin/doctors", label: "الاطباء" },
+      { path: "/admin/analytics", label: "التقارير" },
     ],
   };
 
   const navItems = isAuthenticated
     ? isAdmin
       ? roleNavItems.admin
-      : (roleNavItems[role] ?? [{ path: "/login", label: "Dashboard" }])
-    : [{ path: "/login", label: "Login" }];
+      : (roleNavItems[role] ?? [{ path: "/login", label: "الصفحة الرئيسية" }])
+    : [{ path: "/login", label: "تسجيل الدخول" }];
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("clinic-theme");
@@ -103,6 +104,7 @@ export const Header = () => {
               <Moon className="h-5 w-5" />
             )}
           </button>
+          {isAuthenticated && <NotificationBell />}
         </nav>
 
         <button
@@ -125,12 +127,17 @@ export const Header = () => {
               </Link>
             ))}
             {isAuthenticated && (
-              <button
-                onClick={handleLogout}
-                className="mt-3 flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-red-600 hover:bg-red-50"
-              >
-                <LogOut className="h-4 w-4" /> Logout
-              </button>
+              <>
+                <div className="flex items-center justify-center py-2">
+                  <NotificationBell />
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="mt-3 flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-red-600 hover:bg-red-50"
+                >
+                  <LogOut className="h-4 w-4" /> Logout
+                </button>
+              </>
             )}
           </div>
         )}
@@ -140,7 +147,11 @@ export const Header = () => {
 };
 
 // Sidebar component
-export const Sidebar = ({ isOpen, onClose, userType: _userType = "patient" }) => {
+export const Sidebar = ({
+  isOpen,
+  onClose,
+  userType: _userType = "patient",
+}) => {
   const location = useLocation();
   const { role } = useCurrentRole();
   const { handleLogout } = useUnifiedLogout();
@@ -149,13 +160,13 @@ export const Sidebar = ({ isOpen, onClose, userType: _userType = "patient" }) =>
     {
       id: "dashboard",
       path: "/patient/dashboard",
-      label: "Dashboard",
+      label: "الصفحة الرئيسية",
       icon: Home,
     },
     {
       id: "new-appointment",
       path: "/patient/appointments/new",
-      label: "New Appointment",
+      label: "موعد جديد",
       icon: PlusCircle,
     },
   ];
@@ -164,25 +175,25 @@ export const Sidebar = ({ isOpen, onClose, userType: _userType = "patient" }) =>
     {
       id: "dashboard",
       path: "/doctor/dashboard",
-      label: "Dashboard",
+      label: "الصفحة الرئيسية",
       icon: LayoutDashboard,
     },
     {
       id: "appointments",
       path: "/doctor/appointments",
-      label: "All Appointments",
+      label: "كل المواعيد",
       icon: CalendarDays,
     },
     {
       id: "patient-records",
       path: "/doctor/patient-records",
-      label: "Patient Records",
+      label: "سجلات المرضى",
       icon: FolderOpen,
     },
     {
       id: "clinic-profile",
       path: "/doctor/clinic-profile",
-      label: "Clinic Profile",
+      label: "ملف العيادة",
       icon: LayoutDashboard,
     },
   ];
@@ -191,25 +202,25 @@ export const Sidebar = ({ isOpen, onClose, userType: _userType = "patient" }) =>
     {
       id: "dashboard",
       path: "/secretary/dashboard",
-      label: "Dashboard",
+      label: "الصفحة الرئيسية",
       icon: LayoutDashboard,
     },
     {
       id: "appointments",
       path: "/secretary/appointments",
-      label: "Appointments",
+      label: "المواعيد",
       icon: CalendarDays,
     },
     {
       id: "patients",
       path: "/secretary/patients",
-      label: "Patients",
+      label: "المرضى",
       icon: FolderOpen,
     },
     {
       id: "new-appointment",
       path: "/secretary/appointments/new",
-      label: "New Appointment",
+      label: "موعد جديد",
       icon: PlusCircle,
     },
   ];
@@ -218,19 +229,19 @@ export const Sidebar = ({ isOpen, onClose, userType: _userType = "patient" }) =>
     {
       id: "dashboard",
       path: "/admin/dashboard",
-      label: "Dashboard",
+      label: "الصفحة الرئيسية",
       icon: LayoutDashboard,
     },
     {
       id: "doctors",
       path: "/admin/doctors",
-      label: "Doctors",
+      label: "الأطباء",
       icon: FolderOpen,
     },
     {
       id: "analytics",
       path: "/admin/analytics",
-      label: "Analytics",
+      label: "التقارير",
       icon: CalendarDays,
     },
   ];
@@ -310,7 +321,7 @@ export const Sidebar = ({ isOpen, onClose, userType: _userType = "patient" }) =>
             className="mt-4 flex w-full items-center gap-3 rounded-3xl bg-slate-800 px-4 py-3 text-left text-sm font-medium text-red-300 transition hover:bg-slate-700"
           >
             <LogOut className="h-5 w-5" />
-            Logout
+            تسجيل الخروج
           </button>
         </nav>
       </aside>

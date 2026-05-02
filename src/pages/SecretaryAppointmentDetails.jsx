@@ -33,7 +33,7 @@ export const SecretaryAppointmentDetails = () => {
         (app) => app?._id === appointmentId,
       );
       if (!foundAppointment) {
-        setError("Appointment not found");
+        setError("الموعد غير موجود");
         return;
       }
 
@@ -43,14 +43,14 @@ export const SecretaryAppointmentDetails = () => {
       const errorMsg =
         err.response?.data?.message ||
         err.message ||
-        "Failed to fetch appointment details";
+        "فشل في جلب تفاصيل الموعد";
       // Don't set error for 401s as they trigger logout automatically
       if (err.response?.status !== 401) {
         setError(errorMsg);
       }
       debugError(
         "SecretaryAppointmentDetails",
-        "Failed to fetch appointment",
+        "فشل في جلب تفاصيل الموعد",
         err,
       );
     } finally {
@@ -105,7 +105,7 @@ export const SecretaryAppointmentDetails = () => {
               variant="secondary"
               onClick={() => navigate("/secretary/appointments")}
             >
-              Back to Appointments
+              العودة إلى قائمة المواعيد
             </Button>
           </div>
         </div>
@@ -121,10 +121,10 @@ export const SecretaryAppointmentDetails = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Appointment Details
+                تفاصيل الموعد
               </h1>
               <p className="text-gray-600 dark:text-gray-300 mt-2">
-                View appointment information
+                عرض معلومات الموعد
               </p>
             </div>
             <Button
@@ -140,7 +140,7 @@ export const SecretaryAppointmentDetails = () => {
         <Card className="mb-6">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Patient Information
+              معلومات المريض
             </h3>
           </div>
           <div className="px-6 py-4">
@@ -169,7 +169,7 @@ export const SecretaryAppointmentDetails = () => {
         <Card className="mb-6">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Appointment Information
+              معلومات الموعد
             </h3>
           </div>
           <div className="px-6 py-4">
@@ -208,12 +208,12 @@ export const SecretaryAppointmentDetails = () => {
         <Card className="mb-6">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Notes
+              ملاحظات
             </h3>
           </div>
           <div className="px-6 py-4">
             <p className="text-sm text-gray-900 dark:text-white">
-              {appointment?.notes || "No notes"}
+              {appointment?.notes || "لا توجد ملاحظات"}
             </p>
           </div>
         </Card>
@@ -222,7 +222,7 @@ export const SecretaryAppointmentDetails = () => {
         <Card>
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              Actions
+              الإجراءات
             </h3>
           </div>
           <div className="px-6 py-4">
@@ -231,7 +231,7 @@ export const SecretaryAppointmentDetails = () => {
                 variant="secondary"
                 onClick={() => navigate("/secretary/appointments")}
               >
-                Back to Appointments
+                العودة إلى قائمة المواعيد
               </Button>
               {/* Placeholder for future actions */}
             </div>

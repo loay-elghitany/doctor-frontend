@@ -40,7 +40,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
       setTimeline(data.data || []);
     } catch (err) {
       console.error("Error loading timeline:", err);
-      setError("Failed to load patient timeline");
+      setError("فشل في تحميل التاريخ الطبي. الرجاء المحاولة مرة أخرى.");
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
     e.preventDefault();
 
     if (!noteContent.trim()) {
-      setError("Note content is required");
+      setError(" رجاءً إدخال محتوى الملاحظة");
       return;
     }
 
@@ -58,7 +58,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
       setSubmitting(true);
       setError(null);
       await addDoctorNote(patientId, noteContent, selectedAppointmentId);
-      setSuccessMessage("✓ Note added successfully");
+      setSuccessMessage("✓ تم إضافة الملاحظة بنجاح");
       setNoteContent("");
       setSelectedAppointmentId(null);
       setShowNoteForm(false);
@@ -66,7 +66,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
       await fetchTimeline();
     } catch (err) {
       console.error("Error adding note:", err);
-      setError(err.message || "Failed to add note");
+      setError(err.message || "فشل في إضافة الملاحظة");
     } finally {
       setSubmitting(false);
     }
@@ -131,14 +131,14 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Patient Details</h2>
+          <h2 className="text-2xl font-bold text-gray-900">التاريخ الطبي</h2>
           <p className="text-gray-600 text-sm mt-1">{patientName}</p>
         </div>
         <button
           onClick={() => setShowNoteForm(!showNoteForm)}
           className="btn-primary bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
         >
-          {showNoteForm ? "Cancel" : "+ Add Note"}
+          {showNoteForm ? "إلغاء" : "+ إضافة ملاحظة"}
         </button>
       </div>
 
@@ -152,7 +152,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
-          Medical History
+          التاريخ الطبي
         </button>
         <button
           onClick={() => setActiveTab("billing")}
@@ -162,7 +162,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
-          Billing & Plans
+          الفواتير والخطط
         </button>
       </div>
 
@@ -187,12 +187,12 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
           {showNoteForm && (
             <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <h3 className="font-semibold text-gray-900 mb-3">
-                Add Doctor Note
+                إضافة ملاحظة طبية
               </h3>
               <form onSubmit={handleAddNote} className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Note Content *
+                    محتوى الملاحظة *
                   </label>
                   <textarea
                     value={noteContent}
@@ -205,7 +205,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Link to Appointment (optional)
+                    رابط للموعد (اختياري)
                   </label>
                   <select
                     value={selectedAppointmentId || ""}
@@ -214,7 +214,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                     }
                     className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                   >
-                    <option value="">Select appointment...</option>
+                    <option value="">اختر الموعد...</option>
                     {timeline
                       .filter(
                         (event) =>
@@ -243,14 +243,14 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                     }}
                     className="btn-secondary px-4 py-2 rounded-lg text-gray-700"
                   >
-                    Cancel
+                    إلغاء
                   </button>
                   <button
                     type="submit"
                     disabled={submitting}
                     className="btn-primary bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg disabled:opacity-50"
                   >
-                    {submitting ? "Adding..." : "Add Note"}
+                    {submitting ? "إضافة..." : "إضافة ملاحظة"}
                   </button>
                 </div>
               </form>
@@ -260,7 +260,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
           {/* Timeline */}
           {timeline.length === 0 ? (
             <div className="text-center py-12 bg-gray-50 rounded-lg">
-              <p className="text-gray-500 text-lg">No medical events yet</p>
+              <p className="text-gray-500 text-lg">لا توجد أحداث طبية بعد</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -313,7 +313,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                               {event.eventType === "appointment_created" && (
                                 <p>
                                   <span className="font-medium">
-                                    Appointment Date:
+                                    تاريخ الموعد:
                                   </span>{" "}
                                   {event.appointmentId?.date
                                     ? formatDate(event.appointmentId.date)
@@ -323,7 +323,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                               {event.eventType === "prescription_created" && (
                                 <p>
                                   <span className="font-medium">
-                                    Prescription from:
+                                    روشتة من تاريخ:
                                   </span>{" "}
                                   {event.appointmentId?.date
                                     ? formatDate(event.appointmentId.date)
@@ -331,7 +331,7 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                                 </p>
                               )}
                               <p>
-                                <span className="font-medium">Status:</span>{" "}
+                                <span className="font-medium">الحالة:</span>{" "}
                                 {event.eventStatus}
                               </p>
                             </div>
@@ -341,8 +341,8 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <span className="text-xs text-gray-500">
                             {event.visibility === "patient_visible"
-                              ? "👁️ Visible to patient"
-                              : "🔒 Doctor only"}
+                              ? "👁️ مرئي للمرضى"
+                              : "🔒 فقط للطبيب"}
                           </span>
                         </div>
                       </div>

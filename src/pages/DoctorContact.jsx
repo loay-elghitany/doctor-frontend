@@ -65,7 +65,7 @@ export const DoctorContact = () => {
             {error || "Contact information not found"}
           </p>
           <p className="text-sm text-gray-500">
-            The doctor's contact information is not available.
+            معلومات التواصل مع الطبيب غير متاحة
           </p>
         </div>
       </MainLayout>
@@ -91,11 +91,9 @@ export const DoctorContact = () => {
           {!hasContactInfo ? (
             <div className="text-center py-12">
               <p className="text-gray-600 mb-4">
-                Contact information is not yet available.
+                معلومات التواصل ليست متوفرة بعد
               </p>
-              <p className="text-sm text-gray-500">
-                Please try again later or visit our main contact page.
-              </p>
+              <p className="text-sm text-gray-500">رجاءً حاول في وقت آخر</p>
             </div>
           ) : (
             <div className="space-y-6">
@@ -103,7 +101,7 @@ export const DoctorContact = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {doctor.publicContactInfo.phone && (
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h3 className="font-medium text-gray-900 mb-2">Phone</h3>
+                    <h3 className="font-medium text-gray-900 mb-2">الهاتف</h3>
                     <a
                       href={`tel:${doctor.publicContactInfo.phone}`}
                       className="text-lg text-blue-600 hover:text-blue-800 font-semibold"
@@ -141,7 +139,7 @@ export const DoctorContact = () => {
 
                 {doctor.publicContactInfo.address && (
                   <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                    <h3 className="font-medium text-gray-900 mb-2">Address</h3>
+                    <h3 className="font-medium text-gray-900 mb-2">العنوان</h3>
                     <p className="text-gray-700">
                       {doctor.publicContactInfo.address}
                     </p>
