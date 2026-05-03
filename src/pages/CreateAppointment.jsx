@@ -122,10 +122,6 @@ export const CreateAppointment = () => {
         });
       }
 
-      // Remove some random slots to simulate busy times
-      const busySlots = ["10:00", "14:00", "16:00"];
-      available = available.filter((slot) => !busySlots.includes(slot));
-
       setAvailableSlots(available);
     } catch (err) {
       console.error("Error fetching available slots:", err);
@@ -479,7 +475,7 @@ export const CreateAppointment = () => {
                             الاسم
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            المريض الحالي
+                            {formData.name || "Not provided"}
                           </p>
                         </div>
                       </div>
@@ -490,7 +486,7 @@ export const CreateAppointment = () => {
                             Email
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            patient@example.com
+                            {formData.email || "Not provided"}
                           </p>
                         </div>
                       </div>
@@ -501,7 +497,7 @@ export const CreateAppointment = () => {
                             الهاتف
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            +1 (555) 123-4567
+                            {formData.phone || "Not provided"}
                           </p>
                         </div>
                       </div>
