@@ -501,7 +501,7 @@ export const CreateAppointment = () => {
                             الهاتف
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {user?.phone || formData.phone || "Not provided"}
+                            {user?.phoneNumber || "Not provided"}
                           </p>
                         </div>
                       </div>

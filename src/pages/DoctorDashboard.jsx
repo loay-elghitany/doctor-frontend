@@ -102,7 +102,7 @@ export const DoctorDashboard = () => {
       accent: "text-blue-600 dark:text-blue-400",
     },
     {
-      label: "مواعيد مفترحة",
+      label: "معلقة",
       value: stats.pending,
       icon: Clock3,
       gradient: "from-amber-500 to-orange-400",

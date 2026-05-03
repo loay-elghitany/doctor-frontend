@@ -306,18 +306,17 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                           </div>
                         )}
 
-                        {/* Metadata display */}
-                        {event.metadata &&
-                          Object.keys(event.metadata).length > 0 && (
-                            <div className="mt-3 space-y-1 text-sm text-gray-600">
+                        {/* Appointment & Event Details Display */}
+                        <div className="mt-3 space-y-1 text-sm text-gray-600">
+                          {/* عرض تاريخ الموعد لو الحدث مرتبط بموعد */}
+                          {event.appointmentId?.date && (
+                            <>
                               {event.eventType === "appointment_created" && (
                                 <p>
                                   <span className="font-medium">
                                     تاريخ الموعد:
                                   </span>{" "}
-                                  {event.appointmentId?.date
-                                    ? formatDate(event.appointmentId.date)
-                                    : "N/A"}
+                                  {formatDate(event.appointmentId.date)}
                                 </p>
                               )}
                               {event.eventType === "prescription_created" && (
@@ -325,18 +324,38 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
                                   <span className="font-medium">
                                     روشتة من تاريخ:
                                   </span>{" "}
-                                  {event.appointmentId?.date
-                                    ? formatDate(event.appointmentId.date)
-                                    : "N/A"}
+                                  {formatDate(event.appointmentId.date)}
                                 </p>
                               )}
-                              <p>
-                                <span className="font-medium">الحالة:</span>{" "}
-                                {event.eventStatus}
-                              </p>
-                            </div>
+                            </>
                           )}
 
+                          {/* عرض حالة الحدث لو موجودة */}
+                          {event.eventStatus && (
+                            <p>
+                              <span className="font-medium">الحالة:</span>{" "}
+                              {event.eventStatus}
+                            </p>
+                          )}
+
+                          {/* لو عايز تعرض بيانات فعلية من الـ metadata مستقبلاً، حطها هنا لوحدها */}
+                          {event.metadata &&
+                            Object.keys(event.metadata).length > 0 && (
+                              <div className="mt-2 p-2 bg-gray-50 rounded text-xs">
+                                {/* مثال لعرض محتوى الميتاداتا */}
+                                {Object.entries(event.metadata).map(
+                                  ([key, value]) => (
+                                    <p key={key}>
+                                      <span className="font-medium">
+                                        {key}:
+                                      </span>{" "}
+                                      {String(value)}
+                                    </p>
+                                  ),
+                                )}
+                              </div>
+                            )}
+                        </div>
                         {/* Visibility indicator for doctor */}
                         <div className="mt-3 pt-3 border-t border-gray-200">
                           <span className="text-xs text-gray-500">
