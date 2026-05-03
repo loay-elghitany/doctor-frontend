@@ -32,6 +32,9 @@ export const CreateAppointment = () => {
     date: "",
     timeSlot: "09:00",
     notes: "",
+    name: "",
+    email: "",
+    phone: "",
   });
 
   const [availableSlots, setAvailableSlots] = useState([]);
