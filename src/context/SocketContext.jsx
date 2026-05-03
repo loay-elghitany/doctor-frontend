@@ -13,7 +13,8 @@ import { notificationService } from "../services/notificationService";
 
 // Get API base URL from environment
 const API_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000";
-const SOCKET_URL = API_URL.replace("/api", ""); // Remove /api suffix if present
+
+const SOCKET_URL = API_URL.endsWith("/api") ? API_URL.slice(0, -4) : API_URL;
 
 const SocketContext = createContext(null);
 

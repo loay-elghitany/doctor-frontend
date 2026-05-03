@@ -617,6 +617,16 @@ export const DoctorClinicProfile = () => {
                     </span>
                   </div>
 
+                  {/* ✅ التعديل هنا: نقلنا الـ input بره الشرط عشان يشتغل مع الـ EmptyState ومع زرار إضافة المزيد */}
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => handleClinicPhotosUpload(e.target.files)}
+                    className="hidden"
+                  />
+
                   {form.clinicPhotos.length > 0 ? (
                     <>
                       <motion.div
@@ -637,18 +647,9 @@ export const DoctorClinicProfile = () => {
                           ))}
                         </AnimatePresence>
                       </motion.div>
+
                       {/* Add more photos button */}
                       <div>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          multiple
-                          onChange={(e) =>
-                            handleClinicPhotosUpload(e.target.files)
-                          }
-                          className="hidden"
-                        />
                         <motion.button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
