@@ -11,6 +11,7 @@ import {
   XCircle,
   FileText,
   Trash2,
+  DollarSign,
 } from "lucide-react";
 import { useSocket } from "../context/SocketContext";
 
@@ -70,6 +71,12 @@ const notificationIcons = {
     color: "bg-blue-500",
     text: "text-blue-600",
   },
+  NEW_PAYMENT_MADE: {
+    icon: DollarSign,
+    color: "bg-yellow-500", // لون مميز للفلوس
+    text: "text-yellow-600",
+  },
+
   default: { icon: Bell, color: "bg-slate-500", text: "text-slate-600" },
 };
 

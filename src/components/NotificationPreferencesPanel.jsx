@@ -24,6 +24,7 @@ const NotificationPreferencesPanel = () => {
     { id: "appointment_cancelled", label: "Appointment Cancelled" },
     { id: "appointment_proposed", label: "Appointment Proposed" },
     { id: "prescription_created", label: "Prescription Created" },
+    { id: "new_payment_made", label: "New Payment Received" },
   ];
 
   const [preferences, setPreferences] = useState(null);
@@ -47,6 +48,7 @@ const NotificationPreferencesPanel = () => {
     emailTypes: {},
     muteAll: false,
     gdprOptOut: false,
+    new_payment_made: true,
   });
 
   // Fetch preferences
@@ -82,6 +84,7 @@ const NotificationPreferencesPanel = () => {
           emailTypes: prefs.email?.types ?? {},
           muteAll: prefs.muteAll ?? false,
           gdprOptOut: prefs.gdprOptOut ?? false,
+          new_payment_made: prefs.new_payment_made ?? false,
         });
       }
     } catch (err) {
