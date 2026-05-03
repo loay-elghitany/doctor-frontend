@@ -17,10 +17,11 @@ import {
 import { appointmentService } from "../services/appointmentService";
 import { handleApiError } from "../utils/helpers";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
 
 export const CreateAppointment = () => {
   const navigate = useNavigate();
-
+  const { user } = useAuth();
   // Wizard state
   const [currentStep, setCurrentStep] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -433,7 +434,7 @@ export const CreateAppointment = () => {
                     راجع موعدك
                   </h2>
                   <p className="text-gray-500 dark:text-gray-400">
-                    من فضلك قم بمراجعة تفاصيل حجز
+                    من فضلك قم بمراجعة تفاصيل حجزك قبل التأكيد
                   </p>
                 </div>
 
@@ -478,7 +479,7 @@ export const CreateAppointment = () => {
                             الاسم
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {formData.name || "Not provided"}
+                            {user?.name || user?.fullName || "Not provided"}
                           </p>
                         </div>
                       </div>
@@ -489,7 +490,7 @@ export const CreateAppointment = () => {
                             Email
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {formData.email || "Not provided"}
+                            {user?.email || formData.email || "Not provided"}
                           </p>
                         </div>
                       </div>
@@ -500,7 +501,7 @@ export const CreateAppointment = () => {
                             الهاتف
                           </span>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {formData.phone || "Not provided"}
+                            {user?.phone || formData.phone || "Not provided"}
                           </p>
                         </div>
                       </div>
