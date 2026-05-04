@@ -1,9 +1,7 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  BarChart,
   LineChart,
   Line,
-  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -18,7 +16,6 @@ import {
   Download,
   AlertTriangle,
   TrendingUp,
-  Users,
   MessageSquare,
   Loader,
   AlertCircle,
@@ -48,7 +45,7 @@ const AdminAnalyticsDashboard = () => {
   const adminService = createAdminService();
 
   // Fetch analytics
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -69,10 +66,10 @@ const AdminAnalyticsDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [dateRange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch trends
-  const fetchTrends = async () => {
+  const fetchTrends = useCallback(async () => {
     try {
       const response = await adminService.getAnalyticsTrends({
         period: dateRange.period,
@@ -86,7 +83,7 @@ const AdminAnalyticsDashboard = () => {
     } catch (err) {
       console.error("Error fetching trends:", err);
     }
-  };
+  }, [dateRange]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Export analytics
   const handleExport = async () => {
@@ -118,7 +115,7 @@ const AdminAnalyticsDashboard = () => {
   useEffect(() => {
     fetchAnalytics();
     fetchTrends();
-  }, [dateRange]);
+  }, [fetchAnalytics, fetchTrends]);
 
   // Handle date range change
   const handleDateRangeChange = (field, value) => {

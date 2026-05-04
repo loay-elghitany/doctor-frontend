@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { BarChart, LineChart, PieChart } from "lucide-react";
+import { useState, useEffect } from "react";
+import { BarChart } from "lucide-react";
 import { createAdminService } from "../services/adminService";
 
 /**

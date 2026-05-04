@@ -112,7 +112,7 @@ export const AdminDashboard = () => {
       ? doctors
       : activeTab === "active"
         ? doctors.filter((d) => Boolean(d.isActive))
-        : doctors.filter((d) => !Boolean(d.isActive));
+        : doctors.filter((d) => !d.isActive);
 
   // Handle create doctor form submission
   const handleCreateSubmit = async (e) => {
@@ -408,7 +408,7 @@ export const AdminDashboard = () => {
                         ))}
                         <td className="px-6 py-3 text-sm">
                           <div className="flex gap-2">
-                            {Boolean(doctor.isActive) ? (
+                            {doctor.isActive ? (
                               <Button
                                 variant="danger"
                                 size="sm"

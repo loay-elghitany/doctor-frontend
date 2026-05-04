@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Spinner, Alert } from "./ui";
+import { useState, useEffect, useCallback } from "react";
+import { Spinner } from "./ui";
 import {
   getDoctorPatientTimeline,
   addDoctorNote,
@@ -23,16 +23,8 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
   const [submitting, setSubmitting] = useState(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [activeTab, setActiveTab] = useState("timeline");
-  console.log("DEBUG NOTE:", {
-    patientId,
-    noteContent,
-    selectedAppointmentId,
-  });
-  useEffect(() => {
-    fetchTimeline();
-  }, [patientId]);
 
-  const fetchTimeline = async () => {
+  const fetchTimeline = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -44,7 +36,11 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId]);
+
+  useEffect(() => {
+    fetchTimeline();
+  }, [fetchTimeline]);
 
   const handleAddNote = async (e) => {
     e.preventDefault();

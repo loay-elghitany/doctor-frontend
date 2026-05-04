@@ -216,7 +216,7 @@ const FinancialManager = ({ patientId }) => {
             إدارة خطط الدفع وتتبع الرصيد المعلق
           </p>
         </div>
-        {role === "doctor" && (
+        {(role === "doctor" || role === "secretary") && (
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -340,8 +340,16 @@ const FinancialManager = ({ patientId }) => {
           icon={FileText}
           title="No Treatment Plans"
           description="There are no treatment plans created yet. Create a new plan to start tracking payments."
-          actionLabel={role === "doctor" ? "Create First Plan" : undefined}
-          onAction={role === "doctor" ? () => setIsModalOpen(true) : undefined}
+          actionLabel={
+            role === "doctor" || role === "secretary"
+              ? "Create First Plan"
+              : undefined
+          }
+          onAction={
+            role === "doctor" || role === "secretary"
+              ? () => setIsModalOpen(true)
+              : undefined
+          }
         />
       )}
 

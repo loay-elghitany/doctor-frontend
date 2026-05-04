@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, FileText, DollarSign, ClipboardList } from "lucide-react";
 
@@ -138,7 +138,9 @@ const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
                     }`}
                   />
                   {errors.totalCost && (
-                    <p className="text-red-500 text-xs mt-1">{errors.totalCost}</p>
+                    <p className="text-red-500 text-xs mt-1">
+                      {errors.totalCost}
+                    </p>
                   )}
                 </div>
 
@@ -174,7 +176,11 @@ const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
                       <>
                         <motion.div
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                            ease: "linear",
+                          }}
                           className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
                         />
                         Saving...

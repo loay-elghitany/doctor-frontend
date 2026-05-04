@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   Calendar,
   Pill,
@@ -7,7 +7,6 @@ import {
   ChevronUp,
   AlertCircle,
   Filter,
-  Search,
   Loader,
 } from "lucide-react";
 
