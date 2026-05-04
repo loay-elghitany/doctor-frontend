@@ -697,6 +697,25 @@ export const SecretaryAppointmentsList = () => {
                               </motion.button>
                             )}
 
+                            {permissions.canMarkCompleted && (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() =>
+                                  handleMarkCompleted(appointment._id)
+                                }
+                                disabled={isRowLoading(
+                                  appointment._id,
+                                  "complete",
+                                )}
+                                className="px-3 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition disabled:opacity-50"
+                              >
+                                {isRowLoading(appointment._id, "complete")
+                                  ? "Completing..."
+                                  : "Complete"}
+                              </motion.button>
+                            )}
+
                             {permissions.canDelete && (
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
