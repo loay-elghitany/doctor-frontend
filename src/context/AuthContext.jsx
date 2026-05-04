@@ -26,7 +26,7 @@ const defaultAuthContextValue = {
   logout: () => {},
 };
 
-const AuthContext = createContext(defaultAuthContextValue);
+export const AuthContext = createContext(defaultAuthContextValue);
 
 export const useAuth = () => {
   return useContext(AuthContext);
