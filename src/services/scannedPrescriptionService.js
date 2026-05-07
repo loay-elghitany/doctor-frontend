@@ -13,15 +13,11 @@ const scannedPrescriptionService = {
       console.log(`FormData Entry - ${key}:`, value);
     }
 
-    return api.post(
-      "/secretaries/prescriptions/upload",
-      formData,
-      {
-        headers: {
-          "Content-Type": undefined,
-        },
+    return api.post("/secretaries/prescriptions/upload", formData, {
+      headers: {
+        "Content-Type": undefined,
       },
-    );
+    });
   },
 
   getPatientScannedPrescriptions: (patientId, params = {}) =>

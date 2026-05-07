@@ -142,20 +142,27 @@ export const SecretaryPatientDetails = () => {
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
 
-          canvas.toBlob((blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error("Image compression produced no blob"));
-            }
-          }, "image/jpeg", 0.8);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error("Image compression produced no blob"));
+              }
+            },
+            "image/jpeg",
+            0.8,
+          );
         };
 
         img.onerror = (err) => reject(err);
         img.src = URL.createObjectURL(file);
       });
     } catch (err) {
-      console.warn("Image compression failed, falling back to the original file:", err);
+      console.warn(
+        "Image compression failed, falling back to the original file:",
+        err,
+      );
       return null;
     }
   };
