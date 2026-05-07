@@ -160,6 +160,16 @@ export const PatientDashboard = () => {
     window.print();
   };
 
+  const getDownloadUrl = (url) =>
+    url?.includes("/upload/")
+      ? url.replace("/upload/", "/upload/fl_attachment/")
+      : url || "";
+
+  const downloadUrl = getDownloadUrl(previewModal?.fileUrl);
+  const isPdfPreview =
+    previewModal?.fileType === "pdf" ||
+    previewModal?.fileUrl?.toLowerCase().endsWith(".pdf");
+
   const fetchScannedPrescriptions = async () => {
     if (!user?._id) return;
     setScannedLoading(true);
@@ -543,7 +553,12 @@ export const PatientDashboard = () => {
                             معاينة
                           </button>
                           <a
-                            href={prescription.fileUrl}
+                            href={getDownloadUrl(prescription.fileUrl)}
+                            download={
+                              prescription.fileType === "pdf"
+                                ? "scanned-prescription.pdf"
+                                : prescription.fileUrl?.split("/").pop()
+                            }
                             target="_blank"
                             rel="noreferrer"
                             className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 transition-colors"
@@ -813,17 +828,17 @@ export const PatientDashboard = () => {
                   )}
                 </div>
                 <div className="flex justify-center">
-                  {previewModal.fileType === "pdf" ? (
+                  {isPdfPreview ? (
                     <iframe
                       src={previewModal.fileUrl}
-                      className="w-full h-96 border rounded-lg print-iframe"
+                      className="w-full h-[75vh] border-0 rounded-md print-iframe"
                       title="PDF Preview"
                     />
                   ) : (
                     <img
                       src={previewModal.fileUrl}
                       alt="Scanned Prescription"
-                      className="max-w-full max-h-96 object-contain rounded-lg print-image"
+                      className="object-contain max-h-[75vh] w-full rounded-md print-image"
                     />
                   )}
                 </div>
@@ -843,7 +858,12 @@ export const PatientDashboard = () => {
                   طباعة
                 </button>
                 <a
-                  href={previewModal.fileUrl}
+                  href={downloadUrl || previewModal.fileUrl}
+                  download={
+                    isPdfPreview
+                      ? "scanned-prescription.pdf"
+                      : previewModal.fileUrl?.split("/").pop()
+                  }
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
