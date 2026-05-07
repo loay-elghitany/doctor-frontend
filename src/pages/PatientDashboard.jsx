@@ -9,6 +9,7 @@ import {
   StatusBadge,
   TimelineEvent,
   PremiumProgressBar,
+  Badge,
 } from "../components/ui";
 import TelegramConnectButton from "../components/ui/TelegramConnectButton.jsx";
 import { useAuth } from "../context/AuthContext";
@@ -26,8 +27,12 @@ import {
   Syringe,
   Bandage,
   ArrowRight,
+  Eye,
+  Download,
+  Printer,
 } from "lucide-react";
 import { appointmentService } from "../services/appointmentService";
+import scannedPrescriptionService from "../services/scannedPrescriptionService";
 import { handleApiError } from "../utils/helpers";
 import { formatDate } from "../utils/helpers";
 import { useNavigate } from "react-router-dom";
@@ -91,8 +96,12 @@ export const PatientDashboard = () => {
   const [error, setError] = useState("");
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showPrescriptions, setShowPrescriptions] = useState(false);
+  const [scannedPrescriptions, setScannedPrescriptions] = useState([]);
+  const [scannedLoading, setScannedLoading] = useState(false);
+  const [scannedError, setScannedError] = useState("");
   const [activeTab, setActiveTab] = useState("appointments");
   const [tourOpen, setTourOpen] = useState(false);
+  const [previewModal, setPreviewModal] = useState(null);
   const [tourStep, setTourStep] = useState(0);
   const [timeline, setTimeline] = useState([]);
   const [timelineLoading, setTimelineLoading] = useState(false);
@@ -142,7 +151,36 @@ export const PatientDashboard = () => {
     if (activeTab === "timeline") {
       fetchTimeline();
     }
+    if (activeTab === "scanned-prescriptions") {
+      fetchScannedPrescriptions();
+    }
   }, [activeTab]);
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const fetchScannedPrescriptions = async () => {
+    if (!user?._id) return;
+    setScannedLoading(true);
+    setScannedError("");
+    try {
+      const response =
+        await scannedPrescriptionService.getPatientScannedPrescriptions(
+          user._id,
+        );
+      setScannedPrescriptions(response.data?.data || []);
+    } catch (err) {
+      console.error("Error loading scanned prescriptions:", err);
+      setScannedError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to load scanned prescriptions",
+      );
+    } finally {
+      setScannedLoading(false);
+    }
+  };
 
   const fetchTimeline = async () => {
     setTimelineLoading(true);
@@ -246,6 +284,11 @@ export const PatientDashboard = () => {
   const tabs = [
     { id: "appointments", label: "مواعيدي القادمة", icon: Calendar },
     { id: "timeline", label: "التقرير الطبي", icon: Activity },
+    {
+      id: "scanned-prescriptions",
+      label: "الروشتات الممسوحة",
+      icon: FileText,
+    },
     { id: "financials", label: "خططي المالية", icon: CreditCard },
   ];
 
@@ -454,6 +497,75 @@ export const PatientDashboard = () => {
             </motion.div>
           )}
 
+          {/* Scanned Prescriptions Tab */}
+          {activeTab === "scanned-prescriptions" && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              {scannedLoading ? (
+                <LoadingSpinner message="Loading scanned prescriptions..." />
+              ) : scannedError ? (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl">
+                  {scannedError}
+                </div>
+              ) : scannedPrescriptions.length > 0 ? (
+                <div className="space-y-4">
+                  {scannedPrescriptions.map((prescription) => (
+                    <div
+                      key={prescription._id}
+                      className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <FileText className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div>
+                            <Badge variant="secondary" className="mb-1">
+                              {prescription.fileType === "pdf" ? "PDF" : "صورة"}
+                            </Badge>
+                            <p className="text-gray-900 dark:text-white font-semibold">
+                              {prescription.notes || "بدون ملاحظات إضافية"}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              تم الرفع في {formatDate(prescription.uploadedAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setPreviewModal(prescription)}
+                            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            معاينة
+                          </button>
+                          <a
+                            href={prescription.fileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 transition-colors"
+                          >
+                            <Download className="w-4 h-4 mr-2" />
+                            تحميل
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={FileText}
+                  title="لا توجد روشتات ممسوحة"
+                  description="أي روشتات ممسوحة ستظهر هنا بعد رفعها من قبل سكرتيرك أو الطبيب."
+                />
+              )}
+            </motion.div>
+          )}
+
           {/* Financials Tab */}
           {activeTab === "financials" && (
             <motion.div
@@ -653,6 +765,93 @@ export const PatientDashboard = () => {
                 }}
                 onSuccess={() => {}}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Preview Modal */}
+        {previewModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 print-modal">
+            <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden print-content">
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 print-hide">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white print-hide">
+                  معاينة الروشتة
+                </h3>
+                <button
+                  onClick={() => setPreviewModal(null)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition print-hide"
+                >
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div className="p-4 print-hide">
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-4 print-hide">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 print-hide">
+                    <strong>النوع:</strong>{" "}
+                    {previewModal.fileType === "pdf" ? "ملف PDF" : "صورة"}
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 print-hide">
+                    <strong>تاريخ الرفع:</strong>{" "}
+                    {new Date(previewModal.uploadedAt).toLocaleString("ar-SA")}
+                  </p>
+                  {previewModal.notes && (
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 print-hide">
+                      <strong>الملاحظات:</strong> {previewModal.notes}
+                    </p>
+                  )}
+                </div>
+                <div className="flex justify-center">
+                  {previewModal.fileType === "pdf" ? (
+                    <iframe
+                      src={previewModal.fileUrl}
+                      className="w-full h-96 border rounded-lg print-iframe"
+                      title="PDF Preview"
+                    />
+                  ) : (
+                    <img
+                      src={previewModal.fileUrl}
+                      alt="Scanned Prescription"
+                      className="max-w-full max-h-96 object-contain rounded-lg print-image"
+                    />
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700 print-hide">
+                <button
+                  onClick={() => setPreviewModal(null)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
+                >
+                  إغلاق
+                </button>
+                <button
+                  onClick={handlePrint}
+                  className="inline-flex items-center justify-center rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-100 dark:border-green-800 dark:bg-green-900/30 dark:text-green-200"
+                >
+                  <Printer className="w-4 h-4 mr-2" />
+                  طباعة
+                </button>
+                <a
+                  href={previewModal.fileUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  تحميل
+                </a>
+              </div>
             </div>
           </div>
         )}
