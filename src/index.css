@@ -12,13 +12,13 @@
   body * {
     visibility: hidden;
   }
-  
+
   /* Show only the print modal content */
   .print-modal,
   .print-modal * {
     visibility: visible !important;
   }
-  
+
   /* Hide modal background and borders */
   .print-modal {
     position: absolute !important;
@@ -31,12 +31,12 @@
     margin: 0 !important;
     z-index: 9999 !important;
   }
-  
+
   /* Hide modal header, footer, and info sections */
   .print-hide {
     display: none !important;
   }
-  
+
   /* Make the content area full screen */
   .print-content {
     position: absolute !important;
@@ -48,14 +48,14 @@
     margin: 0 !important;
     background: white !important;
   }
-  
+
   /* Show only the print image/pdf section */
   .print-image,
   .print-iframe {
     visibility: visible !important;
     display: block !important;
   }
-  
+
   /* Style the image/PDF for printing */
   .print-image,
   .print-iframe {
@@ -69,7 +69,7 @@
     margin: 0 !important;
     padding: 0 !important;
   }
-  
+
   /* Ensure PDF iframe takes full space */
   .print-iframe {
     width: 100% !important;

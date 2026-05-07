@@ -9,7 +9,19 @@ const scannedPrescriptionService = {
     }
     formData.append("file", file);
 
-    return api.post("/secretaries/prescriptions/upload", formData);
+    for (let [key, value] of formData.entries()) {
+      console.log(`FormData Entry - ${key}:`, value);
+    }
+
+    return api.post(
+      "/secretaries/prescriptions/upload",
+      formData,
+      {
+        headers: {
+          "Content-Type": undefined,
+        },
+      },
+    );
   },
 
   getPatientScannedPrescriptions: (patientId, params = {}) =>

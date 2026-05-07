@@ -120,32 +120,44 @@ export const SecretaryPatientDetails = () => {
   };
 
   // Compress image if it's too large
-  const compressImage = (file) => {
-    return new Promise((resolve) => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const img = new Image();
+  const compressImage = async (file) => {
+    try {
+      return await new Promise((resolve, reject) => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const img = new Image();
 
-      img.onload = () => {
-        const maxWidth = 1920;
-        const maxHeight = 1080;
-        let { width, height } = img;
+        img.onload = () => {
+          const maxWidth = 1920;
+          const maxHeight = 1080;
+          let { width, height } = img;
 
-        if (width > maxWidth || height > maxHeight) {
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width *= ratio;
-          height *= ratio;
-        }
+          if (width > maxWidth || height > maxHeight) {
+            const ratio = Math.min(maxWidth / width, maxHeight / height);
+            width *= ratio;
+            height *= ratio;
+          }
 
-        canvas.width = width;
-        canvas.height = height;
-        ctx.drawImage(img, 0, 0, width, height);
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
 
-        canvas.toBlob(resolve, "image/jpeg", 0.8);
-      };
+          canvas.toBlob((blob) => {
+            if (blob) {
+              resolve(blob);
+            } else {
+              reject(new Error("Image compression produced no blob"));
+            }
+          }, "image/jpeg", 0.8);
+        };
 
-      img.src = URL.createObjectURL(file);
-    });
+        img.onerror = (err) => reject(err);
+        img.src = URL.createObjectURL(file);
+      });
+    } catch (err) {
+      console.warn("Image compression failed, falling back to the original file:", err);
+      return null;
+    }
   };
 
   // Handle file selection
@@ -160,27 +172,26 @@ export const SecretaryPatientDetails = () => {
 
     if (file.size > 5 * 1024 * 1024) {
       if (file.type.startsWith("image/")) {
-        // Try to compress the image
-        try {
-          const compressedBlob = await compressImage(file);
-          if (compressedBlob.size < file.size) {
-            file = new File([compressedBlob], file.name, {
-              type: "image/jpeg",
-            });
-          } else {
-            setUploadError("File size must be 5MB or less");
-            return;
-          }
-        } catch (err) {
-          setUploadError(
-            "Failed to compress image. File size must be 5MB or less",
+        const compressedBlob = await compressImage(file);
+        if (
+          compressedBlob &&
+          compressedBlob.size &&
+          compressedBlob.size < file.size
+        ) {
+          file = new File([compressedBlob], file.name, {
+            type: "image/jpeg",
+          });
+        } else {
+          console.warn(
+            "Compression did not produce a smaller file or failed, using original file as fallback.",
           );
-          return;
         }
-      } else {
-        setUploadError("File size must be 5MB or less");
-        return;
       }
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError("File size must be 5MB or less");
+      return;
     }
 
     setSelectedFile(file);
@@ -656,8 +667,8 @@ export const SecretaryPatientDetails = () => {
               </div>
             </div>
             <div className="flex justify-between gap-3 p-4 border-t border-gray-200 dark:border-gray-700 print-hide">
-              <Button 
-                variant="primary" 
+              <Button
+                variant="primary"
                 onClick={handlePrint}
                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
               >
@@ -665,7 +676,10 @@ export const SecretaryPatientDetails = () => {
                 طباعة
               </Button>
               <div className="flex gap-3">
-                <Button variant="secondary" onClick={() => setPreviewModal(null)}>
+                <Button
+                  variant="secondary"
+                  onClick={() => setPreviewModal(null)}
+                >
                   إغلاق
                 </Button>
                 <a
