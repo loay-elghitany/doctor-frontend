@@ -30,6 +30,9 @@ import {
   Eye,
   Download,
   Printer,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
 } from "lucide-react";
 import { appointmentService } from "../services/appointmentService";
 import scannedPrescriptionService from "../services/scannedPrescriptionService";
@@ -102,6 +105,8 @@ export const PatientDashboard = () => {
   const [activeTab, setActiveTab] = useState("appointments");
   const [tourOpen, setTourOpen] = useState(false);
   const [previewModal, setPreviewModal] = useState(null);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageRotation, setImageRotation] = useState(0);
   const [tourStep, setTourStep] = useState(0);
   const [timeline, setTimeline] = useState([]);
   const [timelineLoading, setTimelineLoading] = useState(false);
@@ -786,18 +791,17 @@ export const PatientDashboard = () => {
 
         {/* Preview Modal */}
         {previewModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 print-modal">
-            <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden print-content">
-              <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 print-hide">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white print-hide">
-                  معاينة الروشتة
-                </h3>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-2xl">
+              {/* Header */}
+              <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between">
+                <h3 className="text-xl font-semibold">عرض الروشتة الورقية</h3>
                 <button
                   onClick={() => setPreviewModal(null)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition print-hide"
+                  className="p-2 rounded-full hover:bg-blue-700 transition-colors"
                 >
                   <svg
-                    className="w-5 h-5 text-gray-500"
+                    className="w-6 h-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -811,66 +815,73 @@ export const PatientDashboard = () => {
                   </svg>
                 </button>
               </div>
-              <div className="p-4 print-hide">
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-4 print-hide">
-                  <p className="text-sm text-gray-600 dark:text-gray-300 print-hide">
-                    <strong>النوع:</strong>{" "}
-                    {previewModal.fileType === "pdf" ? "ملف PDF" : "صورة"}
-                  </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 print-hide">
-                    <strong>تاريخ الرفع:</strong>{" "}
-                    {new Date(previewModal.uploadedAt).toLocaleString("ar-SA")}
-                  </p>
-                  {previewModal.notes && (
-                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 print-hide">
-                      <strong>الملاحظات:</strong> {previewModal.notes}
-                    </p>
-                  )}
-                </div>
+
+              {/* Document Viewer */}
+              <div className="bg-slate-50 p-6 relative">
                 <div className="flex justify-center">
                   {isPdfPreview ? (
                     <iframe
                       src={previewModal.fileUrl}
-                      className="w-full h-[75vh] border-0 rounded-md print-iframe"
+                      className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
                       title="PDF Preview"
                     />
                   ) : (
                     <img
                       src={previewModal.fileUrl}
                       alt="Scanned Prescription"
-                      className="object-contain max-h-[75vh] w-full rounded-md print-image"
+                      className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
+                      style={{
+                        transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
+                        transition: "transform 0.2s ease-in-out",
+                      }}
                     />
                   )}
                 </div>
-              </div>
-              <div className="flex justify-end gap-3 p-4 border-t border-gray-200 dark:border-gray-700 print-hide">
-                <button
-                  onClick={() => setPreviewModal(null)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-xl hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700"
-                >
-                  إغلاق
-                </button>
-                <button
-                  onClick={handlePrint}
-                  className="inline-flex items-center justify-center rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-sm font-semibold text-green-700 hover:bg-green-100 dark:border-green-800 dark:bg-green-900/30 dark:text-green-200"
-                >
-                  <Printer className="w-4 h-4 mr-2" />
-                  طباعة
-                </button>
-                <a
-                  href={downloadUrl || previewModal.fileUrl}
-                  download={
-                    isPdfPreview
-                      ? "scanned-prescription.pdf"
-                      : previewModal.fileUrl?.split("/").pop()
-                  }
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  تحميل
-                </a>
+
+                {/* Enhanced Controls */}
+                {!isPdfPreview && (
+                  <div className="flex justify-center gap-4 mt-6">
+                    <button
+                      onClick={handleZoomOut}
+                      className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                      title="تصغير"
+                    >
+                      <ZoomOut className="w-5 h-5 text-gray-700" />
+                    </button>
+                    <button
+                      onClick={handleZoomIn}
+                      className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                      title="تكبير"
+                    >
+                      <ZoomIn className="w-5 h-5 text-gray-700" />
+                    </button>
+                    <button
+                      onClick={handleRotate}
+                      className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                      title="دوران"
+                    >
+                      <RotateCw className="w-5 h-5 text-gray-700" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Download Button */}
+                <div className="absolute bottom-6 right-6">
+                  <a
+                    href={downloadUrl || previewModal.fileUrl}
+                    download={
+                      isPdfPreview
+                        ? "scanned-prescription.pdf"
+                        : previewModal.fileUrl?.split("/").pop()
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+                  >
+                    <Download className="w-4 h-4" />
+                    تحميل PDF
+                  </a>
+                </div>
               </div>
             </div>
           </div>

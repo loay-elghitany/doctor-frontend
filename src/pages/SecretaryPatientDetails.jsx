@@ -16,7 +16,18 @@ import { getStatusLabel } from "../utils/helpers";
 import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { debugLog, debugError } from "../utils/debug";
 import FinancialManager from "../components/FinancialManager";
-import { FileText, Upload, X, Eye, Download, Printer } from "lucide-react";
+import {
+  FileText,
+  Upload,
+  X,
+  Eye,
+  Download,
+  Printer,
+  Trash2,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
+} from "lucide-react";
 
 /**
  * SecretaryPatientDetails - Display detailed view of a specific patient
@@ -39,6 +50,8 @@ export const SecretaryPatientDetails = () => {
   const [uploadSuccess, setUploadSuccess] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
   const [previewModal, setPreviewModal] = useState(null);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageRotation, setImageRotation] = useState(0);
   const fileInputRef = useRef(null);
 
   // Fetch patient details and appointments
@@ -119,6 +132,44 @@ export const SecretaryPatientDetails = () => {
     window.print();
   };
 
+  // Delete scanned prescription handler
+  const handleDeletePrescription = async (prescriptionId) => {
+    const confirmDelete = window.confirm("هل أنت متأكد من حذف هذه الروشتة؟");
+    if (!confirmDelete) {
+      return;
+    }
+
+    try {
+      setUploadLoading(true);
+      setUploadError("");
+      await scannedPrescriptionService.deleteScannedPrescription(
+        prescriptionId,
+      );
+
+      // Remove from local state
+      setScannedPrescriptions(
+        scannedPrescriptions.filter((p) => p._id !== prescriptionId),
+      );
+
+      setUploadSuccess("تم حذف الروشتة بنجاح");
+      setTimeout(() => setUploadSuccess(""), 3000);
+
+      // Close preview if deleting currently previewed item
+      if (previewModal?._id === prescriptionId) {
+        setPreviewModal(null);
+      }
+    } catch (err) {
+      console.error("Error deleting prescription:", err);
+      setUploadError(
+        err.response?.data?.message ||
+          err.message ||
+          "فشل حذف الروشتة. يرجى المحاولة مرة أخرى",
+      );
+    } finally {
+      setUploadLoading(false);
+    }
+  };
+
   const getDownloadUrl = (url) =>
     url?.includes("/upload/")
       ? url.replace("/upload/", "/upload/fl_attachment/")
@@ -128,6 +179,11 @@ export const SecretaryPatientDetails = () => {
   const isPdfPreview =
     previewModal?.fileType === "pdf" ||
     previewModal?.fileUrl?.toLowerCase().endsWith(".pdf");
+
+  const handleZoomIn = () => setImageZoom((prev) => Math.min(prev + 0.25, 3));
+  const handleZoomOut = () =>
+    setImageZoom((prev) => Math.max(prev - 0.25, 0.5));
+  const handleRotate = () => setImageRotation((prev) => (prev + 90) % 360);
 
   // Compress image if it's too large
   const compressImage = async (file) => {
@@ -616,6 +672,18 @@ export const SecretaryPatientDetails = () => {
                             <Download className="w-4 h-4 mr-2" />
                             تحميل
                           </a>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() =>
+                              handleDeletePrescription(prescription._id)
+                            }
+                            className="flex items-center gap-2"
+                            disabled={uploadLoading}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            حذف
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -641,69 +709,72 @@ export const SecretaryPatientDetails = () => {
 
       {/* Preview Modal */}
       {previewModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 print-modal">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden print-content">
-            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 print-hide">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                معاينة الروشتة
-              </h3>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-2xl">
+            {/* Header */}
+            <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between">
+              <h3 className="text-xl font-semibold">عرض الروشتة الورقية</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setPreviewModal(null)}
-                className="text-gray-500 hover:text-gray-700 print-hide"
+                className="text-white hover:bg-blue-700"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </Button>
             </div>
-            <div className="p-4 print-content">
-              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 mb-4 print-hide">
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  <strong>النوع:</strong>{" "}
-                  {previewModal.fileType === "pdf" ? "ملف PDF" : "صورة"}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  <strong>تاريخ الرفع:</strong>{" "}
-                  {new Date(previewModal.uploadedAt).toLocaleString("ar-SA")}
-                </p>
-                {previewModal.notes && (
-                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                    <strong>الملاحظات:</strong> {previewModal.notes}
-                  </p>
-                )}
-              </div>
+
+            {/* Document Viewer */}
+            <div className="bg-slate-50 p-6 relative">
               <div className="flex justify-center">
                 {isPdfPreview ? (
                   <iframe
                     src={previewModal.fileUrl}
-                    className="w-full h-[75vh] border-0 rounded-md print-iframe"
+                    className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
                     title="PDF Preview"
                   />
                 ) : (
                   <img
                     src={previewModal.fileUrl}
                     alt="Scanned Prescription"
-                    className="object-contain max-h-[75vh] w-full rounded-md print-image"
+                    className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
+                    style={{
+                      transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
+                      transition: "transform 0.2s ease-in-out",
+                    }}
                   />
                 )}
               </div>
-            </div>
-            <div className="flex justify-between gap-3 p-4 border-t border-gray-200 dark:border-gray-700 print-hide">
-              <Button
-                variant="primary"
-                onClick={handlePrint}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Printer className="w-4 h-4" />
-                طباعة
-              </Button>
-              <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  onClick={() => setPreviewModal(null)}
-                >
-                  إغلاق
-                </Button>
+
+              {/* Enhanced Controls */}
+              {!isPdfPreview && (
+                <div className="flex justify-center gap-4 mt-6">
+                  <button
+                    onClick={handleZoomOut}
+                    className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                    title="تصغير"
+                  >
+                    <ZoomOut className="w-5 h-5 text-gray-700" />
+                  </button>
+                  <button
+                    onClick={handleZoomIn}
+                    className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                    title="تكبير"
+                  >
+                    <ZoomIn className="w-5 h-5 text-gray-700" />
+                  </button>
+                  <button
+                    onClick={handleRotate}
+                    className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                    title="دوران"
+                  >
+                    <RotateCw className="w-5 h-5 text-gray-700" />
+                  </button>
+                </div>
+              )}
+
+              {/* Download Button */}
+              <div className="absolute bottom-6 right-6">
                 <a
                   href={downloadUrl || previewModal.fileUrl}
                   download={
@@ -713,10 +784,10 @@ export const SecretaryPatientDetails = () => {
                   }
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200"
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  تحميل
+                  <Download className="w-4 h-4" />
+                  تحميل PDF
                 </a>
               </div>
             </div>

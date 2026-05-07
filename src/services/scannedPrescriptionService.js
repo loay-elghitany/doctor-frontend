@@ -25,6 +25,9 @@ const scannedPrescriptionService = {
 
   getDoctorScannedPrescriptions: (params = {}) =>
     api.get("/doctors/scanned-prescriptions", { params }),
+
+  deleteScannedPrescription: (prescriptionId) =>
+    api.delete(`/patients/scanned-prescriptions/${prescriptionId}`),
 };
 
 export default scannedPrescriptionService;
