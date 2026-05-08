@@ -1,7 +1,20 @@
 import api from "./api";
+import { parseJwtToken, getAuthToken } from "../utils/helpers";
 
-export const getPatientScannedPrescriptions = (patientId, params = {}) =>
-  api.get(`/doctors/patients/${patientId}/scanned-prescriptions`, { params });
+export const getPatientScannedPrescriptions = (patientId, params = {}) => {
+  // Parse user role from JWT token
+  const token = getAuthToken();
+  const tokenPayload = parseJwtToken(token);
+  const userRole = tokenPayload?.role?.toLowerCase();
+
+  // Doctors use doctor-specific endpoint, secretaries/patients use shared endpoint
+  const endpoint =
+    userRole === "doctor"
+      ? `/doctors/patients/${patientId}/scanned-prescriptions`
+      : `/patients/${patientId}/scanned-prescriptions`;
+
+  return api.get(endpoint, { params });
+};
 
 const scannedPrescriptionService = {
   uploadScannedPrescription: (patientId, file, notes = "") => {

@@ -34,9 +34,10 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
         limit: 12,
       });
 
-      if (response.success) {
-        setPrescriptions(response.data || []);
-        const pagination = response.pagination || {};
+      const responseData = response.data;
+      if (responseData?.success) {
+        setPrescriptions(responseData.data || []);
+        const pagination = responseData.pagination || {};
         setTotalPages(Math.ceil(pagination.total / pagination.limit) || 1);
       }
     } catch (err) {

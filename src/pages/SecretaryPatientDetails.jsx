@@ -709,8 +709,8 @@ export const SecretaryPatientDetails = () => {
 
       {/* Preview Modal */}
       {previewModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-hidden shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="relative w-full max-w-6xl max-h-[95vh] flex flex-col bg-slate-50 rounded-lg shadow-xl overflow-hidden">
             {/* Header */}
             <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between">
               <h3 className="text-xl font-semibold">عرض الروشتة الورقية</h3>
@@ -725,7 +725,7 @@ export const SecretaryPatientDetails = () => {
             </div>
 
             {/* Document Viewer */}
-            <div className="bg-slate-50 p-6 relative">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col items-center justify-center">
               <div className="flex justify-center">
                 {isPdfPreview ? (
                   <iframe
