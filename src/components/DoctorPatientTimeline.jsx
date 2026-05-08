@@ -6,6 +6,8 @@ import {
 } from "../services/doctorTimelineService";
 import { formatDate } from "../utils/helpers";
 import FinancialManager from "./FinancialManager";
+import ScannedPrescriptionsSection from "./ScannedPrescriptionsSection";
+import { FileText, BarChart3, History, Pill } from "lucide-react";
 
 /**
  * Doctor Patient Timeline Component
@@ -139,25 +141,38 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6">
+      <div className="flex border-b border-gray-200 mb-6 overflow-x-auto">
         <button
           onClick={() => setActiveTab("timeline")}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
+          className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${
             activeTab === "timeline"
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
+          <History className="w-4 h-4" />
           التاريخ الطبي
         </button>
         <button
+          onClick={() => setActiveTab("prescriptions")}
+          className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${
+            activeTab === "prescriptions"
+              ? "text-blue-600 border-b-2 border-blue-600"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <Pill className="w-4 h-4" />
+          الروشتات الورقية
+        </button>
+        <button
           onClick={() => setActiveTab("billing")}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
+          className={`px-4 py-2 font-medium text-sm whitespace-nowrap transition-colors flex items-center gap-2 ${
             activeTab === "billing"
               ? "text-blue-600 border-b-2 border-blue-600"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
+          <BarChart3 className="w-4 h-4" />
           الفواتير والخطط
         </button>
       </div>
@@ -374,6 +389,13 @@ export const DoctorPatientTimeline = ({ patientId, patientName }) => {
       {activeTab === "billing" && (
         <div>
           <FinancialManager patientId={patientId} />
+        </div>
+      )}
+
+      {/* Scanned Prescriptions Tab */}
+      {activeTab === "prescriptions" && (
+        <div className="bg-white rounded-lg p-6 border border-gray-200">
+          <ScannedPrescriptionsSection patientId={patientId} />
         </div>
       )}
     </div>
