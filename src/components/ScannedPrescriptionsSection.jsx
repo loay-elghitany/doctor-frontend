@@ -14,7 +14,8 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedPrescriptionIndex, setSelectedPrescriptionIndex] = useState(null);
+  const [selectedPrescriptionIndex, setSelectedPrescriptionIndex] =
+    useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);

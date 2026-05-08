@@ -1,5 +1,8 @@
 import api from "./api";
 
+export const getPatientScannedPrescriptions = (patientId, params = {}) =>
+  api.get(`/doctors/patients/${patientId}/scanned-prescriptions`, { params });
+
 const scannedPrescriptionService = {
   uploadScannedPrescription: (patientId, file, notes = "") => {
     const formData = new FormData();
@@ -20,8 +23,7 @@ const scannedPrescriptionService = {
     });
   },
 
-  getPatientScannedPrescriptions: (patientId, params = {}) =>
-    api.get(`/patients/${patientId}/scanned-prescriptions`, { params }),
+  getPatientScannedPrescriptions,
 
   getDoctorScannedPrescriptions: (params = {}) =>
     api.get("/doctors/scanned-prescriptions", { params }),

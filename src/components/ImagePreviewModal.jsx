@@ -30,7 +30,8 @@ const ImagePreviewModal = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [pan, setPan] = useState({ x: 0, y: 0 });
 
-  const displayUrl = imageUrl || (images.length > 0 ? images[currentIndex]?.fileUrl : null);
+  const displayUrl =
+    imageUrl || (images.length > 0 ? images[currentIndex]?.fileUrl : null);
   const totalImages = images.length || 1;
   const canNavigate = totalImages > 1;
 
@@ -142,7 +143,11 @@ const ImagePreviewModal = ({
                   onMouseLeave={handleMouseUp}
                   style={{
                     transform: `translate(${pan.x}px, ${pan.y}px)`,
-                    cursor: isDragging ? "grabbing" : zoom > 100 ? "grab" : "default",
+                    cursor: isDragging
+                      ? "grabbing"
+                      : zoom > 100
+                        ? "grab"
+                        : "default",
                   }}
                   className="flex items-center justify-center"
                 >
