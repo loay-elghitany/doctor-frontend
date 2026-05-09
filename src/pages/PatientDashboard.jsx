@@ -301,7 +301,7 @@ export const PatientDashboard = () => {
     { id: "timeline", label: "التقرير الطبي", icon: Activity },
     {
       id: "scanned-prescriptions",
-      label: "الروشتات الممسوحة",
+      label: "الروشتات الورقية",
       icon: FileText,
     },
     { id: "financials", label: "خططي المالية", icon: CreditCard },

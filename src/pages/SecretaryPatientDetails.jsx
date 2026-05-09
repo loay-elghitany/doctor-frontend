@@ -465,7 +465,7 @@ export const SecretaryPatientDetails = () => {
         <Card className="mt-6">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-              الروشتات الممسوحة ضوئيًا
+              الروشتات الورقية ضوئيًا
             </h3>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               يمكنك رفع نسخة من الوصفة الطبية لهذا المريض، وسيصل تنبيه داخل
@@ -608,7 +608,7 @@ export const SecretaryPatientDetails = () => {
 
             <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
               <h4 className="text-md font-semibold text-gray-900 dark:text-white mb-3">
-                سجلات الروشتات الممسوحة
+                سجلات الروشتات الورقية
               </h4>
               {scannedLoading ? (
                 <div className="flex justify-center py-8">
