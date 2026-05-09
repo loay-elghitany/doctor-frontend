@@ -107,6 +107,11 @@ export const PatientDashboard = () => {
   const [previewModal, setPreviewModal] = useState(null);
   const [imageZoom, setImageZoom] = useState(1);
   const [imageRotation, setImageRotation] = useState(0);
+
+  const handleZoomIn = () => setImageZoom((prev) => Math.min(prev + 0.5, 3));
+  const handleZoomOut = () => setImageZoom((prev) => Math.max(prev - 0.5, 0.5));
+  const handleRotate = () => setImageRotation((prev) => prev + 90);
+
   const [tourStep, setTourStep] = useState(0);
   const [timeline, setTimeline] = useState([]);
   const [timelineLoading, setTimelineLoading] = useState(false);
@@ -797,7 +802,11 @@ export const PatientDashboard = () => {
               <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between">
                 <h3 className="text-xl font-semibold">عرض الروشتة الورقية</h3>
                 <button
-                  onClick={() => setPreviewModal(null)}
+                  onClick={() => {
+                    setPreviewModal(null);
+                    setImageZoom(1);
+                    setImageRotation(0);
+                  }}
                   className="p-2 rounded-full hover:bg-blue-700 transition-colors"
                 >
                   <svg
