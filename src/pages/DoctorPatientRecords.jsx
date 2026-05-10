@@ -29,6 +29,12 @@ import {
   Activity,
   Clock,
   FileText,
+  Lock,
+  Plus,
+  Mic,
+  Pin,
+  Edit,
+  Trash2,
 } from "lucide-react";
 
 export const DoctorPatientRecords = () => {
@@ -43,6 +49,30 @@ export const DoctorPatientRecords = () => {
     useState(null);
   const [patientAppointments, setPatientAppointments] = useState({});
   const [appointmentLoading, setAppointmentLoading] = useState({});
+  const [privateNotes, setPrivateNotes] = useState({});
+  const [notesLoading, setNotesLoading] = useState({});
+  const [showAddNoteForm, setShowAddNoteForm] = useState({});
+  const [newNoteContent, setNewNoteContent] = useState("");
+  const [newNoteColor, setNewNoteColor] = useState("yellow");
+  const [newNotePinned, setNewNotePinned] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+
+  // Static color mappings to prevent Tailwind purging
+  const pickerColors = {
+    red: "bg-red-500",
+    green: "bg-green-500",
+    blue: "bg-blue-500",
+    yellow: "bg-yellow-500",
+    default: "bg-gray-200",
+  };
+
+  const cardColors = {
+    red: "bg-red-50",
+    green: "bg-green-50",
+    blue: "bg-blue-50",
+    yellow: "bg-yellow-50",
+    default: "bg-white",
+  };
 
   // Fetch all patients for this doctor
   useEffect(() => {
@@ -107,14 +137,153 @@ export const DoctorPatientRecords = () => {
     }
   };
 
+  // Fetch private notes for a patient
+  const fetchPrivateNotes = async (patientId) => {
+    setNotesLoading((prev) => ({
+      ...prev,
+      [patientId]: true,
+    }));
+
+    try {
+      const response = await api.get(
+        `/doctors/patients/${patientId}/private-notes`,
+      );
+      const notes = response.data?.data || [];
+
+      setPrivateNotes((prev) => ({
+        ...prev,
+        [patientId]: notes,
+      }));
+    } catch (err) {
+      debugError("DoctorPatientRecords", "Failed to fetch private notes", err);
+      setPrivateNotes((prev) => ({
+        ...prev,
+        [patientId]: [],
+      }));
+    } finally {
+      setNotesLoading((prev) => ({
+        ...prev,
+        [patientId]: false,
+      }));
+    }
+  };
+
   // Handle patient expansion
   const handleExpandPatient = async (patientId) => {
     if (expandedPatientId === patientId) {
       setExpandedPatientId(null);
     } else {
-      await fetchPatientAppointments(patientId);
+      await Promise.all([
+        fetchPatientAppointments(patientId),
+        fetchPrivateNotes(patientId),
+      ]);
       setExpandedPatientId(patientId);
     }
+  };
+
+  // Handle creating a new private note
+  const handleCreateNote = async (patientId) => {
+    if (!newNoteContent.trim()) return;
+
+    try {
+      const response = await api.post(
+        `/doctors/patients/${patientId}/private-notes`,
+        {
+          content: newNoteContent,
+          color: newNoteColor,
+          isPinned: newNotePinned,
+        },
+      );
+
+      const newNote = response.data?.data;
+      setPrivateNotes((prev) => ({
+        ...prev,
+        [patientId]: [newNote, ...prev[patientId]],
+      }));
+
+      // Reset form
+      setNewNoteContent("");
+      setNewNoteColor("yellow");
+      setNewNotePinned(false);
+      setShowAddNoteForm((prev) => ({ ...prev, [patientId]: false }));
+    } catch (err) {
+      debugError("DoctorPatientRecords", "Failed to create note", err);
+      // Handle error (could add toast notification)
+    }
+  };
+
+  // Handle updating a note
+  const handleUpdateNote = async (patientId, noteId, updates) => {
+    try {
+      const response = await api.put(
+        `/doctors/patients/${patientId}/private-notes/${noteId}`,
+        updates,
+      );
+
+      const updatedNote = response.data?.data;
+      setPrivateNotes((prev) => ({
+        ...prev,
+        [patientId]: prev[patientId].map((note) =>
+          note._id === noteId ? updatedNote : note,
+        ),
+      }));
+    } catch (err) {
+      debugError("DoctorPatientRecords", "Failed to update note", err);
+    }
+  };
+
+  // Handle deleting a note
+  const handleDeleteNote = async (patientId, noteId) => {
+    try {
+      await api.delete(
+        `/doctors/patients/${patientId}/private-notes/${noteId}`,
+      );
+
+      setPrivateNotes((prev) => ({
+        ...prev,
+        [patientId]: prev[patientId].filter((note) => note._id !== noteId),
+      }));
+    } catch (err) {
+      debugError("DoctorPatientRecords", "Failed to delete note", err);
+    }
+  };
+
+  // Voice dictation
+  const startVoiceDictation = () => {
+    if (
+      !("webkitSpeechRecognition" in window || "SpeechRecognition" in window)
+    ) {
+      alert("Voice dictation is not supported in this browser.");
+      return;
+    }
+
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "ar-SA"; // Arabic Saudi Arabia, or "ar-EG" for Egyptian
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setNewNoteContent((prev) => prev + transcript);
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+      setIsRecording(false);
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+    };
+
+    recognition.start();
   };
 
   // Filter and search patients
@@ -517,6 +686,212 @@ export const DoctorPatientRecords = () => {
                                                 status={apt.status}
                                                 size="sm"
                                               />
+                                            </div>
+                                          </motion.div>
+                                        ),
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Private Notes Section */}
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                    <Lock className="w-4 h-4" />
+                                    ملاحظاتي الخاصة 🔒
+                                  </h4>
+
+                                  {/* Add Note Button */}
+                                  <motion.button
+                                    onClick={() =>
+                                      setShowAddNoteForm((prev) => ({
+                                        ...prev,
+                                        [patient.id]: !prev[patient.id],
+                                      }))
+                                    }
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="mb-4 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg flex items-center gap-2 text-sm font-medium shadow-lg"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    إضافة ملاحظة
+                                  </motion.button>
+
+                                  {/* Add Note Form */}
+                                  <AnimatePresence>
+                                    {showAddNoteForm[patient.id] && (
+                                      <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl"
+                                      >
+                                        <textarea
+                                          value={newNoteContent}
+                                          onChange={(e) =>
+                                            setNewNoteContent(e.target.value)
+                                          }
+                                          placeholder="اكتب ملاحظتك هنا..."
+                                          className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
+                                          rows={3}
+                                        />
+                                        <div className="flex items-center gap-4 mt-3">
+                                          {/* Color Selector */}
+                                          <div className="flex gap-2">
+                                            {[
+                                              "red",
+                                              "green",
+                                              "blue",
+                                              "yellow",
+                                            ].map((color) => (
+                                              <button
+                                                key={color}
+                                                onClick={() =>
+                                                  setNewNoteColor(color)
+                                                }
+                                                className={`w-6 h-6 rounded-full border-2 ${
+                                                  newNoteColor === color
+                                                    ? "ring-2 ring-offset-2 ring-gray-600"
+                                                    : ""
+                                                } ${pickerColors[color] || pickerColors.default}`}
+                                              />
+                                            ))}
+                                          </div>
+                                          {/* Pin Toggle */}
+                                          <label className="flex items-center gap-2 text-sm">
+                                            <input
+                                              type="checkbox"
+                                              checked={newNotePinned}
+                                              onChange={(e) =>
+                                                setNewNotePinned(
+                                                  e.target.checked,
+                                                )
+                                              }
+                                              className="rounded"
+                                            />
+                                            <Pin className="w-4 h-4" />
+                                            تثبيت في الأعلى
+                                          </label>
+                                          {/* Voice Dictation */}
+                                          <motion.button
+                                            onClick={startVoiceDictation}
+                                            disabled={isRecording}
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className={`p-2 rounded-lg ${
+                                              isRecording
+                                                ? "bg-red-500 text-white"
+                                                : "bg-blue-500 text-white hover:bg-blue-600"
+                                            }`}
+                                          >
+                                            <Mic className="w-4 h-4" />
+                                          </motion.button>
+                                        </div>
+                                        <div className="flex gap-2 mt-3">
+                                          <motion.button
+                                            onClick={() =>
+                                              handleCreateNote(patient.id)
+                                            }
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium"
+                                          >
+                                            حفظ
+                                          </motion.button>
+                                          <motion.button
+                                            onClick={() =>
+                                              setShowAddNoteForm((prev) => ({
+                                                ...prev,
+                                                [patient.id]: false,
+                                              }))
+                                            }
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            className="px-4 py-2 bg-gray-500 text-white rounded-lg text-sm font-medium"
+                                          >
+                                            إلغاء
+                                          </motion.button>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+
+                                  {/* Notes List */}
+                                  {notesLoading[patient.id] ? (
+                                    <div className="flex justify-center py-4">
+                                      <LoadingSpinner size="sm" />
+                                    </div>
+                                  ) : privateNotes[patient.id]?.length === 0 ? (
+                                    <EmptyState
+                                      icon={Lock}
+                                      title="لا توجد ملاحظات خاصة"
+                                      description="أضف ملاحظاتك الخاصة لهذا المريض."
+                                      size="sm"
+                                    />
+                                  ) : (
+                                    <div className="space-y-3">
+                                      {privateNotes[patient.id]?.map(
+                                        (note, idx) => (
+                                          <motion.div
+                                            key={note._id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            className={`p-4 rounded-xl border-2 relative group ${
+                                              note.isPinned
+                                                ? "border-yellow-400 shadow-lg"
+                                                : "border-gray-200 dark:border-gray-700"
+                                            } ${cardColors[note.color] || cardColors.default}`}
+                                          >
+                                            {note.isPinned && (
+                                              <Pin className="w-4 h-4 text-yellow-500 absolute top-2 right-2" />
+                                            )}
+                                            <p
+                                              className="text-gray-800 dark:text-gray-200 blur-sm cursor-pointer transition-all duration-300 group-hover:blur-none"
+                                              onClick={() => {
+                                                // Optional: toggle blur on click
+                                              }}
+                                            >
+                                              {note.content}
+                                            </p>
+                                            <div className="flex justify-between items-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                              <span className="text-xs text-gray-500">
+                                                {new Date(
+                                                  note.createdAt,
+                                                ).toLocaleDateString()}
+                                              </span>
+                                              <div className="flex gap-1">
+                                                <motion.button
+                                                  whileHover={{ scale: 1.1 }}
+                                                  whileTap={{ scale: 0.9 }}
+                                                  onClick={() =>
+                                                    handleUpdateNote(
+                                                      patient.id,
+                                                      note._id,
+                                                      {
+                                                        isPinned:
+                                                          !note.isPinned,
+                                                      },
+                                                    )
+                                                  }
+                                                  className="p-1 text-gray-500 hover:text-yellow-500"
+                                                >
+                                                  <Pin className="w-3 h-3" />
+                                                </motion.button>
+                                                <motion.button
+                                                  whileHover={{ scale: 1.1 }}
+                                                  whileTap={{ scale: 0.9 }}
+                                                  onClick={() =>
+                                                    handleDeleteNote(
+                                                      patient.id,
+                                                      note._id,
+                                                    )
+                                                  }
+                                                  className="p-1 text-gray-500 hover:text-red-500"
+                                                >
+                                                  <Trash2 className="w-3 h-3" />
+                                                </motion.button>
+                                              </div>
                                             </div>
                                           </motion.div>
                                         ),
