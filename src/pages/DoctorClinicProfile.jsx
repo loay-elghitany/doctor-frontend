@@ -5,6 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import TelegramConnectButton from "../components/ui/TelegramConnectButton.jsx";
 import doctorService from "../services/doctorService";
 import { uploadImageToCloudinary } from "../utils/cloudinaryStorage";
+import AccountCredentialsSettings from "../components/doctor/AccountCredentialsSettings.jsx";
 import { getMainDomain } from "../utils/subdomain";
 import {
   User,
@@ -763,6 +764,10 @@ export const DoctorClinicProfile = () => {
               </motion.div>
             )}
           </AnimatePresence>
+
+          <div className="mt-10 border-t border-slate-200 pt-10 dark:border-slate-700">
+            <AccountCredentialsSettings />
+          </div>
 
           {/* Sticky Action Bar */}
           <motion.div
