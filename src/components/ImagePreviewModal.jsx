@@ -102,18 +102,18 @@ const ImagePreviewModal = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
+            className="fixed inset-0 z-0 bg-black/70 backdrop-blur-sm"
             onClick={onClose}
           />
 
           {/* Modal Container */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-hidden pointer-events-none">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="pointer-events-auto w-full max-h-[90vh] flex flex-col bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 overflow-hidden"
+              className="pointer-events-auto relative w-full max-h-[90vh] flex flex-col bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
@@ -135,45 +135,47 @@ const ImagePreviewModal = ({
               </div>
 
               {/* Image Viewer */}
-              <div className="flex-1 flex items-center justify-center bg-gray-50 overflow-hidden relative">
-                <motion.div
-                  onMouseDown={handleMouseDown}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
-                  style={{
-                    transform: `translate(${pan.x}px, ${pan.y}px)`,
-                    cursor: isDragging
-                      ? "grabbing"
-                      : zoom > 100
-                        ? "grab"
-                        : "default",
-                  }}
-                  className="flex items-center justify-center"
-                >
-                  <img
-                    src={displayUrl}
-                    alt="Preview"
+              <div className="flex-1 flex items-center justify-center bg-gray-50 relative overflow-hidden">
+                <div className="relative h-full w-full overflow-auto">
+                  <motion.div
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
                     style={{
-                      transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
-                      objectFit: "contain",
+                      transform: `translate(${pan.x}px, ${pan.y}px)`,
+                      cursor: isDragging
+                        ? "grabbing"
+                        : zoom > 100
+                          ? "grab"
+                          : "default",
                     }}
-                    className="max-w-full max-h-full transition-transform"
-                  />
-                </motion.div>
+                    className="flex min-h-full min-w-full items-center justify-center"
+                  >
+                    <img
+                      src={displayUrl}
+                      alt="Preview"
+                      style={{
+                        transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
+                        objectFit: "contain",
+                      }}
+                      className="max-w-full max-h-full transition-transform"
+                    />
+                  </motion.div>
+                </div>
 
                 {/* Navigation Buttons */}
                 {canNavigate && (
                   <>
                     <button
                       onClick={() => handleNavigate("prev")}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all"
+                      className="absolute left-4 top-1/2 z-[60] -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all"
                     >
                       <ChevronLeft className="w-6 h-6" />
                     </button>
                     <button
                       onClick={() => handleNavigate("next")}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all"
+                      className="absolute right-4 top-1/2 z-[60] -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all"
                     >
                       <ChevronRight className="w-6 h-6" />
                     </button>
@@ -182,7 +184,7 @@ const ImagePreviewModal = ({
               </div>
 
               {/* Toolbar */}
-              <div className="bg-gray-100 px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
+              <div className="absolute left-1/2 bottom-4 z-[90] w-[calc(100%-2rem)] max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-3xl border border-slate-200 bg-gray-100/95 px-6 py-4 shadow-xl shadow-slate-900/10 backdrop-blur-sm flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">
                     Zoom: {zoom}%
