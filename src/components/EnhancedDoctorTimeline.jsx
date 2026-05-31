@@ -436,16 +436,7 @@ const EnhancedDoctorTimeline = () => {
                         )}
 
                         <p className="text-sm text-gray-600 mt-2">
-                          {new Date(event.eventDate).toLocaleDateString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "long",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            },
-                          )}
+                          {`${new Date(event.eventDate).toLocaleDateString("ar-EG", { calendar: "gregory", year: "numeric", month: "short", day: "numeric" })} ${new Date(event.eventDate).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`}
                         </p>
                       </div>
                     </div>

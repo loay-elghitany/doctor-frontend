@@ -447,11 +447,13 @@ const AdminNotificationDashboard = () => {
                         {notif.retryCount}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
-                        {new Date(notif.createdAt).toLocaleString()}
+                        {notif.createdAt
+                          ? `${new Date(notif.createdAt).toLocaleDateString("ar-EG", { calendar: "gregory", year: "numeric", month: "short", day: "numeric" })} ${new Date(notif.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`
+                          : "-"}
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-500">
                         {notif.sentAt
-                          ? new Date(notif.sentAt).toLocaleString()
+                          ? `${new Date(notif.sentAt).toLocaleDateString("ar-EG", { calendar: "gregory", year: "numeric", month: "short", day: "numeric" })} ${new Date(notif.sentAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`
                           : "-"}
                       </td>
                     </tr>

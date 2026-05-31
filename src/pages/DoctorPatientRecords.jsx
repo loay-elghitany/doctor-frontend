@@ -261,7 +261,7 @@ export const DoctorPatientRecords = () => {
       window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
 
-    recognition.lang = "ar-SA"; // Arabic Saudi Arabia, or "ar-EG" for Egyptian
+    recognition.lang = "ar-EG"; // Arabic (Egypt)
     recognition.continuous = false;
     recognition.interimResults = false;
 
@@ -568,9 +568,16 @@ export const DoctorPatientRecords = () => {
                                 {patient.lastAppointmentDate && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                     Last:{" "}
-                                    {new Date(
-                                      patient.lastAppointmentDate,
-                                    ).toLocaleDateString()}
+                                    {patient.lastAppointmentDate
+                                      ? new Date(
+                                          patient.lastAppointmentDate,
+                                        ).toLocaleDateString("ar-EG", {
+                                          calendar: "gregory",
+                                          year: "numeric",
+                                          month: "short",
+                                          day: "numeric",
+                                        })
+                                      : "-"}
                                   </p>
                                 )}
                               </div>
@@ -661,9 +668,19 @@ export const DoctorPatientRecords = () => {
                                             <div className="flex-1">
                                               <div className="flex items-center gap-2">
                                                 <p className="font-medium text-gray-900 dark:text-white">
-                                                  {new Date(
-                                                    apt.date,
-                                                  ).toLocaleDateString()}
+                                                  {apt.date
+                                                    ? new Date(
+                                                        apt.date,
+                                                      ).toLocaleDateString(
+                                                        "ar-EG",
+                                                        {
+                                                          calendar: "gregory",
+                                                          year: "numeric",
+                                                          month: "short",
+                                                          day: "numeric",
+                                                        },
+                                                      )
+                                                    : "-"}
                                                 </p>
                                                 <span className="text-gray-400">
                                                   •
@@ -856,9 +873,19 @@ export const DoctorPatientRecords = () => {
                                             </p>
                                             <div className="flex justify-between items-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                               <span className="text-xs text-gray-500">
-                                                {new Date(
-                                                  note.createdAt,
-                                                ).toLocaleDateString()}
+                                                {note.createdAt
+                                                  ? new Date(
+                                                      note.createdAt,
+                                                    ).toLocaleDateString(
+                                                      "ar-EG",
+                                                      {
+                                                        calendar: "gregory",
+                                                        year: "numeric",
+                                                        month: "short",
+                                                        day: "numeric",
+                                                      },
+                                                    )
+                                                  : "-"}
                                               </span>
                                               <div className="flex gap-1">
                                                 <motion.button

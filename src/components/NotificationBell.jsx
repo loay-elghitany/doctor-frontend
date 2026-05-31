@@ -136,7 +136,12 @@ export const NotificationBell = () => {
     // Less than 24 hours
     if (diff < 86400000) return `منذ ${Math.floor(diff / 3600000)} ساعة`;
     // More than 24 hours
-    return date.toLocaleDateString("ar-SA");
+    return new Date(timestamp).toLocaleDateString("ar-EG", {
+      calendar: "gregory",
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   };
 
   return (

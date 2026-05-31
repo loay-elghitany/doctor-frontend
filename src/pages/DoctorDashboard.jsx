@@ -5,7 +5,7 @@ import { appointmentService } from "../services/appointmentService";
 import { handleApiError, parseDate } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
 import { useAuth } from "../context/AuthContext";
-import { format } from "date-fns";
+// date formatting: use native Intl to ensure Gregorian `ar-EG` output
 import {
   CalendarDays,
   Clock3,
@@ -106,7 +106,13 @@ export const DoctorDashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const welcomeName = user?.name ? user.name.split(" ")[0] : "Doctor";
-  const formattedDate = format(new Date(), "EEEE, MMMM do");
+  const formattedDate = new Date().toLocaleDateString("ar-EG", {
+    calendar: "gregory",
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
 
   const handlePrint = () => {
     window.print();
@@ -597,7 +603,9 @@ export const DoctorDashboard = () => {
                           {item.notes || "بدون ملاحظات"}
                         </p>
                         <p className="text-xs text-gray-400 dark:text-gray-500">
-                          {new Date(item.createdAt).toLocaleDateString("ar-SA")}
+                          {item.createdAt
+                            ? `${new Date(item.createdAt).toLocaleDateString("ar-EG", { calendar: "gregory", year: "numeric", month: "short", day: "numeric" })}`
+                            : "-"}
                         </p>
                       </div>
                     </div>
@@ -706,7 +714,13 @@ export const DoctorDashboard = () => {
                             {patientName}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
-                            {aptDate.toLocaleDateString()} • {apt.timeSlot}
+                            {new Date(apt.date).toLocaleDateString("ar-EG", {
+                              calendar: "gregory",
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}{" "}
+                            • {apt.timeSlot}
                           </p>
                         </div>
                       </div>

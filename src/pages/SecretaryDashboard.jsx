@@ -272,10 +272,10 @@ export const SecretaryDashboard = () => {
                     transition={{ delay: 0.4 }}
                     className="mt-3 text-lg text-gray-600 dark:text-gray-300"
                   >
-                    {new Date().toLocaleDateString("en-US", {
-                      weekday: "long",
+                    {new Date().toLocaleDateString("ar-EG", {
+                      calendar: "gregory",
                       year: "numeric",
-                      month: "long",
+                      month: "short",
                       day: "numeric",
                     })}
                   </motion.p>
@@ -426,8 +426,13 @@ export const SecretaryDashboard = () => {
                         {apt.patientId?.name || "Unknown Patient"}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(apt.date).toLocaleDateString()} •{" "}
-                        {apt.timeSlot}
+                        {new Date(apt.date).toLocaleDateString("ar-EG", {
+                          calendar: "gregory",
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}{" "}
+                        • {apt.timeSlot}
                       </p>
                     </div>
                     <StatusBadge status={apt.status} size="xs" />

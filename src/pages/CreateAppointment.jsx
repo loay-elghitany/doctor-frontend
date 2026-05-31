@@ -451,7 +451,15 @@ export const CreateAppointment = () => {
                         </span>
                         <span className="font-medium text-gray-900 dark:text-white">
                           {formData.date
-                            ? new Date(formData.date).toLocaleDateString()
+                            ? new Date(formData.date).toLocaleDateString(
+                                "ar-EG",
+                                {
+                                  calendar: "gregory",
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )
                             : "Not selected"}
                         </span>
                       </div>

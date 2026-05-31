@@ -346,10 +346,11 @@ const EnhancedPatientTimeline = () => {
                         </h3>
                         <p className="text-sm text-gray-600">
                           {new Date(event.eventDate).toLocaleDateString(
-                            "en-US",
+                            "ar-EG",
                             {
+                              calendar: "gregory",
                               year: "numeric",
-                              month: "long",
+                              month: "short",
                               day: "numeric",
                             },
                           )}

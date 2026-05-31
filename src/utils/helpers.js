@@ -12,13 +12,7 @@ export const formatDate = (date) => {
   const parsed = parseDate(date);
   if (!parsed) return "—";
 
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(parsed);
+  return `${parsed.toLocaleDateString("ar-EG", { calendar: "gregory", year: "numeric", month: "short", day: "numeric" })} ${parsed.toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`;
 };
 
 // Helper function to format time only safely
@@ -26,10 +20,10 @@ export const formatTime = (date) => {
   const parsed = parseDate(date);
   if (!parsed) return "—";
 
-  return new Intl.DateTimeFormat("en-US", {
+  return parsed.toLocaleTimeString("ar-EG", {
     hour: "2-digit",
     minute: "2-digit",
-  }).format(parsed);
+  });
 };
 
 // Helper function to check if date is in the past

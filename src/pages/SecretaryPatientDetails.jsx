@@ -642,9 +642,9 @@ export const SecretaryPatientDetails = () => {
                               {prescription.notes || "بدون ملاحظات"}
                             </p>
                             <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                              {new Date(prescription.uploadedAt).toLocaleString(
-                                "ar-SA",
-                              )}
+                              {prescription.uploadedAt
+                                ? `${new Date(prescription.uploadedAt).toLocaleDateString("ar-EG", { calendar: "gregory", year: "numeric", month: "short", day: "numeric" })} ${new Date(prescription.uploadedAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`
+                                : "-"}
                             </p>
                           </div>
                         </div>

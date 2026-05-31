@@ -353,7 +353,9 @@ export const DoctorPrescriptionView = ({
           تاريخ الإنشاء
         </label>
         <p className="text-gray-900 mt-1">
-          {new Date(prescription.createdAt).toLocaleString()}
+          {prescription.createdAt
+            ? `${new Date(prescription.createdAt).toLocaleDateString("ar-EG", { calendar: "gregory", year: "numeric", month: "short", day: "numeric" })} ${new Date(prescription.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`
+            : "-"}
         </p>
       </div>
 
@@ -464,7 +466,9 @@ export const PatientPrescriptionView = ({ prescription }) => {
           تاريخ الإنشاء
         </label>
         <p className="text-gray-900 mt-1">
-          {new Date(prescription.createdAt).toLocaleString()}
+          {prescription.createdAt
+            ? `${new Date(prescription.createdAt).toLocaleDateString("ar-EG", { calendar: "gregory", year: "numeric", month: "short", day: "numeric" })} ${new Date(prescription.createdAt).toLocaleTimeString("ar-EG", { hour: "2-digit", minute: "2-digit" })}`
+            : "-"}
         </p>
       </div>
     </div>

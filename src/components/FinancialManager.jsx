@@ -251,7 +251,15 @@ const FinancialManager = ({ patientId }) => {
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         Created:{" "}
                         {plan.createdAt
-                          ? new Date(plan.createdAt).toLocaleDateString()
+                          ? new Date(plan.createdAt).toLocaleDateString(
+                              "ar-EG",
+                              {
+                                calendar: "gregory",
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )
                           : "N/A"}
                       </p>
                     </div>

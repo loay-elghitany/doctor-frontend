@@ -33,8 +33,16 @@ export const PatientTimeline = () => {
 
   // Group events by date
   const groupedByDate = timeline.reduce((acc, event) => {
+    const parsed = parseDate(event.eventDate);
     const dateKey =
-      parseDate(event.eventDate)?.toLocaleDateString() || "Unknown Date";
+      (parsed &&
+        parsed.toLocaleDateString("ar-EG", {
+          calendar: "gregory",
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })) ||
+      "Unknown Date";
     if (!acc[dateKey]) {
       acc[dateKey] = [];
     }
@@ -215,7 +223,12 @@ export const PatientTimeline = () => {
                             {parseDate(metadata.appointmentDate)
                               ? parseDate(
                                   metadata.appointmentDate,
-                                ).toLocaleDateString()
+                                ).toLocaleDateString("ar-EG", {
+                                  calendar: "gregory",
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                })
                               : "Unknown Date"}
                           </p>
                         </div>
