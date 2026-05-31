@@ -135,8 +135,8 @@ const ImagePreviewModal = ({
               </div>
 
               {/* Image Viewer */}
-              <div className="flex-1 flex items-center justify-center bg-gray-50 relative overflow-hidden">
-                <div className="relative h-full w-full overflow-auto">
+              <div className="flex-1 relative overflow-hidden bg-gray-50">
+                <div className="h-full w-full overflow-auto flex items-center justify-center">
                   <motion.div
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
@@ -159,7 +159,7 @@ const ImagePreviewModal = ({
                         transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
                         objectFit: "contain",
                       }}
-                      className="max-w-full max-h-full transition-transform"
+                      className="max-w-none max-h-full transition-transform"
                     />
                   </motion.div>
                 </div>
@@ -183,8 +183,35 @@ const ImagePreviewModal = ({
                 )}
               </div>
 
+              {/* Floating Zoom Controls */}
+              <div className="absolute right-6 top-28 z-[9999] flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white/95 p-3 shadow-2xl">
+                <button
+                  onClick={handleZoomOut}
+                  disabled={zoom <= 50}
+                  className="p-2 rounded-lg bg-white hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-5 h-5 text-gray-700" />
+                </button>
+                <button
+                  onClick={handleReset}
+                  className="p-2 rounded-lg bg-white hover:bg-gray-200 transition-colors"
+                  title="Reset View"
+                >
+                  Reset
+                </button>
+                <button
+                  onClick={handleZoomIn}
+                  disabled={zoom >= 200}
+                  className="p-2 rounded-lg bg-white hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="w-5 h-5 text-gray-700" />
+                </button>
+              </div>
+
               {/* Toolbar */}
-              <div className="absolute left-1/2 bottom-4 z-[90] w-[calc(100%-2rem)] max-w-[calc(100%-2rem)] -translate-x-1/2 rounded-3xl border border-slate-200 bg-gray-100/95 px-6 py-4 shadow-xl shadow-slate-900/10 backdrop-blur-sm flex items-center justify-between gap-4 flex-wrap">
+              <div className="bg-gray-100 px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">
                     Zoom: {zoom}%
@@ -193,34 +220,11 @@ const ImagePreviewModal = ({
 
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={handleZoomOut}
-                    disabled={zoom <= 50}
-                    className="p-2 rounded-lg bg-white hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title="Zoom Out"
-                  >
-                    <ZoomOut className="w-5 h-5 text-gray-700" />
-                  </button>
-                  <button
-                    onClick={handleZoomIn}
-                    disabled={zoom >= 200}
-                    className="p-2 rounded-lg bg-white hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    title="Zoom In"
-                  >
-                    <ZoomIn className="w-5 h-5 text-gray-700" />
-                  </button>
-                  <button
                     onClick={handleRotate}
                     className="p-2 rounded-lg bg-white hover:bg-gray-200 transition-colors"
                     title="Rotate"
                   >
                     <RotateCw className="w-5 h-5 text-gray-700" />
-                  </button>
-                  <button
-                    onClick={handleReset}
-                    className="p-2 rounded-lg bg-white hover:bg-gray-200 transition-colors text-sm font-medium text-gray-700"
-                    title="Reset View"
-                  >
-                    Reset
                   </button>
                   <button
                     onClick={handleDownload}
