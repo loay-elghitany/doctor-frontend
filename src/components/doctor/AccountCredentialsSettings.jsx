@@ -8,8 +8,7 @@ const AccountCredentialsSettings = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleUpdate = async () => {
     setMessage({ type: "", text: "" });
     setLoading(true);
 
@@ -80,7 +79,7 @@ const AccountCredentialsSettings = () => {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-6">
         <div className="space-y-2">
           <label className="block text-sm font-medium text-slate-700">
             البريد الإلكتروني الجديد
@@ -127,13 +126,14 @@ const AccountCredentialsSettings = () => {
         </div>
 
         <button
-          type="submit"
+          type="button"
+          onClick={handleUpdate}
           disabled={loading}
           className="inline-flex items-center justify-center w-full rounded-2xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
         >
           {loading ? "جاري الحفظ..." : "حفظ التغييرات"}
         </button>
-      </form>
+      </div>
     </section>
   );
 };
