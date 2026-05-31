@@ -1,5 +1,5 @@
 import { useState } from "react";
-import axios from "axios";
+import api from "../../services/api";
 
 const AccountCredentialsSettings = () => {
   const [email, setEmail] = useState("");
@@ -23,14 +23,12 @@ const AccountCredentialsSettings = () => {
         payload.newPassword = newPassword;
       }
 
-      const response = await axios.put(
-        "/api/doctor/update-credentials",
+      const apiUrl = import.meta.env.VITE_API_URL || "";
+      const response = await api.put(
+        `${apiUrl}/doctor/update-credentials`,
         payload,
         {
           withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
         },
       );
 
@@ -48,6 +46,7 @@ const AccountCredentialsSettings = () => {
         });
       }
     } catch (error) {
+      console.log(error);
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
