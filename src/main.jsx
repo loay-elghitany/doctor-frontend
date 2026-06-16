@@ -1,4 +1,5 @@
-import React from "react";
+import React, { Suspense } from "react";
+import { i18nReady } from "./i18n";
 import ReactDOM from "react-dom/client";
 import { Toaster } from "sonner";
 import { AppRoutes } from "./routes";
@@ -21,22 +22,34 @@ if (import.meta.env.PROD) {
   console.log("=======================================");
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <ErrorBoundary>
-      <AdminAuthProvider>
-        <AuthProvider>
-          <SocketProvider>
-            <AppRoutes />
-            <Toaster
-              position="top-left"
-              richColors
-              closeButton
-              style={{ direction: "rtl" }}
-            />
-          </SocketProvider>
-        </AuthProvider>
-      </AdminAuthProvider>
-    </ErrorBoundary>
-  </React.StrictMode>,
-);
+const root = ReactDOM.createRoot(document.getElementById("root"));
+
+i18nReady.then(() => {
+  root.render(
+    <React.StrictMode>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            Loading...
+          </div>
+        }
+      >
+        <ErrorBoundary>
+          <AdminAuthProvider>
+            <AuthProvider>
+              <SocketProvider>
+                <AppRoutes />
+                <Toaster
+                  position="top-left"
+                  richColors
+                  closeButton
+                  style={{ direction: "rtl" }}
+                />
+              </SocketProvider>
+            </AuthProvider>
+          </AdminAuthProvider>
+        </ErrorBoundary>
+      </Suspense>
+    </React.StrictMode>,
+  );
+});

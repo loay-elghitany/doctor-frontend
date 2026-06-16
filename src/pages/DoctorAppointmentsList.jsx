@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,7 @@ import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { getAppointmentPermissions } from "../utils/appointmentPermissions.js";
 import { PrescriptionModal } from "../components/Prescription/PrescriptionModal";
 import { RescheduleModal } from "../components/appointments/RescheduleModal.jsx";
+import { IntakeFormViewModal } from "../components/IntakeFormViewModal";
 import { debugLog, debugError } from "../utils/debug";
 import {
   CalendarDays,
@@ -36,13 +38,30 @@ import {
   Search,
   FileText,
   RotateCcw,
+  Stethoscope,
 } from "lucide-react";
+
+const hasIntakeFormData = (intakeForm) => {
+  if (!intakeForm) return false;
+  return !!(
+    intakeForm.chiefComplaint ||
+    intakeForm.vitals?.bloodPressure ||
+    intakeForm.vitals?.diabetes ||
+    intakeForm.medicalHistory?.smoking ||
+    intakeForm.medicalHistory?.heartSurgeries ||
+    intakeForm.medicalHistory?.familyHeartHistory ||
+    intakeForm.medicalHistory?.chestProblems ||
+    intakeForm.allergies ||
+    intakeForm.pregnancyOrLactation
+  );
+};
 /**
  * DoctorAppointmentsList - Display and manage appointments for authenticated doctor
  * Fetches appointments using doctor authentication from JWT token
  * Allows doctor to accept, reject, or propose reschedule times
  */
 export const DoctorAppointmentsList = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [appointments, setAppointments] = useState([]);
@@ -89,6 +108,7 @@ export const DoctorAppointmentsList = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showPrescriptions, setShowPrescriptions] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [intakeViewAppointment, setIntakeViewAppointment] = useState(null);
 
   // Filter appointments by active tab
   const filteredAppointments =
@@ -483,7 +503,9 @@ export const DoctorAppointmentsList = () => {
         <Modal
           isOpen={showDeleteModal}
           onClose={() => setShowDeleteModal(false)}
-          title="Delete appointment?"
+          title={t(
+            "pages_DoctorAppointmentsList.attr_title_delete_appointment",
+          )}
           footer={
             <>
               <Button
@@ -507,7 +529,9 @@ export const DoctorAppointmentsList = () => {
         <Modal
           isOpen={showCleanupModal}
           onClose={() => setShowCleanupModal(false)}
-          title="Clean Old Appointments"
+          title={t(
+            "pages_DoctorAppointmentsList.attr_title_clean_old_appointments",
+          )}
           footer={
             <>
               <Button
@@ -532,8 +556,10 @@ export const DoctorAppointmentsList = () => {
             ترغب في المتابعة؟
           </p>
           <p className="mt-4 font-semibold">
-            {appointments.filter(isDeletable).length} appointment(s) will be
-            removed.
+            {appointments.filter(isDeletable).length}
+            {t(
+              "pages_DoctorAppointmentsList.text_appointment_s_will_be_removed",
+            )}
           </p>
         </Modal>
 
@@ -545,7 +571,7 @@ export const DoctorAppointmentsList = () => {
         ) : filteredAppointments.length === 0 ? (
           <EmptyState
             icon={Calendar}
-            title="No appointments"
+            title={t("pages_DoctorAppointmentsList.attr_title_no_appointments")}
             description={`No ${activeTab !== "all" ? activeTab : ""} appointments found in this category.`}
           />
         ) : (
@@ -557,6 +583,11 @@ export const DoctorAppointmentsList = () => {
                 );
                 const patientName =
                   appointment.patientId?.name || "Unknown Patient";
+                const isWalkIn =
+                  appointment.createdBy === "secretary" &&
+                  (normalizeStatus(appointment.status) === "scheduled" ||
+                    normalizeStatus(appointment.status) === "confirmed");
+                const hasIntakeForm = hasIntakeFormData(appointment.intakeForm);
 
                 return (
                   <motion.div
@@ -596,8 +627,29 @@ export const DoctorAppointmentsList = () => {
                             }
                             size="md"
                           />
+                          {isWalkIn && (
+                            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                              حضور مباشر
+                            </span>
+                          )}
 
                           <div className="flex items-center gap-2">
+                            {hasIntakeForm && (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() =>
+                                  setIntakeViewAppointment(appointment)
+                                }
+                                className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition flex items-center gap-1"
+                              >
+                                <FileText className="w-4 h-4" />
+                                {t(
+                                  "pages_DoctorAppointmentsList.text_intake_form",
+                                  { defaultValue: "استمارة الفحص" },
+                                )}
+                              </motion.button>
+                            )}
                             <motion.button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
@@ -739,6 +791,12 @@ export const DoctorAppointmentsList = () => {
             </motion.div>
           </motion.div>
         )}
+
+        <IntakeFormViewModal
+          isOpen={!!intakeViewAppointment}
+          onClose={() => setIntakeViewAppointment(null)}
+          appointment={intakeViewAppointment}
+        />
       </div>
     </MainLayout>
   );

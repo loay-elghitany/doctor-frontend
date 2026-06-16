@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import financialService from "../services/financialService";
 import { useCurrentRole } from "../hooks/useCurrentRole";
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 const FinancialManager = ({ patientId }) => {
+  const { t } = useTranslation();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -138,7 +140,7 @@ const FinancialManager = ({ patientId }) => {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Total Cost
+                {t("components_FinancialManager.text_total_cost")}
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {formatCurrency(totalStats.totalCost)}
@@ -154,7 +156,7 @@ const FinancialManager = ({ patientId }) => {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Total Paid
+                {t("components_FinancialManager.text_total_paid")}
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {formatCurrency(totalStats.totalPaid)}
@@ -170,7 +172,7 @@ const FinancialManager = ({ patientId }) => {
             </div>
             <div>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Remaining
+                {t("components_FinancialManager.text_remaining")}
               </p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {formatCurrency(totalStats.totalRemaining)}
@@ -189,8 +191,10 @@ const FinancialManager = ({ patientId }) => {
                 الملخص المالي العام
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {formatCurrency(totalStats.totalPaid)} of{" "}
-                {formatCurrency(totalStats.totalCost)} paid
+                {formatCurrency(totalStats.totalPaid)}
+                {t("components_FinancialManager.text_of")}{" "}
+                {formatCurrency(totalStats.totalCost)}
+                {t("components_FinancialManager.text_paid")}
               </p>
             </div>
             <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -249,7 +253,7 @@ const FinancialManager = ({ patientId }) => {
                         {plan.title}
                       </h4>
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Created:{" "}
+                        {t("components_FinancialManager.text_created")}{" "}
                         {plan.createdAt
                           ? new Date(plan.createdAt).toLocaleDateString(
                               "ar-EG",
@@ -346,7 +350,7 @@ const FinancialManager = ({ patientId }) => {
       ) : (
         <EmptyState
           icon={FileText}
-          title="No Treatment Plans"
+          title={t("components_FinancialManager.attr_title_no_treatment_plans")}
           description="There are no treatment plans created yet. Create a new plan to start tracking payments."
           actionLabel={
             role === "doctor" || role === "secretary"

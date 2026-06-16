@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import {
   Calendar,
@@ -16,6 +17,7 @@ import {
  * Displays appointments, prescriptions, and doctor notes
  */
 const EnhancedPatientTimeline = () => {
+  const { t } = useTranslation();
   const [events, setEvents] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -229,10 +231,32 @@ const EnhancedPatientTimeline = () => {
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">جميع الأحداث</option>
-                <option value="appointment">المواعيد</option>
-                <option value="prescription">الروشتات</option>
-                <option value="note">ملاحظات الطبيب</option>
+                <option
+                  value={t("components_EnhancedPatientTimeline.attr_value_all")}
+                >
+                  جميع الأحداث
+                </option>
+                <option
+                  value={t(
+                    "components_EnhancedPatientTimeline.attr_value_appointment",
+                  )}
+                >
+                  المواعيد
+                </option>
+                <option
+                  value={t(
+                    "components_EnhancedPatientTimeline.attr_value_prescription",
+                  )}
+                >
+                  الروشتات
+                </option>
+                <option
+                  value={t(
+                    "components_EnhancedPatientTimeline.attr_value_note",
+                  )}
+                >
+                  ملاحظات الطبيب
+                </option>
               </select>
             </div>
 
@@ -243,7 +267,9 @@ const EnhancedPatientTimeline = () => {
               <input
                 type="text"
                 name="searchText"
-                placeholder="Search by doctor, notes, medications..."
+                placeholder={t(
+                  "components_EnhancedPatientTimeline.attr_placeholder_search_by_doctor_not",
+                )}
                 value={filters.searchText}
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -312,13 +338,18 @@ const EnhancedPatientTimeline = () => {
                 className="animate-spin mx-auto text-blue-600"
                 size={32}
               />
-              <p className="mt-2 text-gray-600">Loading timeline...</p>
+
+              <p className="mt-2 text-gray-600">
+                {t("components_EnhancedPatientTimeline.text_loading_timeline")}
+              </p>
             </div>
           ) : error ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="text-red-600 mt-0.5" size={20} />
               <div>
-                <p className="font-medium text-red-800">Error</p>
+                <p className="font-medium text-red-800">
+                  {t("components_EnhancedPatientTimeline.text_error")}
+                </p>
                 <p className="text-red-700 text-sm">{error}</p>
               </div>
             </div>
@@ -469,7 +500,11 @@ const EnhancedPatientTimeline = () => {
 
               {/* Pagination Info */}
               <div className="text-center text-sm text-gray-600 py-4">
-                Showing {events.length} of {pagination.total} events
+                {t("components_EnhancedPatientTimeline.text_showing")}
+                {events.length}
+                {t("components_EnhancedPatientTimeline.text_of")}
+                {pagination.total}
+                {t("components_EnhancedPatientTimeline.text_events")}
               </div>
             </>
           )}

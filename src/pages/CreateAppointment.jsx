@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useTranslation } from "react-i18next";import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
 import { GlassCard, WizardStep, PremiumProgressBar } from "../components/ui";
@@ -12,14 +12,14 @@ import {
   Stethoscope,
   User,
   Mail,
-  Phone,
-} from "lucide-react";
+  Phone } from
+"lucide-react";
 import { appointmentService } from "../services/appointmentService";
 import { handleApiError } from "../utils/helpers";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 
-export const CreateAppointment = () => {
+export const CreateAppointment = () => {const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   // Wizard state
@@ -35,66 +35,66 @@ export const CreateAppointment = () => {
     notes: "",
     name: "",
     email: "",
-    phone: "",
+    phone: ""
   });
 
   const [availableSlots, setAvailableSlots] = useState([]);
 
   const wizardSteps = [
-    {
-      id: 1,
-      title: "سبب حجز الموعد",
-      description: "رجاءاً ! أخبرنا بسبب رغبتك في مقابلة الدكتور",
-      icon: Stethoscope,
-    },
-    {
-      id: 2,
-      title: "إختر الموعد والتاريخ",
-      description: "فقط أخبرنا بالموعد المناسب لك",
-      icon: Calendar,
-    },
-    {
-      id: 3,
-      title: "المراجعة والتأكيد",
-      description: "هل كل شئ جيد؟؟",
-      icon: CheckCircle,
-    },
-  ];
+  {
+    id: 1,
+    title: "سبب حجز الموعد",
+    description: "رجاءاً ! أخبرنا بسبب رغبتك في مقابلة الدكتور",
+    icon: Stethoscope
+  },
+  {
+    id: 2,
+    title: "إختر الموعد والتاريخ",
+    description: "فقط أخبرنا بالموعد المناسب لك",
+    icon: Calendar
+  },
+  {
+    id: 3,
+    title: "المراجعة والتأكيد",
+    description: "هل كل شئ جيد؟؟",
+    icon: CheckCircle
+  }];
+
 
   // Available time slots
   const timeSlots = [
-    "09:00",
-    "09:30",
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "12:00",
-    "12:30",
-    "13:00",
-    "13:30",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
-    "17:30",
-    "18:00",
-    "18:30",
-    "19:00",
-    "19:30",
-    "20:00",
-    "20:30",
-    "21:00",
-    "21:30",
-    "22:00",
-    "22:30",
-    "23:00",
-    "23:30",
-    "00:00",
-  ];
+  "09:00",
+  "09:30",
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "12:00",
+  "12:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+  "17:30",
+  "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
+  "20:00",
+  "20:30",
+  "21:00",
+  "21:30",
+  "22:00",
+  "22:30",
+  "23:00",
+  "23:30",
+  "00:00"];
+
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -180,7 +180,7 @@ export const CreateAppointment = () => {
         undefined, // doctorId not provided - backend resolves it
         appointmentDate.toISOString(),
         formData.timeSlot,
-        formData.notes,
+        formData.notes
       );
 
       setSuccess("تم إنشاء الموعد بنجاح");
@@ -227,7 +227,7 @@ export const CreateAppointment = () => {
     setFormData({
       date: "",
       timeSlot: "09:00",
-      notes: "",
+      notes: ""
     });
     setAvailableSlots([]);
     setError("");
@@ -242,8 +242,8 @@ export const CreateAppointment = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="text-center mb-8"
-        >
+          className="text-center mb-8">
+          
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
             احجز موعد جديد
           </h1>
@@ -256,64 +256,64 @@ export const CreateAppointment = () => {
         <GlassCard className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
-              {wizardSteps.map((step, index) => (
-                <WizardStep
-                  key={step.id}
-                  step={step.id}
-                  title={step.title}
-                  description={step.description}
-                  isActive={currentStep === index}
-                  isCompleted={currentStep > index}
-                />
-              ))}
+              {wizardSteps.map((step, index) =>
+              <WizardStep
+                key={step.id}
+                step={step.id}
+                title={step.title}
+                description={step.description}
+                isActive={currentStep === index}
+                isCompleted={currentStep > index} />
+
+              )}
             </div>
             <div className="hidden md:flex items-center gap-4">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
-                Step {currentStep + 1} of {wizardSteps.length}
+              <span className="text-sm text-gray-500 dark:text-gray-400">{t("pages_CreateAppointment.text_step")}
+                {currentStep + 1}{t("pages_CreateAppointment.text_of")}{wizardSteps.length}
               </span>
               <PremiumProgressBar
-                value={((currentStep + 1) / wizardSteps.length) * 100}
+                value={(currentStep + 1) / wizardSteps.length * 100}
                 max={100}
                 color="primary"
-                size="sm"
-              />
+                size="sm" />
+              
             </div>
           </div>
         </GlassCard>
 
         {/* Error Display */}
-        {error && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl mb-6"
-          >
+        {error &&
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl mb-6">
+          
             {error}
           </motion.div>
-        )}
+        }
 
         {/* Success Display */}
-        {success && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-xl mb-6"
-          >
+        {success &&
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-300 px-4 py-3 rounded-xl mb-6">
+          
             {success}
           </motion.div>
-        )}
+        }
 
         {/* Wizard Content */}
         <GlassCard>
           <AnimatePresence mode="wait">
-            {currentStep === 0 && (
-              <motion.div
-                key="step-1"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
+            {currentStep === 0 &&
+            <motion.div
+              key="step-1"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}>
+              
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                     سبب الزيارة
@@ -329,26 +329,26 @@ export const CreateAppointment = () => {
                       تفاصيل
                     </label>
                     <textarea
-                      name="notes"
-                      value={formData.notes}
-                      onChange={handleInputChange}
-                      placeholder="E.g., General checkup, experiencing headaches, dental pain..."
-                      rows={5}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    placeholder={t("pages_CreateAppointment.attr_placeholder_e_g_general_checkup_")}
+                    rows={5}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  
                   </div>
                 </div>
               </motion.div>
-            )}
+            }
 
-            {currentStep === 1 && (
-              <motion.div
-                key="step-2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
+            {currentStep === 1 &&
+            <motion.div
+              key="step-2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}>
+              
                 <div className="text-center mb-6">
                   <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                     اختر التاريخ والوقت
@@ -365,13 +365,13 @@ export const CreateAppointment = () => {
                       اختر التاريخ
                     </label>
                     <input
-                      type="date"
-                      name="date"
-                      value={formData.date}
-                      onChange={(e) => handleDateSelect(e.target.value)}
-                      min={new Date().toISOString().split("T")[0]}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    type="date"
+                    name="date"
+                    value={formData.date}
+                    onChange={(e) => handleDateSelect(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  
                   </div>
 
                   {/* Time Slots */}
@@ -379,53 +379,53 @@ export const CreateAppointment = () => {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                       المواعيد المتاحة
                     </label>
-                    {loading ? (
-                      <div className="space-y-3">
-                        {[...Array(6)].map((_, index) => (
-                          <div
-                            key={index}
-                            className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse"
-                          />
-                        ))}
-                      </div>
-                    ) : availableSlots.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-2">
-                        {availableSlots.map((slot) => (
-                          <motion.button
-                            key={slot}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={() => handleTimeSlotSelect(slot)}
-                            className={`p-3 rounded-xl border-2 text-center transition-all ${
-                              formData.timeSlot === slot
-                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
-                                : "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"
-                            }`}
-                          >
+                    {loading ?
+                  <div className="space-y-3">
+                        {[...Array(6)].map((_, index) =>
+                    <div
+                      key={index}
+                      className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl animate-pulse" />
+
+                    )}
+                      </div> :
+                  availableSlots.length > 0 ?
+                  <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto pr-2">
+                        {availableSlots.map((slot) =>
+                    <motion.button
+                      key={slot}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleTimeSlotSelect(slot)}
+                      className={`p-3 rounded-xl border-2 text-center transition-all ${
+                      formData.timeSlot === slot ?
+                      "border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" :
+                      "border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600"}`
+                      }>
+                      
                             {slot}
                           </motion.button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
-                        {formData.date
-                          ? "لا يوجد مواعيد متاحة في هذا التاريخ"
-                          : "من فضلك اختر التاريخ أولاً"}
-                      </div>
                     )}
+                      </div> :
+
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                        {formData.date ?
+                    "لا يوجد مواعيد متاحة في هذا التاريخ" :
+                    "من فضلك اختر التاريخ أولاً"}
+                      </div>
+                  }
                   </div>
                 </div>
               </motion.div>
-            )}
+            }
 
-            {currentStep === 2 && (
-              <motion.div
-                key="step-3"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-              >
+            {currentStep === 2 &&
+            <motion.div
+              key="step-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}>
+              
                 <div className="text-center mb-6">
                   <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full mb-4">
                     <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
@@ -450,17 +450,17 @@ export const CreateAppointment = () => {
                           التاريخ
                         </span>
                         <span className="font-medium text-gray-900 dark:text-white">
-                          {formData.date
-                            ? new Date(formData.date).toLocaleDateString(
-                                "ar-EG",
-                                {
-                                  calendar: "gregory",
-                                  year: "numeric",
-                                  month: "short",
-                                  day: "numeric",
-                                },
-                              )
-                            : "Not selected"}
+                          {formData.date ?
+                        new Date(formData.date).toLocaleDateString(
+                          "ar-EG",
+                          {
+                            calendar: "gregory",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric"
+                          }
+                        ) :
+                        "Not selected"}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -494,9 +494,9 @@ export const CreateAppointment = () => {
                       <div className="flex items-center gap-3">
                         <Mail className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                         <div>
-                          <span className="text-gray-500 dark:text-gray-400">
-                            Email
-                          </span>
+                          <span className="text-gray-500 dark:text-gray-400">{t("pages_CreateAppointment.text_email")}
+
+                        </span>
                           <p className="font-medium text-gray-900 dark:text-white">
                             {user?.email || formData.email || "Not provided"}
                           </p>
@@ -518,8 +518,8 @@ export const CreateAppointment = () => {
                 </div>
 
                 {/* Reason */}
-                {formData.notes && (
-                  <GlassCard className="p-6 mt-6">
+                {formData.notes &&
+              <GlassCard className="p-6 mt-6">
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
                       سبب الزيارة
                     </h3>
@@ -527,9 +527,9 @@ export const CreateAppointment = () => {
                       {formData.notes}
                     </p>
                   </GlassCard>
-                )}
+              }
               </motion.div>
-            )}
+            }
           </AnimatePresence>
 
           {/* Navigation Buttons */}
@@ -538,46 +538,46 @@ export const CreateAppointment = () => {
               <button
                 onClick={handleBack}
                 disabled={currentStep === 0}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              >
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition">
+                
                 <ArrowLeft className="w-4 h-4" />
                 الرجوع للخلف
               </button>
               <button
                 onClick={handleStartOver}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition"
-              >
+                className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                
                 <Plus className="w-4 h-4" />
                 إبدأ من جديد
               </button>
             </div>
 
             <div className="flex gap-3">
-              {currentStep < wizardSteps.length - 1 && (
-                <button
-                  onClick={handleNext}
-                  className="btn-premium btn-premium-primary px-6 py-2 flex items-center gap-2"
-                >
+              {currentStep < wizardSteps.length - 1 &&
+              <button
+                onClick={handleNext}
+                className="btn-premium btn-premium-primary px-6 py-2 flex items-center gap-2">
+                
                   التالي
                   <ArrowRight className="w-4 h-4" />
                 </button>
-              )}
-              {currentStep === wizardSteps.length - 1 && (
-                <button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="btn-premium btn-premium-primary px-6 py-2 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+              }
+              {currentStep === wizardSteps.length - 1 &&
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="btn-premium btn-premium-primary px-6 py-2 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                
                   {loading ? "Creating..." : "Confirm Appointment"}
                   <CheckCircle className="w-4 h-4" />
                 </button>
-              )}
+              }
             </div>
           </div>
         </GlassCard>
       </div>
-    </MainLayout>
-  );
+    </MainLayout>);
+
 };
 
 export default CreateAppointment;

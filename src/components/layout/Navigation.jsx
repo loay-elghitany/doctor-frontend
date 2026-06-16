@@ -15,44 +15,78 @@ import {
 import { useCurrentRole } from "../../hooks/useCurrentRole";
 import { useUnifiedLogout } from "../../hooks/useUnifiedLogout";
 import { NotificationBell } from "../NotificationBell";
+import { useTranslation } from "react-i18next";
 
 const MotionLink = motion.create(Link);
+
+// Language toggle component
+const LanguageToggle = () => {
+  const { t } = useTranslation();
+  const { i18n } = useTranslation();
+  const current = (i18n?.language || "en").split("-")[0];
+  const label = current === "ar" ? "English" : "العربية";
+  const handleToggle = () => {
+    const newLng = current === "ar" ? "en" : "ar";
+    try {
+      i18n.changeLanguage(newLng);
+      localStorage.setItem("i18nextLng", newLng);
+    } catch (e) {
+      console.error("Failed to change language", e);
+    }
+  };
+  return (
+    <button
+      onClick={handleToggle}
+      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200"
+      aria-label={t(
+        "components_layout_Navigation.attr_aria_label_toggle_language",
+      )}
+      title={label}
+    >
+      {label}
+    </button>
+  );
+};
 
 // Header component
 export const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [theme, setTheme] = useState("light");
+  const { t } = useTranslation();
   const { role, isAdmin, isAuthenticated } = useCurrentRole();
   const { handleLogout } = useUnifiedLogout();
 
   const roleNavItems = {
     patient: [
-      { path: "/patient/dashboard", label: "الصفحة الرئيسية" },
-      { path: "/patient/appointments/new", label: "احجز موعدك" },
+      { path: "/patient/dashboard", label: "dashboard" },
+      { path: "/patient/appointments/new", label: "book_appointment" },
     ],
+
     doctor: [
-      { path: "/doctor/dashboard", label: "الصفحة الريسية" },
-      { path: "/doctor/appointments", label: "المواعيد" },
-      { path: "/doctor/patient-records", label: "المرضى" },
-      { path: "/doctor/clinic-profile", label: "ملف العيادة" },
+      { path: "/doctor/dashboard", label: "dashboard" },
+      { path: "/doctor/appointments", label: "appointments" },
+      { path: "/doctor/patient-records", label: "patients" },
+      { path: "/doctor/clinic-profile", label: "clinic_profile" },
     ],
+
     secretary: [
-      { path: "/secretary/dashboard", label: "الصفحة الرئيسية" },
-      { path: "/secretary/appointments", label: "المواعيد" },
-      { path: "/secretary/patients", label: "المرضى" },
+      { path: "/secretary/dashboard", label: "dashboard" },
+      { path: "/secretary/appointments", label: "appointments" },
+      { path: "/secretary/patients", label: "patients" },
     ],
+
     admin: [
-      { path: "/admin/dashboard", label: "الصفحة الرئيسية" },
-      { path: "/admin/doctors", label: "الاطباء" },
-      { path: "/admin/analytics", label: "التقارير" },
+      { path: "/admin/dashboard", label: "dashboard" },
+      { path: "/admin/doctors", label: "doctors" },
+      { path: "/admin/analytics", label: "analytics" },
     ],
   };
 
   const navItems = isAuthenticated
     ? isAdmin
       ? roleNavItems.admin
-      : (roleNavItems[role] ?? [{ path: "/login", label: "الصفحة الرئيسية" }])
-    : [{ path: "/login", label: "تسجيل الدخول" }];
+      : (roleNavItems[role] ?? [{ path: "/login", label: "dashboard" }])
+    : [{ path: "/login", label: "login" }];
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("clinic-theme");
@@ -80,7 +114,7 @@ export const Header = () => {
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
             C
           </span>
-          ClinicSaaS
+          {t("components_layout_Navigation.text_clinicsaas")}
         </Link>
 
         <nav className="hidden md:flex items-center gap-4 text-sm font-medium text-slate-600">
@@ -90,13 +124,15 @@ export const Header = () => {
               to={item.path}
               className="hover:text-slate-900 transition-colors"
             >
-              {item.label}
+              {t(item.label)}
             </Link>
           ))}
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            aria-label="Toggle theme"
+            aria-label={t(
+              "components_layout_Navigation.attr_aria_label_toggle_theme",
+            )}
           >
             {theme === "dark" ? (
               <Sun className="h-5 w-5" />
@@ -104,6 +140,8 @@ export const Header = () => {
               <Moon className="h-5 w-5" />
             )}
           </button>
+          {/* Language toggle */}
+          <LanguageToggle />
           {isAuthenticated && <NotificationBell />}
         </nav>
 
@@ -123,7 +161,7 @@ export const Header = () => {
                 className="block rounded-2xl px-4 py-3 text-slate-700 hover:bg-slate-50"
                 onClick={() => setIsOpen(false)}
               >
-                {item.label}
+                {t(item.label)}
               </Link>
             ))}
             {isAuthenticated && (
@@ -131,11 +169,14 @@ export const Header = () => {
                 <div className="flex items-center justify-center py-2">
                   <NotificationBell />
                 </div>
+                <div className="flex items-center justify-center py-2">
+                  <LanguageToggle />
+                </div>
                 <button
                   onClick={handleLogout}
                   className="mt-3 flex w-full items-center gap-2 rounded-2xl px-4 py-3 text-left text-red-600 hover:bg-red-50"
                 >
-                  <LogOut className="h-4 w-4" /> Logout
+                  <LogOut className="h-4 w-4" /> {t("logout")}
                 </button>
               </>
             )}
@@ -153,6 +194,7 @@ export const Sidebar = ({
   userType: _userType = "patient",
 }) => {
   const location = useLocation();
+  const { t } = useTranslation();
   const { role } = useCurrentRole();
   const { handleLogout } = useUnifiedLogout();
 
@@ -160,13 +202,13 @@ export const Sidebar = ({
     {
       id: "dashboard",
       path: "/patient/dashboard",
-      label: "الصفحة الرئيسية",
+      label: "dashboard",
       icon: Home,
     },
     {
       id: "new-appointment",
       path: "/patient/appointments/new",
-      label: "موعد جديد",
+      label: "book_appointment",
       icon: PlusCircle,
     },
   ];
@@ -175,25 +217,25 @@ export const Sidebar = ({
     {
       id: "dashboard",
       path: "/doctor/dashboard",
-      label: "الصفحة الرئيسية",
+      label: "dashboard",
       icon: LayoutDashboard,
     },
     {
       id: "appointments",
       path: "/doctor/appointments",
-      label: "كل المواعيد",
+      label: "appointments",
       icon: CalendarDays,
     },
     {
       id: "patient-records",
       path: "/doctor/patient-records",
-      label: "سجلات المرضى",
+      label: "patients",
       icon: FolderOpen,
     },
     {
       id: "clinic-profile",
       path: "/doctor/clinic-profile",
-      label: "ملف العيادة",
+      label: "clinic_profile",
       icon: LayoutDashboard,
     },
   ];
@@ -202,25 +244,25 @@ export const Sidebar = ({
     {
       id: "dashboard",
       path: "/secretary/dashboard",
-      label: "الصفحة الرئيسية",
+      label: "dashboard",
       icon: LayoutDashboard,
     },
     {
       id: "appointments",
       path: "/secretary/appointments",
-      label: "المواعيد",
+      label: "appointments",
       icon: CalendarDays,
     },
     {
       id: "patients",
       path: "/secretary/patients",
-      label: "المرضى",
+      label: "patients",
       icon: FolderOpen,
     },
     {
       id: "new-appointment",
       path: "/secretary/appointments/new",
-      label: "موعد جديد",
+      label: "book_appointment",
       icon: PlusCircle,
     },
   ];
@@ -229,19 +271,19 @@ export const Sidebar = ({
     {
       id: "dashboard",
       path: "/admin/dashboard",
-      label: "الصفحة الرئيسية",
+      label: "dashboard",
       icon: LayoutDashboard,
     },
     {
       id: "doctors",
       path: "/admin/doctors",
-      label: "الأطباء",
+      label: "doctors",
       icon: FolderOpen,
     },
     {
       id: "analytics",
       path: "/admin/analytics",
-      label: "التقارير",
+      label: "analytics",
       icon: CalendarDays,
     },
   ];
@@ -281,8 +323,12 @@ export const Sidebar = ({
               <Home className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-slate-400">Clinic platform</p>
-              <p className="font-semibold">SaaS Dashboard</p>
+              <p className="text-sm text-slate-400">
+                {t("components_layout_Navigation.text_clinic_platform")}
+              </p>
+              <p className="font-semibold">
+                {t("components_layout_Navigation.text_saas_dashboard")}
+              </p>
             </div>
           </div>
         </div>
@@ -310,8 +356,9 @@ export const Sidebar = ({
                     isActive ? "opacity-100" : "opacity-0"
                   }`}
                 />
+
                 <Icon className="h-5 w-5" />
-                {link.label}
+                {t(link.label)}
               </MotionLink>
             );
           })}
@@ -321,7 +368,7 @@ export const Sidebar = ({
             className="mt-4 flex w-full items-center gap-3 rounded-3xl bg-slate-800 px-4 py-3 text-left text-sm font-medium text-red-300 transition hover:bg-slate-700"
           >
             <LogOut className="h-5 w-5" />
-            تسجيل الخروج
+            {t("logout")}
           </button>
         </nav>
       </aside>
@@ -331,59 +378,72 @@ export const Sidebar = ({
 
 // Footer component
 export const Footer = () => {
+  const { t } = useTranslation();
   return (
     <footer className="bg-gray-900 text-gray-300 mt-12">
       <div className="container mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-xl font-bold text-white mb-4">ClinicSaaS</h3>
-            <p className="text-sm">Multi-doctor clinic management system.</p>
+            <h3 className="text-xl font-bold text-white mb-4">
+              {t("components_layout_Navigation.text_clinicsaas_1")}
+            </h3>
+            <p className="text-sm">
+              {t(
+                "components_layout_Navigation.text_multi_doctor_clinic_management_system",
+              )}
+            </p>
           </div>
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">
-              Quick Links
+              {t("components_layout_Navigation.text_quick_links")}
             </h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <a href="#" className="hover:text-white">
-                  About
+                  {t("components_layout_Navigation.text_about")}
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-white">
-                  Contact
+                  {t("components_layout_Navigation.text_contact")}
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-white">
-                  Privacy
+                  {t("components_layout_Navigation.text_privacy")}
                 </a>
               </li>
             </ul>
           </div>
           <div>
-            <h4 className="text-lg font-semibold text-white mb-4">Support</h4>
+            <h4 className="text-lg font-semibold text-white mb-4">
+              {t("components_layout_Navigation.text_support")}
+            </h4>
             <ul className="space-y-2 text-sm">
               <li>
                 <a href="#" className="hover:text-white">
-                  Help Center
+                  {t("components_layout_Navigation.text_help_center")}
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-white">
-                  Documentation
+                  {t("components_layout_Navigation.text_documentation")}
                 </a>
               </li>
               <li>
                 <a href="#" className="hover:text-white">
-                  FAQ
+                  {t("components_layout_Navigation.text_faq")}
                 </a>
               </li>
             </ul>
           </div>
         </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm">
-          <p>&copy; 2026 ClinicSaaS. All rights reserved.</p>
+          <p>
+            {t(
+              "components_layout_Navigation.text_2026_clinicsaas_all_rights_reserved",
+            )}
+          </p>
         </div>
       </div>
     </footer>

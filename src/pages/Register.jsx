@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, Button, Input } from "../components/ui";
@@ -6,6 +7,7 @@ import authService from "../services/authService";
 import { getMainDomain, getTenantSubdomain } from "../utils/subdomain";
 
 export const Register = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const clinicSlug = useMemo(() => getTenantSubdomain(), []);
   const mainDomainUrl = useMemo(() => {
@@ -242,7 +244,7 @@ export const Register = () => {
 
         {!clinicSlug && (
           <div className="mb-4 rounded border border-amber-300 bg-amber-50 p-4 text-amber-800">
-            عفواً!!! التسجيل متاح فقط عن طريق العيادة الخاصة بك 
+            عفواً!!! التسجيل متاح فقط عن طريق العيادة الخاصة بك
             <div className="mt-3">
               <a href={mainDomainUrl} className="font-medium underline">
                 اذهب إلى الموقع الرئيسي
@@ -254,7 +256,7 @@ export const Register = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Full Name Input */}
           <Input
-            label="Full Name"
+            label={t("pages_Register.attr_label_full_name")}
             type="text"
             name="name"
             placeholder="أحمد محمد"
@@ -267,10 +269,10 @@ export const Register = () => {
 
           {/* Email Input */}
           <Input
-            label="Email Address"
+            label={t("pages_Register.attr_label_email_address")}
             type="email"
             name="email"
-            placeholder="ahmed@gmail.com"
+            placeholder={t("pages_Register.attr_placeholder_ahmed_gmail_com")}
             value={formData.email}
             onChange={handleChange}
             error={errors.email}
@@ -280,10 +282,10 @@ export const Register = () => {
 
           {/* Phone Input (optional, E.164) */}
           <Input
-            label="Phone Number (optional)"
+            label={t("pages_Register.attr_label_phone_number_optional")}
             type="tel"
             name="phone"
-            placeholder="e.g., +12025550123"
+            placeholder={t("pages_Register.attr_placeholder_e_g_12025550123")}
             value={formData.phone}
             onChange={handleChange}
             error={errors.phone}
@@ -293,10 +295,12 @@ export const Register = () => {
 
           {/* Password Input */}
           <Input
-            label="Password"
+            label={t("pages_Register.attr_label_password")}
             type="password"
             name="password"
-            placeholder="Minimum 6 characters"
+            placeholder={t(
+              "pages_Register.attr_placeholder_minimum_6_characters",
+            )}
             value={formData.password}
             onChange={handleChange}
             error={errors.password}
@@ -306,10 +310,12 @@ export const Register = () => {
 
           {/* Confirm Password Input */}
           <Input
-            label="Confirm Password"
+            label={t("pages_Register.attr_label_confirm_password")}
             type="password"
             name="confirmPassword"
-            placeholder="Re-enter your password"
+            placeholder={t(
+              "pages_Register.attr_placeholder_re_enter_your_password",
+            )}
             value={formData.confirmPassword}
             onChange={handleChange}
             error={errors.confirmPassword}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { BarChart } from "lucide-react";
 import { createAdminService } from "../services/adminService";
@@ -7,6 +8,7 @@ import { createAdminService } from "../services/adminService";
  * Displays WhatsApp notification history, statistics, filtering, and retry options
  */
 const AdminNotificationDashboard = () => {
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -188,10 +190,14 @@ const AdminNotificationDashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800">
-            WhatsApp Notifications Dashboard
+            {t(
+              "components_AdminNotificationDashboard.text_whatsapp_notifications_dashboard",
+            )}
           </h1>
           <p className="text-gray-600 mt-2">
-            Monitor and manage all WhatsApp notifications
+            {t(
+              "components_AdminNotificationDashboard.text_monitor_and_manage_a",
+            )}
           </p>
         </div>
 
@@ -201,7 +207,9 @@ const AdminNotificationDashboard = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Total</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminNotificationDashboard.text_total")}
+                  </p>
                   <p className="text-2xl font-bold text-blue-600">
                     {stats.total}
                   </p>
@@ -213,7 +221,9 @@ const AdminNotificationDashboard = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Sent</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminNotificationDashboard.text_sent")}
+                  </p>
                   <p className="text-2xl font-bold text-green-600">
                     {stats?.byStatus?.sent || 0}
                   </p>
@@ -225,7 +235,9 @@ const AdminNotificationDashboard = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Failed</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminNotificationDashboard.text_failed")}
+                  </p>
                   <p className="text-2xl font-bold text-red-600">
                     {stats?.byStatus?.failed || 0}
                   </p>
@@ -237,7 +249,9 @@ const AdminNotificationDashboard = () => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Pending</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminNotificationDashboard.text_pending")}
+                  </p>
                   <p className="text-2xl font-bold text-yellow-600">
                     {stats?.byStatus?.pending || 0}
                   </p>
@@ -250,13 +264,15 @@ const AdminNotificationDashboard = () => {
 
         {/* Filters Section */}
         <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-lg font-bold text-gray-800 mb-4">Filters</h2>
+          <h2 className="text-lg font-bold text-gray-800 mb-4">
+            {t("components_AdminNotificationDashboard.text_filters")}
+          </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             {/* Type Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Type
+                {t("components_AdminNotificationDashboard.text_type")}
               </label>
               <select
                 name="type"
@@ -264,19 +280,53 @@ const AdminNotificationDashboard = () => {
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">All Types</option>
-                <option value="appointment_created">Appointment Created</option>
-                <option value="appointment_confirmed">
-                  Appointment Confirmed
+                <option value="">
+                  {t("components_AdminNotificationDashboard.text_all_types")}
                 </option>
-                <option value="appointment_cancelled">
-                  Appointment Cancelled
+                <option
+                  value={t(
+                    "components_AdminNotificationDashboard.attr_value_appointment_created",
+                  )}
+                >
+                  {t(
+                    "components_AdminNotificationDashboard.text_appointment_created",
+                  )}
                 </option>
-                <option value="appointment_proposed">
-                  Appointment Proposed
+                <option
+                  value={t(
+                    "components_AdminNotificationDashboard.attr_value_appointment_confirmed",
+                  )}
+                >
+                  {t(
+                    "components_AdminNotificationDashboard.text_appointment_confirmed",
+                  )}
                 </option>
-                <option value="prescription_created">
-                  Prescription Created
+                <option
+                  value={t(
+                    "components_AdminNotificationDashboard.attr_value_appointment_cancelled",
+                  )}
+                >
+                  {t(
+                    "components_AdminNotificationDashboard.text_appointment_cancelled",
+                  )}
+                </option>
+                <option
+                  value={t(
+                    "components_AdminNotificationDashboard.attr_value_appointment_proposed",
+                  )}
+                >
+                  {t(
+                    "components_AdminNotificationDashboard.text_appointment_proposed",
+                  )}
+                </option>
+                <option
+                  value={t(
+                    "components_AdminNotificationDashboard.attr_value_prescription_created",
+                  )}
+                >
+                  {t(
+                    "components_AdminNotificationDashboard.text_prescription_created",
+                  )}
                 </option>
               </select>
             </div>
@@ -284,7 +334,7 @@ const AdminNotificationDashboard = () => {
             {/* Status Filter */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Status
+                {t("components_AdminNotificationDashboard.text_status")}
               </label>
               <select
                 name="status"
@@ -292,17 +342,37 @@ const AdminNotificationDashboard = () => {
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="">All Status</option>
-                <option value="sent">Sent</option>
-                <option value="failed">Failed</option>
-                <option value="pending">Pending</option>
+                <option value="">
+                  {t("components_AdminNotificationDashboard.text_all_status")}
+                </option>
+                <option
+                  value={t(
+                    "components_AdminNotificationDashboard.attr_value_sent",
+                  )}
+                >
+                  {t("components_AdminNotificationDashboard.text_sent_1")}
+                </option>
+                <option
+                  value={t(
+                    "components_AdminNotificationDashboard.attr_value_failed",
+                  )}
+                >
+                  {t("components_AdminNotificationDashboard.text_failed_1")}
+                </option>
+                <option
+                  value={t(
+                    "components_AdminNotificationDashboard.attr_value_pending",
+                  )}
+                >
+                  {t("components_AdminNotificationDashboard.text_pending_1")}
+                </option>
               </select>
             </div>
 
             {/* Start Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Start Date
+                {t("components_AdminNotificationDashboard.text_start_date")}
               </label>
               <input
                 type="date"
@@ -316,7 +386,7 @@ const AdminNotificationDashboard = () => {
             {/* End Date */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                End Date
+                {t("components_AdminNotificationDashboard.text_end_date")}
               </label>
               <input
                 type="date"
@@ -334,21 +404,21 @@ const AdminNotificationDashboard = () => {
               onClick={handleSearch}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none"
             >
-              Search
+              {t("components_AdminNotificationDashboard.text_search")}
             </button>
 
             <button
               onClick={handleRetry}
               className="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 focus:outline-none"
             >
-              Retry Failed
+              {t("components_AdminNotificationDashboard.text_retry_failed")}
             </button>
 
             <button
               onClick={handleExport}
               className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none"
             >
-              Export CSV
+              {t("components_AdminNotificationDashboard.text_export_csv")}
             </button>
 
             <button
@@ -368,7 +438,7 @@ const AdminNotificationDashboard = () => {
               }}
               className="px-4 py-2 bg-gray-400 text-white rounded-md hover:bg-gray-500 focus:outline-none"
             >
-              Clear Filters
+              {t("components_AdminNotificationDashboard.text_clear_filters")}
             </button>
           </div>
         </div>
@@ -378,15 +448,26 @@ const AdminNotificationDashboard = () => {
           {loading ? (
             <div className="p-8 text-center">
               <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <p className="mt-4 text-gray-600">Loading notifications...</p>
+              <p className="mt-4 text-gray-600">
+                {t(
+                  "components_AdminNotificationDashboard.text_loading_notifications",
+                )}
+              </p>
             </div>
           ) : error ? (
             <div className="p-8 text-center text-red-600">
-              <p>Error: {error}</p>
+              <p>
+                {t("components_AdminNotificationDashboard.text_error")}
+                {error}
+              </p>
             </div>
           ) : notifications.length === 0 ? (
             <div className="p-8 text-center text-gray-600">
-              <p>No notifications found</p>
+              <p>
+                {t(
+                  "components_AdminNotificationDashboard.text_no_notifications_found",
+                )}
+              </p>
             </div>
           ) : (
             <>
@@ -394,25 +475,29 @@ const AdminNotificationDashboard = () => {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">
-                      Type
+                      {t("components_AdminNotificationDashboard.text_type_1")}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">
-                      Recipient
+                      {t(
+                        "components_AdminNotificationDashboard.text_recipient",
+                      )}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">
-                      Phone (Masked)
+                      {t(
+                        "components_AdminNotificationDashboard.text_phone_masked",
+                      )}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">
-                      Status
+                      {t("components_AdminNotificationDashboard.text_status_1")}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">
-                      Retries
+                      {t("components_AdminNotificationDashboard.text_retries")}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">
-                      Created
+                      {t("components_AdminNotificationDashboard.text_created")}
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-bold text-gray-700">
-                      Sent
+                      {t("components_AdminNotificationDashboard.text_sent_2")}
                     </th>
                   </tr>
                 </thead>
@@ -464,9 +549,15 @@ const AdminNotificationDashboard = () => {
               {/* Pagination */}
               <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  Showing {filters.offset + 1} to{" "}
+                  {t("components_AdminNotificationDashboard.text_showing")}
+                  {filters.offset + 1}
+                  {t("components_AdminNotificationDashboard.text_to")}{" "}
                   {Math.min(filters.offset + filters.limit, pagination.total)}{" "}
-                  of {pagination.total} notifications
+                  {t("components_AdminNotificationDashboard.text_of")}
+                  {pagination.total}
+                  {t(
+                    "components_AdminNotificationDashboard.text_notifications",
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <button
@@ -474,14 +565,14 @@ const AdminNotificationDashboard = () => {
                     disabled={filters.offset === 0}
                     className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Previous
+                    {t("components_AdminNotificationDashboard.text_previous")}
                   </button>
                   <button
                     onClick={handleNextPage}
                     disabled={!pagination.hasMore}
                     className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Next
+                    {t("components_AdminNotificationDashboard.text_next")}
                   </button>
                 </div>
               </div>

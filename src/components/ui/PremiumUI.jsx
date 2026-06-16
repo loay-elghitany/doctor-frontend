@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Search,
@@ -21,6 +22,7 @@ export const GlassCard = ({
   gradient = false,
   onClick,
 }) => {
+  const { t } = useTranslation();
   const baseClasses = `
     backdrop-blur-md bg-white/70 dark:bg-gray-900/70
     border border-white/20 dark:border-gray-700/30
@@ -150,6 +152,7 @@ export const PremiumSearch = ({
   onKeyPress,
   className = "",
 }) => {
+  const { t } = useTranslation();
   return (
     <motion.div
       className={`relative ${className}`}
@@ -164,9 +167,10 @@ export const PremiumSearch = ({
         placeholder={placeholder}
         className="premium-search w-full pl-12 pr-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
       />
+
       <div className="absolute right-4 top-1/2 -translate-y-1/2">
         <kbd className="hidden md:inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-md">
-          ⌘K
+          {t("components_ui_PremiumUI.text_k")}
         </kbd>
       </div>
     </motion.div>
@@ -290,7 +294,8 @@ export const InvoiceCard = ({
             {title}
           </h4>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            Due: {dueDate}
+            {t("components_ui_PremiumUI.text_due")}
+            {dueDate}
           </p>
         </div>
         <StatusBadge status={status} />
@@ -302,7 +307,10 @@ export const InvoiceCard = ({
             {amount}
           </span>
           {progress !== undefined && (
-            <span className="text-sm text-gray-500">{progress}% paid</span>
+            <span className="text-sm text-gray-500">
+              {progress}
+              {t("components_ui_PremiumUI.text_paid")}
+            </span>
           )}
         </div>
       </div>
@@ -396,6 +404,7 @@ export const LoadingSpinner = ({ size = "md", message = "Loading..." }) => {
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
         className={`${sizes[size]} border-4 border-blue-200 border-t-blue-500 rounded-full`}
       />
+
       {message && (
         <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
           {message}

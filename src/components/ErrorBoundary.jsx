@@ -1,4 +1,5 @@
 import React from "react";
+import { withTranslation } from "react-i18next";
 
 /**
  * Global Error Boundary - catches React rendering errors
@@ -19,12 +20,13 @@ class ErrorBoundary extends React.Component {
   }
 
   render() {
+    const { t } = this.props;
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
             <h1 className="text-2xl font-bold text-red-600 mb-4">
-              Something went wrong
+              {t("components_ErrorBoundary.text_something_went_wrong")}
             </h1>
             <p className="text-gray-700 mb-4">
               حصل خطأ غير متوقع أثناء عرض هذا الجزء من التطبيق. يرجى المحاولة
@@ -32,7 +34,7 @@ class ErrorBoundary extends React.Component {
             </p>
             <details className="mb-6 bg-gray-50 p-4 rounded border border-gray-200">
               <summary className="font-semibold text-gray-800 cursor-pointer">
-                Error details
+                {t("components_ErrorBoundary.text_error_details")}
               </summary>
               <pre className="mt-2 text-xs overflow-auto text-gray-600">
                 {this.state.error?.toString()}
@@ -53,4 +55,4 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default ErrorBoundary;
+export default withTranslation()(ErrorBoundary);

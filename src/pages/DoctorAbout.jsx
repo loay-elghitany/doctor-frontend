@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
@@ -11,6 +12,7 @@ import { debugLog, debugError } from "../utils/debug";
  * Accessible to all users (no authentication required)
  */
 export const DoctorAbout = () => {
+  const { t } = useTranslation();
   const { doctorId } = useParams();
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,9 @@ export const DoctorAbout = () => {
     return (
       <MainLayout>
         <div className="text-center py-12">
-          <p className="text-gray-500">Loading doctor profile...</p>
+          <p className="text-gray-500">
+            {t("pages_DoctorAbout.text_loading_doctor_profile")}
+          </p>
         </div>
       </MainLayout>
     );
@@ -78,7 +82,8 @@ export const DoctorAbout = () => {
     <MainLayout>
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          About Dr. {doctor.name}
+          {t("pages_DoctorAbout.text_about_dr")}
+          {doctor.name}
         </h1>
 
         <div className="card mb-8">
@@ -112,7 +117,7 @@ export const DoctorAbout = () => {
               {doctor.bio ? (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                    About
+                    {t("pages_DoctorAbout.text_about")}
                   </h3>
                   <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
                     {doctor.bio}
@@ -174,7 +179,7 @@ export const DoctorAbout = () => {
                 {doctor.publicContactInfo.whatsApp && (
                   <div className="flex items-start">
                     <span className="text-blue-600 font-medium w-24">
-                      WhatsApp:
+                      {t("pages_DoctorAbout.text_whatsapp")}
                     </span>
                     <a
                       href={`https://wa.me/${doctor.publicContactInfo.whatsApp.replace(/\D/g, "")}`}
@@ -190,7 +195,7 @@ export const DoctorAbout = () => {
                 {doctor.publicContactInfo.email && (
                   <div className="flex items-start">
                     <span className="text-blue-600 font-medium w-24">
-                      Email:
+                      {t("pages_DoctorAbout.text_email")}
                     </span>
                     <a
                       href={`mailto:${doctor.publicContactInfo.email}`}
@@ -215,7 +220,7 @@ export const DoctorAbout = () => {
                 {doctor.publicContactInfo.website && (
                   <div className="flex items-start">
                     <span className="text-blue-600 font-medium w-24">
-                      Website:
+                      {t("pages_DoctorAbout.text_website")}
                     </span>
                     <a
                       href={doctor.publicContactInfo.website}
@@ -235,7 +240,7 @@ export const DoctorAbout = () => {
                 doctor.publicContactInfo.twitter) && (
                 <div className="mt-6 pt-6 border-t">
                   <p className="text-sm font-medium text-gray-600 mb-3">
-                    Follow on Social Media
+                    {t("pages_DoctorAbout.text_follow_on_social_media")}
                   </p>
                   <div className="flex gap-4">
                     {doctor.publicContactInfo.facebook && (
@@ -245,7 +250,7 @@ export const DoctorAbout = () => {
                         rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800"
                       >
-                        Facebook
+                        {t("pages_DoctorAbout.text_facebook")}
                       </a>
                     )}
                     {doctor.publicContactInfo.instagram && (
@@ -255,7 +260,7 @@ export const DoctorAbout = () => {
                         rel="noopener noreferrer"
                         className="text-pink-600 hover:text-pink-800"
                       >
-                        Instagram
+                        {t("pages_DoctorAbout.text_instagram")}
                       </a>
                     )}
                     {doctor.publicContactInfo.twitter && (
@@ -265,7 +270,7 @@ export const DoctorAbout = () => {
                         rel="noopener noreferrer"
                         className="text-blue-400 hover:text-blue-600"
                       >
-                        Twitter
+                        {t("pages_DoctorAbout.text_twitter")}
                       </a>
                     )}
                   </div>

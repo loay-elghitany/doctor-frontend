@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import doctorService from "../../services/doctorService";
 import { debugLog, debugError } from "../../utils/debug";
@@ -9,6 +10,7 @@ import { debugLog, debugError } from "../../utils/debug";
  * All changes are user-specific (tenant isolation in backend)
  */
 export const PublicProfileSettings = () => {
+  const { t } = useTranslation();
   // Form state
   const [bio, setBio] = useState("");
   const [profileImage, setProfileImage] = useState("");
@@ -167,7 +169,11 @@ export const PublicProfileSettings = () => {
     return (
       <div className="card">
         <h2 className="text-xl font-bold text-gray-900 mb-4">الملف الشخصي</h2>
-        <p className="text-gray-500">Loading profile settings...</p>
+        <p className="text-gray-500">
+          {t(
+            "components_doctor_PublicProfileSettings.text_loading_profile_settings",
+          )}
+        </p>
       </div>
     );
   }
@@ -207,20 +213,24 @@ export const PublicProfileSettings = () => {
               setBio(e.target.value);
               setSuccessMessage("");
             }}
-            placeholder="Write a brief bio about yourself..."
+            placeholder={t(
+              "components_doctor_PublicProfileSettings.attr_placeholder_write_a_brief_bio_ab",
+            )}
             maxLength={1000}
             rows={4}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+
           <p className="text-xs text-gray-500 mt-1">
-            {bio.length}/1000 characters
+            {bio.length}
+            {t("components_doctor_PublicProfileSettings.text_1000_characters")}
           </p>
         </div>
 
         {/* Profile Image URL */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            URL للصورة الشخصية
+            {t("components_doctor_PublicProfileSettings.text_url")}
           </label>
           <input
             type="url"
@@ -229,12 +239,14 @@ export const PublicProfileSettings = () => {
               setProfileImage(e.target.value);
               setSuccessMessage("");
             }}
-            placeholder="https://example.com/profile-image.jpg"
+            placeholder={t(
+              "components_doctor_PublicProfileSettings.attr_placeholder_https_example_com_pr",
+            )}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+
           <p className="text-xs text-gray-500 mt-1">
-            الصق URL للصورة الشخصية الخاصة بك. تأكد من أن الصورة عامة ويمكن
-            الوصول إليها عبر الإنترنت.
+            {t("components_doctor_PublicProfileSettings.text_url_1")}
           </p>
         </div>
 
@@ -250,12 +262,16 @@ export const PublicProfileSettings = () => {
               setSpecialization(e.target.value);
               setSuccessMessage("");
             }}
-            placeholder="e.g., Cardiology, Dentistry, General Practice"
+            placeholder={t(
+              "components_doctor_PublicProfileSettings.attr_placeholder_e_g_cardiology_denti",
+            )}
             maxLength={500}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
+
           <p className="text-xs text-gray-500 mt-1">
-            {specialization.length}/500 characters
+            {specialization.length}
+            {t("components_doctor_PublicProfileSettings.text_500_characters")}
           </p>
         </div>
 
@@ -303,7 +319,9 @@ export const PublicProfileSettings = () => {
                   setNewCertTitle(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="e.g., MD in Internal Medicine"
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_e_g_md_in_internal_m",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -319,7 +337,9 @@ export const PublicProfileSettings = () => {
                   setNewCertDesc(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="e.g., University of Medical Sciences, 2015"
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_e_g_university_of_me",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -352,7 +372,9 @@ export const PublicProfileSettings = () => {
                   setPhone(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="+1 (555) 123-4567"
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_1_555_123_4567",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -368,14 +390,16 @@ export const PublicProfileSettings = () => {
                   setWhatsApp(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="+1 (555) 123-4567"
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_1_555_123_4567_1",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
+                {t("components_doctor_PublicProfileSettings.text_email")}
               </label>
               <input
                 type="email"
@@ -384,7 +408,9 @@ export const PublicProfileSettings = () => {
                   setEmail(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="doctor@clinic.com"
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_doctor_clinic_com",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
@@ -400,14 +426,16 @@ export const PublicProfileSettings = () => {
                   setAddress(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="123 Main St, City, State 12345"
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_123_main_st_city_sta",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Website
+                {t("components_doctor_PublicProfileSettings.text_website")}
               </label>
               <input
                 type="url"
@@ -416,14 +444,16 @@ export const PublicProfileSettings = () => {
                   setWebsite(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="https://example.com"
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_https_example_com",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Facebook
+                {t("components_doctor_PublicProfileSettings.text_facebook")}
               </label>
               <input
                 type="url"
@@ -432,14 +462,16 @@ export const PublicProfileSettings = () => {
                   setFacebook(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="https://facebook.com/..."
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_https_facebook_com",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Instagram
+                {t("components_doctor_PublicProfileSettings.text_instagram")}
               </label>
               <input
                 type="url"
@@ -448,14 +480,16 @@ export const PublicProfileSettings = () => {
                   setInstagram(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="https://instagram.com/..."
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_https_instagram_com",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Twitter
+                {t("components_doctor_PublicProfileSettings.text_twitter")}
               </label>
               <input
                 type="url"
@@ -464,7 +498,9 @@ export const PublicProfileSettings = () => {
                   setTwitter(e.target.value);
                   setSuccessMessage("");
                 }}
-                placeholder="https://twitter.com/..."
+                placeholder={t(
+                  "components_doctor_PublicProfileSettings.attr_placeholder_https_twitter_com",
+                )}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>

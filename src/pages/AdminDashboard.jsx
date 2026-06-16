@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
@@ -26,6 +27,7 @@ import { debugLog, debugError } from "../utils/debug";
  * - Delete doctor accounts (permanent)
  */
 export const AdminDashboard = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { adminToken, isAdminAuthenticated, logout } =
     useContext(AdminAuthContext);
@@ -290,7 +292,7 @@ export const AdminDashboard = () => {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-gray-900">
-            Manual Subscription Management
+            {t("pages_AdminDashboard.text_manual_subscription_management")}
           </h1>
           <div className="flex gap-3">
             <Button
@@ -298,10 +300,10 @@ export const AdminDashboard = () => {
               onClick={() => setShowCreateModal(true)}
               disabled={loading}
             >
-              + Create Doctor Account
+              {t("pages_AdminDashboard.text_create_doctor_account")}
             </Button>
             <Button variant="secondary" onClick={logout} disabled={loading}>
-              Logout
+              {t("pages_AdminDashboard.text_logout")}
             </Button>
           </div>
         </div>
@@ -324,7 +326,9 @@ export const AdminDashboard = () => {
               <div className="text-3xl font-bold text-blue-600">
                 {doctors.length}
               </div>
-              <p className="text-gray-600 mt-2">Total Doctors</p>
+              <p className="text-gray-600 mt-2">
+                {t("pages_AdminDashboard.text_total_doctors")}
+              </p>
             </div>
           </Card>
           <Card>
@@ -332,7 +336,9 @@ export const AdminDashboard = () => {
               <div className="text-3xl font-bold text-green-600">
                 {doctors.filter((d) => d.isActive).length}
               </div>
-              <p className="text-gray-600 mt-2">Active Subscriptions</p>
+              <p className="text-gray-600 mt-2">
+                {t("pages_AdminDashboard.text_active_subscriptions")}
+              </p>
             </div>
           </Card>
           <Card>
@@ -340,7 +346,9 @@ export const AdminDashboard = () => {
               <div className="text-3xl font-bold text-red-600">
                 {doctors.filter((d) => !d.isActive).length}
               </div>
-              <p className="text-gray-600 mt-2">Inactive Subscriptions</p>
+              <p className="text-gray-600 mt-2">
+                {t("pages_AdminDashboard.text_inactive_subscriptions")}
+              </p>
             </div>
           </Card>
         </div>
@@ -368,7 +376,11 @@ export const AdminDashboard = () => {
         <Card>
           {filteredDoctors.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-500">No doctors found in this category</p>
+              <p className="text-gray-500">
+                {t(
+                  "pages_AdminDashboard.text_no_doctors_found_in_this_category",
+                )}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -384,7 +396,7 @@ export const AdminDashboard = () => {
                       </th>
                     ))}
                     <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Actions
+                      {t("pages_AdminDashboard.text_actions")}
                     </th>
                   </tr>
                 </thead>
@@ -416,7 +428,7 @@ export const AdminDashboard = () => {
                                   confirmAction("deactivate", doctor)
                                 }
                               >
-                                Pause
+                                {t("pages_AdminDashboard.text_pause")}
                               </Button>
                             ) : (
                               <Button
@@ -426,7 +438,7 @@ export const AdminDashboard = () => {
                                   confirmAction("reactivate", doctor)
                                 }
                               >
-                                Activate
+                                {t("pages_AdminDashboard.text_activate")}
                               </Button>
                             )}
 
@@ -435,7 +447,7 @@ export const AdminDashboard = () => {
                               size="sm"
                               onClick={() => confirmAction("delete", doctor)}
                             >
-                              Delete
+                              {t("pages_AdminDashboard.text_delete")}
                             </Button>
                           </div>
                         </td>
@@ -463,7 +475,7 @@ export const AdminDashboard = () => {
           });
           setGeneratedPassword("");
         }}
-        title="Create New Doctor Account"
+        title={t("pages_AdminDashboard.attr_title_create_new_doctor_account")}
         footer={
           <>
             <Button
@@ -479,7 +491,7 @@ export const AdminDashboard = () => {
                 });
               }}
             >
-              Cancel
+              {t("pages_AdminDashboard.text_cancel")}
             </Button>
             <Button
               variant="primary"
@@ -493,49 +505,57 @@ export const AdminDashboard = () => {
       >
         <form className="space-y-4">
           <Input
-            label="Doctor Name *"
+            label={t("pages_AdminDashboard.attr_label_doctor_name")}
             type="text"
             name="name"
             value={createData.name}
             onChange={(e) =>
               setCreateData({ ...createData, name: e.target.value })
             }
-            placeholder="Dr. John Smith"
+            placeholder={t(
+              "pages_AdminDashboard.attr_placeholder_dr_john_smith",
+            )}
             disabled={createLoading}
             required
           />
 
           <Input
-            label="Email *"
+            label={t("pages_AdminDashboard.attr_label_email")}
             type="email"
             name="email"
             value={createData.email}
             onChange={(e) =>
               setCreateData({ ...createData, email: e.target.value })
             }
-            placeholder="doctor@clinic.com"
+            placeholder={t(
+              "pages_AdminDashboard.attr_placeholder_doctor_clinic_com",
+            )}
             disabled={createLoading}
             required
           />
 
           <Input
-            label="Phone (optional)"
+            label={t("pages_AdminDashboard.attr_label_phone_optional")}
             type="tel"
             name="phoneNumber"
             value={createData.phoneNumber}
             onChange={(e) =>
               setCreateData({ ...createData, phoneNumber: e.target.value })
             }
-            placeholder="+201234567890 (E.164)"
+            placeholder={t(
+              "pages_AdminDashboard.attr_placeholder_201234567890_e_164",
+            )}
             disabled={createLoading}
           />
 
           <p className="text-sm text-gray-500 -mt-2 mb-2">
-            Optional. Use E.164 format like +201234567890.
+            {t(
+              "pages_AdminDashboard.text_optional_use_e_164_format_like_201234567",
+            )}
           </p>
 
           <Input
-            label="Clinic Slug (optional)"
+            label={t("pages_AdminDashboard.attr_label_clinic_slug_optional")}
             type="text"
             name="clinicSlug"
             value={createData.clinicSlug}
@@ -547,22 +567,29 @@ export const AdminDashboard = () => {
           />
 
           <Input
-            label="Password (optional)"
+            label={t("pages_AdminDashboard.attr_label_password_optional")}
             type="password"
             name="password"
             value={createData.password}
             onChange={(e) =>
               setCreateData({ ...createData, password: e.target.value })
             }
-            placeholder="Leave empty to auto-generate"
+            placeholder={t(
+              "pages_AdminDashboard.attr_placeholder_leave_empty_to_auto_generate",
+            )}
             disabled={createLoading}
           />
 
           {generatedPassword && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded text-sm">
-              <strong>Generated Password:</strong> {generatedPassword}
+              <strong>
+                {t("pages_AdminDashboard.text_generated_password")}
+              </strong>{" "}
+              {generatedPassword}
               <p className="mt-2 text-xs text-blue-700">
-                Share this securely with the doctor
+                {t(
+                  "pages_AdminDashboard.text_share_this_securely_with_the_doctor",
+                )}
               </p>
             </div>
           )}
@@ -590,7 +617,7 @@ export const AdminDashboard = () => {
               variant="secondary"
               onClick={() => setShowActionModal(false)}
             >
-              Cancel
+              {t("pages_AdminDashboard.text_cancel_1")}
             </Button>
             <Button
               variant={actionType === "delete" ? "danger" : "primary"}
@@ -612,20 +639,26 @@ export const AdminDashboard = () => {
           {actionType === "deactivate" && (
             <>
               <p>
-                Are you sure you want to deactivate{" "}
-                <strong>{selectedDoctor?.name}</strong>'s account?
+                {t(
+                  "pages_AdminDashboard.text_are_you_sure_you_want_to_deactivate",
+                )}{" "}
+                <strong>{selectedDoctor?.name}</strong>
+                {t("pages_AdminDashboard.text_s_account")}
               </p>
               <p className="text-sm text-gray-600">
-                The doctor will not be able to create new appointments, but all
-                existing appointments and patient records will be preserved.
+                {t(
+                  "pages_AdminDashboard.text_the_doctor_will_not_be_able_to_create_ne",
+                )}
               </p>
               <Input
-                label="Reason (optional)"
+                label={t("pages_AdminDashboard.attr_label_reason_optional")}
                 type="textarea"
                 name="reason"
                 value={actionReason}
                 onChange={(e) => setActionReason(e.target.value)}
-                placeholder="E.g., Account hold, etc."
+                placeholder={t(
+                  "pages_AdminDashboard.attr_placeholder_e_g_account_hold_etc",
+                )}
                 rows={3}
               />
             </>
@@ -634,11 +667,16 @@ export const AdminDashboard = () => {
           {actionType === "reactivate" && (
             <>
               <p>
-                Are you sure you want to reactivate{" "}
-                <strong>{selectedDoctor?.name}</strong>'s account?
+                {t(
+                  "pages_AdminDashboard.text_are_you_sure_you_want_to_reactivate",
+                )}{" "}
+                <strong>{selectedDoctor?.name}</strong>
+                {t("pages_AdminDashboard.text_s_account_1")}
               </p>
               <p className="text-sm text-gray-600">
-                The doctor will be able to create new appointments again.
+                {t(
+                  "pages_AdminDashboard.text_the_doctor_will_be_able_to_create_new_ap",
+                )}
               </p>
             </>
           )}
@@ -646,13 +684,16 @@ export const AdminDashboard = () => {
           {actionType === "delete" && (
             <>
               <p>
-                Are you sure you want to permanently delete{" "}
-                <strong>{selectedDoctor?.name}</strong>'s account?
+                {t(
+                  "pages_AdminDashboard.text_are_you_sure_you_want_to_permanently_del",
+                )}{" "}
+                <strong>{selectedDoctor?.name}</strong>
+                {t("pages_AdminDashboard.text_s_account_2")}
               </p>
               <p className="text-sm text-red-600 font-semibold">
-                ⚠️ WARNING: This action cannot be undone. The doctor profile
-                will be deleted, but all patient records and appointments will
-                be preserved in the system.
+                {t(
+                  "pages_AdminDashboard.text_warning_this_action_cannot_be_undone_the",
+                )}
               </p>
             </>
           )}

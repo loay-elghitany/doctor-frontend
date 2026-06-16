@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import {
   PrescriptionForm,
@@ -13,6 +14,7 @@ export const PrescriptionModal = ({
   onClose,
   onSuccess,
 }) => {
+  const { t } = useTranslation();
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -114,7 +116,11 @@ export const PrescriptionModal = ({
       {/* Loading State */}
       {loading && !selectedPrescription && !showForm && (
         <div className="text-center py-8">
-          <p className="text-gray-500">Loading prescriptions...</p>
+          <p className="text-gray-500">
+            {t(
+              "components_Prescription_PrescriptionModal.text_loading_prescriptions",
+            )}
+          </p>
         </div>
       )}
 
@@ -230,8 +236,9 @@ export const PrescriptionModal = ({
   );
 };
 
-// Prescription Badge for appointment cards
+// Prescription Badge for appointment cards - FIXED
 export const PrescriptionBadge = ({ appointmentId, userRole }) => {
+  const { t } = useTranslation(); // 🌟 أضفنا السطر ده هنا عشان نصلح الـ Crash
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -259,7 +266,7 @@ export const PrescriptionBadge = ({ appointmentId, userRole }) => {
 
   return (
     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-      📋 {count} Rx
+      📋 {count} {t("components_Prescription_PrescriptionModal.text_rx")}
     </span>
   );
 };

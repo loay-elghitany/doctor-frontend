@@ -6,6 +6,7 @@ import {
   useCallback,
   useMemo,
 } from "react";
+import i18n from "../i18n";
 import { setupInterceptors } from "../services/api";
 import {
   setAuthToken,
@@ -49,6 +50,18 @@ export const AuthProvider = ({ children }) => {
     window.location.href = "/login";
   }, []);
 
+  const getPersistedLanguage = () => localStorage.getItem("i18nextLng");
+
+  const applyRoleLanguage = (roleLower) => {
+    if (getPersistedLanguage()) {
+      return;
+    }
+
+    const defaultLanguage = roleLower === "doctor" ? "en" : "ar";
+    i18n.changeLanguage(defaultLanguage);
+    localStorage.setItem("i18nextLng", defaultLanguage);
+  };
+
   useEffect(() => {
     setupInterceptors(logout);
 
@@ -68,12 +81,15 @@ export const AuthProvider = ({ children }) => {
       if (role === "doctor") {
         response = await authService.getDoctorProfile();
         setUserRole("doctor");
+        applyRoleLanguage("doctor");
       } else if (role === "secretary") {
         response = await authService.getSecretaryProfile();
         setUserRole("secretary");
+        applyRoleLanguage("secretary");
       } else if (role === "patient") {
         response = await authService.getPatientProfile();
         setUserRole("patient");
+        applyRoleLanguage("patient");
       } else {
         throw new Error(`Unsupported role '${role}'`);
       }
@@ -201,6 +217,12 @@ export const AuthProvider = ({ children }) => {
 
       setUser(profileResponse.data.data);
       setIsAuthenticated(true);
+      // Ensure UI language reflects role preference only if the user has not yet selected an override.
+      try {
+        applyRoleLanguage(String(role).toLowerCase());
+      } catch (lngErr) {
+        debugError("AuthContext:i18n", "Failed to set language", lngErr);
+      }
       debugLog("AuthContext:login", "Login completed successfully");
       return profileResponse.data.data;
     } catch (err) {

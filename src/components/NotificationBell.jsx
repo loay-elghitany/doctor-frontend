@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -81,6 +82,7 @@ const notificationIcons = {
 };
 
 export const NotificationBell = () => {
+  const { t } = useTranslation();
   const {
     notifications,
     unreadCount,
@@ -152,7 +154,9 @@ export const NotificationBell = () => {
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         className="relative flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-        aria-label="Notifications"
+        aria-label={t(
+          "components_NotificationBell.attr_aria_label_notifications",
+        )}
       >
         <Bell size={20} className={isConnected ? "" : "opacity-50"} />
 

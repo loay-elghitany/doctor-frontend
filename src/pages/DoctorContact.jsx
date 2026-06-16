@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
@@ -11,6 +12,7 @@ import { debugLog, debugError } from "../utils/debug";
  * Accessible to all users (no authentication required)
  */
 export const DoctorContact = () => {
+  const { t } = useTranslation();
   const { doctorId } = useParams();
   const [doctor, setDoctor] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +53,9 @@ export const DoctorContact = () => {
     return (
       <MainLayout>
         <div className="text-center py-12">
-          <p className="text-gray-500">Loading contact information...</p>
+          <p className="text-gray-500">
+            {t("pages_DoctorContact.text_loading_contact_information")}
+          </p>
         </div>
       </MainLayout>
     );
@@ -84,7 +88,8 @@ export const DoctorContact = () => {
     <MainLayout>
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-          Contact Dr. {doctor.name}
+          {t("pages_DoctorContact.text_contact_dr")}
+          {doctor.name}
         </h1>
 
         <div className="card">
@@ -113,7 +118,9 @@ export const DoctorContact = () => {
 
                 {doctor.publicContactInfo.email && (
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <h3 className="font-medium text-gray-900 mb-2">Email</h3>
+                    <h3 className="font-medium text-gray-900 mb-2">
+                      {t("pages_DoctorContact.text_email")}
+                    </h3>
                     <a
                       href={`mailto:${doctor.publicContactInfo.email}`}
                       className="text-lg text-green-600 hover:text-green-800 font-semibold break-all"
@@ -125,7 +132,9 @@ export const DoctorContact = () => {
 
                 {doctor.publicContactInfo.whatsApp && (
                   <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                    <h3 className="font-medium text-gray-900 mb-2">WhatsApp</h3>
+                    <h3 className="font-medium text-gray-900 mb-2">
+                      {t("pages_DoctorContact.text_whatsapp")}
+                    </h3>
                     <a
                       href={`https://wa.me/${doctor.publicContactInfo.whatsApp.replace(/\D/g, "")}`}
                       target="_blank"
@@ -150,7 +159,9 @@ export const DoctorContact = () => {
               {/* Website */}
               {doctor.publicContactInfo.website && (
                 <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h3 className="font-medium text-gray-900 mb-2">Website</h3>
+                  <h3 className="font-medium text-gray-900 mb-2">
+                    {t("pages_DoctorContact.text_website")}
+                  </h3>
                   <a
                     href={doctor.publicContactInfo.website}
                     target="_blank"
@@ -168,7 +179,7 @@ export const DoctorContact = () => {
                 doctor.publicContactInfo.twitter) && (
                 <div className="border-t pt-6">
                   <h3 className="font-semibold text-gray-900 mb-4">
-                    Follow on Social Media
+                    {t("pages_DoctorContact.text_follow_on_social_media")}
                   </h3>
                   <div className="flex flex-wrap gap-4">
                     {doctor.publicContactInfo.facebook && (
@@ -178,7 +189,7 @@ export const DoctorContact = () => {
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       >
-                        Facebook
+                        {t("pages_DoctorContact.text_facebook")}
                       </a>
                     )}
                     {doctor.publicContactInfo.instagram && (
@@ -188,7 +199,7 @@ export const DoctorContact = () => {
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition-colors"
                       >
-                        Instagram
+                        {t("pages_DoctorContact.text_instagram")}
                       </a>
                     )}
                     {doctor.publicContactInfo.twitter && (
@@ -198,7 +209,7 @@ export const DoctorContact = () => {
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors"
                       >
-                        Twitter
+                        {t("pages_DoctorContact.text_twitter")}
                       </a>
                     )}
                   </div>
@@ -211,7 +222,7 @@ export const DoctorContact = () => {
                   href={`/doctor/${doctorId}/about`}
                   className="text-blue-600 hover:text-blue-800 font-medium"
                 >
-                  ← Back to About
+                  {t("pages_DoctorContact.text_back_to_about")}
                 </a>
               </div>
             </div>

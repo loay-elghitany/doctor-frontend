@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
@@ -28,6 +29,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { GuidedTour } from "../components/GuidedTour";
+import { IntakeFormViewModal } from "../components/IntakeFormViewModal";
 import {
   GlassCard,
   BentoGridItem,
@@ -70,6 +72,7 @@ const DOCTOR_TOUR_STEPS = [
 ];
 
 export const DoctorDashboard = () => {
+  const { t } = useTranslation();
   const [stats, setStats] = useState({
     today: 0,
     pending: 0,
@@ -102,6 +105,9 @@ export const DoctorDashboard = () => {
   const [previewModal, setPreviewModal] = useState(null);
   const [imageZoom, setImageZoom] = useState(1);
   const [imageRotation, setImageRotation] = useState(0);
+  const [intakeFormModalOpen, setIntakeFormModalOpen] = useState(false);
+  const [selectedAppointmentForIntake, setSelectedAppointmentForIntake] =
+    useState(null);
 
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -442,7 +448,9 @@ export const DoctorDashboard = () => {
                     transition={{ delay: 0.3 }}
                     className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
                   >
-                    Dr. {welcomeName}
+                    {t("pages_DoctorDashboard.text_dr")}
+
+                    {welcomeName}
                   </motion.h1>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -662,16 +670,19 @@ export const DoctorDashboard = () => {
                 المواعيد القادمة
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                الأيام 7 القادمة من المواعيد المجدولة
+                {t("pages_DoctorDashboard.text_7")}
               </p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3">
               <PremiumSearch
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search patients..."
+                placeholder={t(
+                  "pages_DoctorDashboard.attr_placeholder_search_patients",
+                )}
                 className="max-w-xs"
               />
+
               <button
                 onClick={() => navigate("/doctor/appointments")}
                 className="btn-premium btn-premium-primary px-4 py-2 flex items-center gap-2"
@@ -709,9 +720,23 @@ export const DoctorDashboard = () => {
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center text-white font-semibold">
                           {patientName.charAt(0).toUpperCase()}
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900 dark:text-white">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                             {patientName}
+                            {apt.intakeForm && (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedAppointmentForIntake(apt);
+                                  setIntakeFormModalOpen(true);
+                                }}
+                                className="px-2 py-1 rounded-md bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold shadow-lg hover:shadow-xl transition"
+                              >
+                                📄 فحص السكرتارية
+                              </motion.button>
+                            )}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
                             {new Date(apt.date).toLocaleDateString("ar-EG", {
@@ -864,12 +889,14 @@ export const DoctorDashboard = () => {
                     <iframe
                       src={previewModal.fileUrl}
                       className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
-                      title="PDF Preview"
+                      title={t("pages_DoctorDashboard.attr_title_pdf_preview")}
                     />
                   ) : (
                     <img
                       src={previewModal.fileUrl}
-                      alt="Scanned Prescription"
+                      alt={t(
+                        "pages_DoctorDashboard.attr_alt_scanned_prescription",
+                      )}
                       className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
                       style={{
                         transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
@@ -920,13 +947,23 @@ export const DoctorDashboard = () => {
                     className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md"
                   >
                     <Download className="w-4 h-4" />
-                    تحميل PDF
+                    {t("pages_DoctorDashboard.text_pdf")}
                   </a>
                 </div>
               </div>
             </div>
           </div>
         )}
+
+        {/* Intake Form Modal */}
+        <IntakeFormViewModal
+          isOpen={intakeFormModalOpen}
+          onClose={() => {
+            setIntakeFormModalOpen(false);
+            setSelectedAppointmentForIntake(null);
+          }}
+          appointment={selectedAppointmentForIntake}
+        />
 
         <GuidedTour
           isOpen={tourOpen}

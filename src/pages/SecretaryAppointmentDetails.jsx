@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
@@ -11,6 +12,7 @@ import { debugLog, debugError } from "../utils/debug";
  * SecretaryAppointmentDetails - Display detailed view of a specific appointment
  */
 export const SecretaryAppointmentDetails = () => {
+  const { t } = useTranslation();
   const { id: appointmentId } = useParams();
   const navigate = useNavigate();
 
@@ -131,7 +133,7 @@ export const SecretaryAppointmentDetails = () => {
               variant="secondary"
               onClick={() => navigate("/secretary/appointments")}
             >
-              Back to Appointments
+              {t("pages_SecretaryAppointmentDetails.text_back_to_appointments")}
             </Button>
           </div>
         </div>
@@ -147,7 +149,7 @@ export const SecretaryAppointmentDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Name
+                  {t("pages_SecretaryAppointmentDetails.text_name")}
                 </label>
                 <p className="mt-1 text-sm text-gray-900 dark:text-white">
                   {appointment?.patientId?.name || "—"}
@@ -155,7 +157,7 @@ export const SecretaryAppointmentDetails = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Email
+                  {t("pages_SecretaryAppointmentDetails.text_email")}
                 </label>
                 <p className="mt-1 text-sm text-gray-900 dark:text-white">
                   {appointment?.patientId?.email || "—"}
@@ -176,7 +178,7 @@ export const SecretaryAppointmentDetails = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Date
+                  {t("pages_SecretaryAppointmentDetails.text_date")}
                 </label>
                 <p className="mt-1 text-sm text-gray-900 dark:text-white">
                   {formatDateSafe(appointment?.date)}
@@ -184,7 +186,7 @@ export const SecretaryAppointmentDetails = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Time Slot
+                  {t("pages_SecretaryAppointmentDetails.text_time_slot")}
                 </label>
                 <p className="mt-1 text-sm text-gray-900 dark:text-white">
                   {appointment?.timeSlot || "—"}
@@ -192,7 +194,7 @@ export const SecretaryAppointmentDetails = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Status
+                  {t("pages_SecretaryAppointmentDetails.text_status")}
                 </label>
                 <div className="mt-1">
                   <Badge variant={getStatusColor(appointment?.status)}>

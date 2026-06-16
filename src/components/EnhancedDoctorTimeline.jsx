@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import {
   Calendar,
@@ -18,6 +19,7 @@ import {
  * Features: Collapsible events, new event highlighting, patient search, filtering
  */
 const EnhancedDoctorTimeline = () => {
+  const { t } = useTranslation();
   const [events, setEvents] = useState([]);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -253,7 +255,8 @@ const EnhancedDoctorTimeline = () => {
             <Zap className="text-blue-600 mt-0.5" size={20} />
             <div>
               <p className="font-medium text-blue-800">
-                {pagination.newEventsCount} New Event
+                {pagination.newEventsCount}
+                {t("components_EnhancedDoctorTimeline.text_new_event")}
                 {pagination.newEventsCount !== 1 ? "s" : ""}
               </p>
               <p className="text-blue-700 text-sm">
@@ -314,10 +317,30 @@ const EnhancedDoctorTimeline = () => {
                 onChange={handleFilterChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="all">جميع الأحداث</option>
-                <option value="appointment">المواعيد</option>
-                <option value="prescription">الروشتات</option>
-                <option value="note">ملاحظات الطبيب</option>
+                <option
+                  value={t("components_EnhancedDoctorTimeline.attr_value_all")}
+                >
+                  جميع الأحداث
+                </option>
+                <option
+                  value={t(
+                    "components_EnhancedDoctorTimeline.attr_value_appointment",
+                  )}
+                >
+                  المواعيد
+                </option>
+                <option
+                  value={t(
+                    "components_EnhancedDoctorTimeline.attr_value_prescription",
+                  )}
+                >
+                  الروشتات
+                </option>
+                <option
+                  value={t("components_EnhancedDoctorTimeline.attr_value_note")}
+                >
+                  ملاحظات الطبيب
+                </option>
               </select>
             </div>
 
@@ -330,7 +353,9 @@ const EnhancedDoctorTimeline = () => {
                 <input
                   type="text"
                   name="searchText"
-                  placeholder="Search patient or event..."
+                  placeholder={t(
+                    "components_EnhancedDoctorTimeline.attr_placeholder_search_patient_or_event",
+                  )}
                   value={filters.searchText}
                   onChange={handleFilterChange}
                   onKeyPress={(e) => {
@@ -338,6 +363,7 @@ const EnhancedDoctorTimeline = () => {
                   }}
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+
                 <button
                   onClick={handleSearch}
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none"
@@ -381,13 +407,16 @@ const EnhancedDoctorTimeline = () => {
                 className="animate-spin mx-auto text-blue-600"
                 size={32}
               />
+
               <p className="mt-2 text-gray-600">تحميل رجاءً الانتظار...</p>
             </div>
           ) : error ? (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
               <AlertCircle className="text-red-600 mt-0.5" size={20} />
               <div>
-                <p className="font-medium text-red-800">Error</p>
+                <p className="font-medium text-red-800">
+                  {t("components_EnhancedDoctorTimeline.text_error")}
+                </p>
                 <p className="text-red-700 text-sm">{error}</p>
               </div>
             </div>

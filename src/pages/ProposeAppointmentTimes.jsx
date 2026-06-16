@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
@@ -13,6 +14,7 @@ import { debugLog, debugError } from "../utils/debug";
 const MAX_RESCHEDULE_OPTIONS = 5;
 
 export const ProposeAppointmentTimes = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -129,7 +131,8 @@ export const ProposeAppointmentTimes = () => {
         <Card>
           <form onSubmit={handleSubmit} className="space-y-6">
             <p className="text-gray-600 mb-4">
-              اقترح بين 1 و {MAX_RESCHEDULE_OPTIONS} خيارات زمنية للمرضى للاختيار منها.
+              {t("pages_ProposeAppointmentTimes.text_1")}
+              {MAX_RESCHEDULE_OPTIONS} خيارات زمنية للمرضى للاختيار منها.
             </p>
 
             {options.map((option, index) => (
@@ -154,7 +157,7 @@ export const ProposeAppointmentTimes = () => {
                 </div>
                 <div className="space-y-4">
                   <Input
-                    label="Date"
+                    label={t("pages_ProposeAppointmentTimes.attr_label_date")}
                     type="date"
                     value={option.date}
                     onChange={(e) =>
@@ -163,8 +166,11 @@ export const ProposeAppointmentTimes = () => {
                     required
                     disabled={loading}
                   />
+
                   <Input
-                    label="Time Slot"
+                    label={t(
+                      "pages_ProposeAppointmentTimes.attr_label_time_slot",
+                    )}
                     type="select"
                     value={option.timeSlot}
                     onChange={(e) =>
@@ -173,15 +179,69 @@ export const ProposeAppointmentTimes = () => {
                     required
                     disabled={loading}
                   >
-                    <option value="09:00">09:00 AM</option>
-                    <option value="10:00">10:00 AM</option>
-                    <option value="11:00">11:00 AM</option>
-                    <option value="12:00">12:00 PM</option>
-                    <option value="13:00">1:00 PM</option>
-                    <option value="14:00">2:00 PM</option>
-                    <option value="15:00">3:00 PM</option>
-                    <option value="16:00">4:00 PM</option>
-                    <option value="17:00">5:00 PM</option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_09_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_09_00_am")}
+                    </option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_10_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_10_00_am")}
+                    </option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_11_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_11_00_am")}
+                    </option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_12_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_12_00_pm")}
+                    </option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_13_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_1_00_pm")}
+                    </option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_14_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_2_00_pm")}
+                    </option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_15_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_3_00_pm")}
+                    </option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_16_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_4_00_pm")}
+                    </option>
+                    <option
+                      value={t(
+                        "pages_ProposeAppointmentTimes.attr_value_17_00",
+                      )}
+                    >
+                      {t("pages_ProposeAppointmentTimes.text_5_00_pm")}
+                    </option>
                   </Input>
                 </div>
               </div>

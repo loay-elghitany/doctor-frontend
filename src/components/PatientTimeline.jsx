@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import { Spinner, Alert } from "./ui";
 import { getPatientTimeline } from "../services/timelineService";
@@ -9,6 +10,7 @@ import WhatsAppButton from "./WhatsAppButton";
  * Displays aggregated appointments and prescriptions in chronological order
  */
 export const PatientTimeline = () => {
+  const { t } = useTranslation();
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -82,7 +84,9 @@ export const PatientTimeline = () => {
           الجدول الزمني الطبي
         </h2>
         <p className="text-gray-600 text-sm mt-1">
-          {timeline.length} record{timeline.length !== 1 ? "s" : ""}
+          {timeline.length}
+          {t("components_PatientTimeline.text_record")}
+          {timeline.length !== 1 ? "s" : ""}
         </p>
       </div>
 
@@ -145,7 +149,9 @@ export const PatientTimeline = () => {
                     <div className="bg-gray-50 p-3 rounded space-y-2 text-sm">
                       <div>
                         <p className="text-gray-600">
-                          <span className="font-medium">Doctor:</span>{" "}
+                          <span className="font-medium">
+                            {t("components_PatientTimeline.text_doctor")}
+                          </span>{" "}
                           {metadata.doctorName || "Unknown"}
                         </p>
                         {metadata.doctorSpecialization && (
@@ -158,14 +164,18 @@ export const PatientTimeline = () => {
 
                       <div>
                         <p className="text-gray-600">
-                          <span className="font-medium">Time:</span>{" "}
+                          <span className="font-medium">
+                            {t("components_PatientTimeline.text_time")}
+                          </span>{" "}
                           {metadata.timeSlot || "—"}
                         </p>
                       </div>
 
                       <div>
                         <p className="text-gray-600">
-                          <span className="font-medium">Status:</span>
+                          <span className="font-medium">
+                            {t("components_PatientTimeline.text_status")}
+                          </span>
                           <span
                             className={`inline-block ml-2 px-2 py-0.5 rounded text-xs font-medium ${
                               metadata.status === "confirmed"

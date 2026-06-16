@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback } from "react";
 import {
   LineChart,
@@ -29,6 +30,7 @@ import { createAdminService } from "../services/adminService";
  * Features: KPIs, top doctors, trends, alerts, CSV export
  */
 const AdminAnalyticsDashboard = () => {
+  const { t } = useTranslation();
   const [analytics, setAnalytics] = useState(null);
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -139,10 +141,14 @@ const AdminAnalyticsDashboard = () => {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-800">
-            Notification Analytics Dashboard
+            {t(
+              "components_AdminAnalyticsDashboard.text_notification_analytics_dashboard",
+            )}
           </h1>
           <p className="text-gray-600 mt-2">
-            Monitor notification delivery, system health, and user engagement
+            {t(
+              "components_AdminAnalyticsDashboard.text_monitor_notification_delivery_system_hea",
+            )}
           </p>
         </div>
 
@@ -151,7 +157,9 @@ const AdminAnalyticsDashboard = () => {
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
             <AlertCircle className="text-red-600 mt-0.5" size={20} />
             <div>
-              <p className="font-medium text-red-800">Error</p>
+              <p className="font-medium text-red-800">
+                {t("components_AdminAnalyticsDashboard.text_error")}
+              </p>
               <p className="text-red-700 text-sm">{error}</p>
             </div>
           </div>
@@ -162,7 +170,7 @@ const AdminAnalyticsDashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Start Date
+                {t("components_AdminAnalyticsDashboard.text_start_date")}
               </label>
               <input
                 type="date"
@@ -176,7 +184,7 @@ const AdminAnalyticsDashboard = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                End Date
+                {t("components_AdminAnalyticsDashboard.text_end_date")}
               </label>
               <input
                 type="date"
@@ -190,7 +198,7 @@ const AdminAnalyticsDashboard = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Trend Period
+                {t("components_AdminAnalyticsDashboard.text_trend_period")}
               </label>
               <select
                 value={dateRange.period}
@@ -199,9 +207,27 @@ const AdminAnalyticsDashboard = () => {
                 }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
+                <option
+                  value={t(
+                    "components_AdminAnalyticsDashboard.attr_value_daily",
+                  )}
+                >
+                  {t("components_AdminAnalyticsDashboard.text_daily")}
+                </option>
+                <option
+                  value={t(
+                    "components_AdminAnalyticsDashboard.attr_value_weekly",
+                  )}
+                >
+                  {t("components_AdminAnalyticsDashboard.text_weekly")}
+                </option>
+                <option
+                  value={t(
+                    "components_AdminAnalyticsDashboard.attr_value_monthly",
+                  )}
+                >
+                  {t("components_AdminAnalyticsDashboard.text_monthly")}
+                </option>
               </select>
             </div>
 
@@ -213,12 +239,12 @@ const AdminAnalyticsDashboard = () => {
               {exporting ? (
                 <>
                   <Loader className="animate-spin" size={18} />
-                  Exporting...
+                  {t("components_AdminAnalyticsDashboard.text_exporting")}
                 </>
               ) : (
                 <>
                   <Download size={18} />
-                  Export CSV
+                  {t("components_AdminAnalyticsDashboard.text_export_csv")}
                 </>
               )}
             </button>
@@ -231,7 +257,9 @@ const AdminAnalyticsDashboard = () => {
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Total</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminAnalyticsDashboard.text_total")}
+                  </p>
                   <p className="text-2xl font-bold text-blue-600">
                     {analytics.kpis.total}
                   </p>
@@ -243,7 +271,9 @@ const AdminAnalyticsDashboard = () => {
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Sent</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminAnalyticsDashboard.text_sent")}
+                  </p>
                   <p className="text-2xl font-bold text-green-600">
                     {analytics.kpis.sent}
                   </p>
@@ -255,7 +285,9 @@ const AdminAnalyticsDashboard = () => {
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Failed</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminAnalyticsDashboard.text_failed")}
+                  </p>
                   <p className="text-2xl font-bold text-red-600">
                     {analytics.kpis.failed}
                   </p>
@@ -267,7 +299,9 @@ const AdminAnalyticsDashboard = () => {
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Pending</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminAnalyticsDashboard.text_pending")}
+                  </p>
                   <p className="text-2xl font-bold text-yellow-600">
                     {analytics.kpis.pending}
                   </p>
@@ -279,7 +313,9 @@ const AdminAnalyticsDashboard = () => {
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-600 text-sm">Delivery Rate</p>
+                  <p className="text-gray-600 text-sm">
+                    {t("components_AdminAnalyticsDashboard.text_delivery_rate")}
+                  </p>
                   <p className="text-2xl font-bold text-purple-600">
                     {analytics.kpis.overallDeliveryRate?.toFixed(1)}%
                   </p>
@@ -300,7 +336,9 @@ const AdminAnalyticsDashboard = () => {
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle className="text-red-600" size={20} />
                     <h3 className="font-bold text-red-800">
-                      High Priority Failures
+                      {t(
+                        "components_AdminAnalyticsDashboard.text_high_priority_failures",
+                      )}
                     </h3>
                   </div>
                   <div className="space-y-2">
@@ -309,10 +347,20 @@ const AdminAnalyticsDashboard = () => {
                       .map((alert, i) => (
                         <div key={i} className="text-sm text-red-700">
                           <p className="font-medium">
-                            Doctor ID: {alert.doctorId} - {alert.failureCount}{" "}
-                            failures
+                            {t(
+                              "components_AdminAnalyticsDashboard.text_doctor_id",
+                            )}
+                            {alert.doctorId} - {alert.failureCount}{" "}
+                            {t(
+                              "components_AdminAnalyticsDashboard.text_failures",
+                            )}
                           </p>
-                          <p>Retry Count: {alert.maxRetryCount}</p>
+                          <p>
+                            {t(
+                              "components_AdminAnalyticsDashboard.text_retry_count",
+                            )}
+                            {alert.maxRetryCount}
+                          </p>
                         </div>
                       ))}
                   </div>
@@ -326,7 +374,9 @@ const AdminAnalyticsDashboard = () => {
                   <div className="flex items-center gap-2 mb-3">
                     <AlertTriangle className="text-orange-600" size={20} />
                     <h3 className="font-bold text-orange-800">
-                      Consecutive Failures (≥5)
+                      {t(
+                        "components_AdminAnalyticsDashboard.text_consecutive_failures_5",
+                      )}
                     </h3>
                   </div>
                   <div className="space-y-2">
@@ -335,10 +385,20 @@ const AdminAnalyticsDashboard = () => {
                       .map((alert, i) => (
                         <div key={i} className="text-sm text-orange-700">
                           <p className="font-medium">
-                            Doctor ID: {alert.doctorId} -{" "}
-                            {alert.consecutiveCount} consecutive
+                            {t(
+                              "components_AdminAnalyticsDashboard.text_doctor_id_1",
+                            )}
+                            {alert.doctorId} - {alert.consecutiveCount}
+                            {t(
+                              "components_AdminAnalyticsDashboard.text_consecutive",
+                            )}
                           </p>
-                          <p>Last Status: {alert.lastStatus}</p>
+                          <p>
+                            {t(
+                              "components_AdminAnalyticsDashboard.text_last_status",
+                            )}
+                            {alert.lastStatus}
+                          </p>
                         </div>
                       ))}
                   </div>
@@ -353,7 +413,9 @@ const AdminAnalyticsDashboard = () => {
           {trends && trends.length > 0 && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">
-                Notification Trends
+                {t(
+                  "components_AdminAnalyticsDashboard.text_notification_trends",
+                )}
               </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={trends}>
@@ -368,12 +430,14 @@ const AdminAnalyticsDashboard = () => {
                     stroke="#10b981"
                     name="Sent"
                   />
+
                   <Line
                     type="monotone"
                     dataKey="failed"
                     stroke="#ef4444"
                     name="Failed"
                   />
+
                   <Line
                     type="monotone"
                     dataKey="pending"
@@ -389,7 +453,9 @@ const AdminAnalyticsDashboard = () => {
           {analytics?.typeBreakdown && (
             <div className="bg-white rounded-lg shadow p-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">
-                Notification Types
+                {t(
+                  "components_AdminAnalyticsDashboard.text_notification_types",
+                )}
               </h3>
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
@@ -425,23 +491,29 @@ const AdminAnalyticsDashboard = () => {
         {analytics?.topDoctors && analytics.topDoctors.length > 0 && (
           <div className="bg-white rounded-lg shadow p-6 mb-8">
             <h3 className="text-lg font-bold text-gray-800 mb-4">
-              Top Doctors by Notifications
+              {t(
+                "components_AdminAnalyticsDashboard.text_top_doctors_by_notifications",
+              )}
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-2 px-4 text-gray-700 font-bold">
-                      Doctor
+                      {t("components_AdminAnalyticsDashboard.text_doctor")}
                     </th>
                     <th className="text-right py-2 px-4 text-gray-700 font-bold">
-                      Total Notifications
+                      {t(
+                        "components_AdminAnalyticsDashboard.text_total_notifications",
+                      )}
                     </th>
                     <th className="text-right py-2 px-4 text-gray-700 font-bold">
-                      Delivery Rate
+                      {t(
+                        "components_AdminAnalyticsDashboard.text_delivery_rate_1",
+                      )}
                     </th>
                     <th className="text-right py-2 px-4 text-gray-700 font-bold">
-                      Failed
+                      {t("components_AdminAnalyticsDashboard.text_failed_1")}
                     </th>
                   </tr>
                 </thead>
@@ -485,7 +557,7 @@ const AdminAnalyticsDashboard = () => {
         {analytics?.activePatients && analytics.activePatients.length > 0 && (
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-4">
-              Top Active Patients
+              {t("components_AdminAnalyticsDashboard.text_top_active_patients")}
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {analytics.activePatients.slice(0, 6).map((patient) => (
@@ -501,7 +573,8 @@ const AdminAnalyticsDashboard = () => {
                   </p>
                   <p className="text-sm text-gray-600">{patient.email}</p>
                   <p className="mt-2 text-lg font-bold text-blue-600">
-                    {patient.notificationsReceived} notifications
+                    {patient.notificationsReceived}
+                    {t("components_AdminAnalyticsDashboard.text_notifications")}
                   </p>
                 </div>
               ))}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
@@ -21,6 +22,7 @@ import { getAppointmentPermissions } from "../utils/appointmentPermissions.js";
 import { debugLog, debugError } from "../utils/debug";
 import { PrescriptionModal } from "../components/Prescription/PrescriptionModal";
 import { RescheduleModal } from "../components/appointments/RescheduleModal.jsx";
+import { IntakeFormViewModal } from "../components/IntakeFormViewModal";
 import { formatDateSafe } from "../utils/date/formatDateSafe";
 import {
   CalendarDays,
@@ -42,6 +44,7 @@ import {
  * Allows secretary to view and manage appointments (similar to doctor but read-only for some actions)
  */
 export const SecretaryAppointmentsList = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [appointments, setAppointments] = useState([]);
@@ -52,8 +55,89 @@ export const SecretaryAppointmentsList = () => {
   const [actionLoading, setActionLoading] = useState({});
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+  const [intakeViewAppointment, setIntakeViewAppointment] = useState(null);
+  const [intakeEditAppointment, setIntakeEditAppointment] = useState(null);
+  const [intakeEditForm, setIntakeEditForm] = useState(null);
+  const [intakeEditLoading, setIntakeEditLoading] = useState(false);
 
   const tabs = buildStatusTabs(appointments);
+
+  const canEditIntake = (status) => {
+    const normalized = normalizeStatus(status);
+    return ["pending", "scheduled", "confirmed"].includes(normalized);
+  };
+
+  const toIntakeFormState = (existing) => ({
+    chiefComplaint: existing?.chiefComplaint || "",
+    vitals: {
+      bloodPressure: existing?.vitals?.bloodPressure || "",
+      diabetes: existing?.vitals?.diabetes || "",
+    },
+    medicalHistory: {
+      smoking: Boolean(existing?.medicalHistory?.smoking),
+      heartSurgeries: existing?.medicalHistory?.heartSurgeries || "",
+      familyHeartHistory: existing?.medicalHistory?.familyHeartHistory || "",
+      chestProblems: existing?.medicalHistory?.chestProblems || "",
+    },
+    allergies: existing?.allergies || "",
+    pregnancyOrLactation: existing?.pregnancyOrLactation || "",
+  });
+
+  const openIntakeEdit = (appointment) => {
+    setIntakeEditAppointment(appointment);
+    setIntakeEditForm(toIntakeFormState(appointment?.intakeForm));
+  };
+
+  const handleSaveIntakeForm = async () => {
+    if (!intakeEditAppointment?._id || !intakeEditForm) return;
+
+    setIntakeEditLoading(true);
+    setError("");
+    setSuccess("");
+
+    const payload = {
+      chiefComplaint: intakeEditForm.chiefComplaint.trim(),
+      vitals: {
+        bloodPressure: intakeEditForm.vitals.bloodPressure.trim(),
+        diabetes: intakeEditForm.vitals.diabetes.trim(),
+      },
+      medicalHistory: {
+        smoking: intakeEditForm.medicalHistory.smoking,
+        heartSurgeries: intakeEditForm.medicalHistory.heartSurgeries.trim(),
+        familyHeartHistory:
+          intakeEditForm.medicalHistory.familyHeartHistory.trim(),
+        chestProblems: intakeEditForm.medicalHistory.chestProblems.trim(),
+      },
+      allergies: intakeEditForm.allergies.trim(),
+      pregnancyOrLactation: intakeEditForm.pregnancyOrLactation.trim(),
+    };
+
+    try {
+      const response = await appointmentService.updateIntakeForm(
+        intakeEditAppointment._id,
+        payload,
+      );
+      const updatedAppointment = response.data?.data;
+      if (updatedAppointment) {
+        setAppointments((prev) =>
+          prev.map((item) =>
+            item?._id === updatedAppointment._id ? updatedAppointment : item,
+          ),
+        );
+      }
+      setSuccess(
+        t("pages_SecretaryAppointmentsList.text_intake_saved", {
+          defaultValue: "تم حفظ استمارة الفحص بنجاح.",
+        }),
+      );
+      setIntakeEditAppointment(null);
+      setIntakeEditForm(null);
+    } catch (err) {
+      handleActionError(err, "Failed to save intake form.");
+    } finally {
+      setIntakeEditLoading(false);
+    }
+  };
 
   // Fetch secretary appointments on mount
   const fetchAppointments = async () => {
@@ -115,7 +199,7 @@ export const SecretaryAppointmentsList = () => {
           ),
         );
       }
-      setSuccess("Appointment scheduled successfully.");
+      setSuccess(t("appointment_scheduled"));
     } catch (err) {
       handleActionError(err, "Failed to confirm appointment.");
     } finally {
@@ -139,7 +223,7 @@ export const SecretaryAppointmentsList = () => {
           ),
         );
       }
-      setSuccess("Appointment cancelled successfully.");
+      setSuccess(t("appointment_cancelled"));
     } catch (err) {
       handleActionError(err, "Failed to cancel appointment.");
     } finally {
@@ -233,6 +317,7 @@ export const SecretaryAppointmentsList = () => {
     );
     switch (normalizedStatus) {
       case "confirmed":
+      case "scheduled":
         return "success";
       case "pending":
         return "warning";
@@ -315,7 +400,7 @@ export const SecretaryAppointmentsList = () => {
                 navigate(`/secretary/appointments/${appointment?._id}`)
               }
             >
-              View
+              {t("pages_SecretaryAppointmentsList.text_view")}
             </Button>
             {permissions.canConfirm && (
               <Button
@@ -325,8 +410,8 @@ export const SecretaryAppointmentsList = () => {
                 onClick={() => handleConfirmAppointment(appointment._id)}
               >
                 {isRowLoading(appointment._id, "confirm")
-                  ? "Confirming..."
-                  : "Confirm"}
+                  ? t("secretary_appointments.actions.confirming")
+                  : t("secretary_appointments.actions.confirm")}
               </Button>
             )}
             {permissions.canCancel && (
@@ -349,8 +434,8 @@ export const SecretaryAppointmentsList = () => {
                 onClick={() => handleMarkCompleted(appointment._id)}
               >
                 {isRowLoading(appointment._id, "complete")
-                  ? "Completing..."
-                  : "Complete"}
+                  ? t("secretary_appointments.actions.completing")
+                  : t("secretary_appointments.actions.complete")}
               </Button>
             )}
             {permissions.canReschedule && (
@@ -408,19 +493,19 @@ export const SecretaryAppointmentsList = () => {
 
   const statCards = [
     {
-      title: "Total",
+      title: t("secretary_appointments.stats.total"),
       value: stats.total,
       icon: CalendarDays,
       gradient: "from-blue-500 to-cyan-400",
     },
     {
-      title: "Upcoming",
+      title: t("secretary_appointments.stats.upcoming"),
       value: stats.upcoming,
       icon: Clock,
       gradient: "from-emerald-500 to-green-400",
     },
     {
-      title: "Pending",
+      title: t("secretary_appointments.stats.pending"),
       value: stats.pending,
       icon: Filter,
       gradient: "from-amber-500 to-orange-400",
@@ -430,17 +515,17 @@ export const SecretaryAppointmentsList = () => {
   const quickActions = [
     {
       icon: Plus,
-      label: "New",
+      label: t("secretary_appointments.actions.new"),
       onClick: () => navigate("/secretary/appointments/new"),
     },
     {
       icon: Stethoscope,
-      label: "Patients",
+      label: t("secretary_appointments.actions.patients"),
       onClick: () => navigate("/secretary/patients"),
     },
     {
       icon: RotateCcw,
-      label: "Refresh",
+      label: t("secretary_appointments.actions.refresh"),
       onClick: fetchAppointments,
     },
   ];
@@ -465,7 +550,7 @@ export const SecretaryAppointmentsList = () => {
                     transition={{ delay: 0.2 }}
                     className="text-sm uppercase tracking-[0.32em] text-amber-600 dark:text-amber-400 mb-3 font-semibold"
                   >
-                    Clinic Schedule
+                    {t("secretary_appointments.clinic_schedule")}
                   </motion.p>
                   <motion.h1
                     initial={{ opacity: 0, x: -20 }}
@@ -473,7 +558,7 @@ export const SecretaryAppointmentsList = () => {
                     transition={{ delay: 0.3 }}
                     className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
                   >
-                    Appointments
+                    {t("secretary_appointments.title")}
                   </motion.h1>
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -481,7 +566,7 @@ export const SecretaryAppointmentsList = () => {
                     transition={{ delay: 0.4 }}
                     className="mt-3 text-lg text-gray-600 dark:text-gray-300"
                   >
-                    Manage and schedule patient appointments for the clinic.
+                    {t("secretary_appointments.subtitle")}
                   </motion.p>
                 </div>
               </div>
@@ -566,7 +651,9 @@ export const SecretaryAppointmentsList = () => {
                     : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                 }`}
               >
-                {tab.label}
+                {tab.id === "all"
+                  ? t("secretary_appointments.tabs.all")
+                  : tab.label}
                 <span
                   className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
                     activeTab === tab.id
@@ -584,13 +671,17 @@ export const SecretaryAppointmentsList = () => {
         {/* Appointments List */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" message="Loading appointments..." />
+            <LoadingSpinner size="lg" message={t("appointments")} />
           </div>
         ) : filteredAppointments.length === 0 ? (
           <EmptyState
             icon={Calendar}
-            title="No appointments"
-            description={`No ${activeTab !== "all" ? activeTab : ""} appointments found.`}
+            title={t(
+              "pages_SecretaryAppointmentsList.attr_title_no_appointments",
+            )}
+            description={t("components_ui_DataDisplay.text_no_data_available", {
+              defaultValue: "لا توجد مواعيد مطابقة حالياً.",
+            })}
           />
         ) : (
           <div className="space-y-4">
@@ -601,6 +692,10 @@ export const SecretaryAppointmentsList = () => {
                 );
                 const patientName =
                   appointment.patientId?.name || "Unknown Patient";
+                const isWalkIn =
+                  appointment.createdBy === "secretary" &&
+                  (normalizeStatus(appointment.status) === "scheduled" ||
+                    normalizeStatus(appointment.status) === "confirmed");
 
                 return (
                   <motion.div
@@ -643,8 +738,48 @@ export const SecretaryAppointmentsList = () => {
                             }
                             size="md"
                           />
+                          {isWalkIn && (
+                            <span className="px-2 py-1 rounded-lg text-xs font-medium bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                              حضور مباشر
+                            </span>
+                          )}
 
                           <div className="flex items-center gap-2">
+                            {appointment.intakeForm && (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() =>
+                                  setIntakeViewAppointment(appointment)
+                                }
+                                className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition flex items-center gap-1"
+                              >
+                                <FileText className="w-4 h-4" />
+                                {t(
+                                  "pages_SecretaryAppointmentsList.text_intake_form",
+                                  { defaultValue: "استمارة الفحص" },
+                                )}
+                              </motion.button>
+                            )}
+                            {canEditIntake(appointment.status) && (
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => openIntakeEdit(appointment)}
+                                className="px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 text-sm font-medium hover:bg-purple-100 dark:hover:bg-purple-900/30 transition flex items-center gap-1"
+                              >
+                                <Stethoscope className="w-4 h-4" />
+                                {appointment.intakeForm
+                                  ? t(
+                                      "pages_SecretaryAppointmentsList.text_update_intake",
+                                      { defaultValue: "تحديث الفحص" },
+                                    )
+                                  : t(
+                                      "pages_SecretaryAppointmentsList.text_record_intake",
+                                      { defaultValue: "تسجيل الفحص" },
+                                    )}
+                              </motion.button>
+                            )}
                             {permissions.canConfirm && (
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -659,8 +794,10 @@ export const SecretaryAppointmentsList = () => {
                                 className="px-3 py-2 rounded-lg bg-emerald-500 text-white text-sm font-medium hover:bg-emerald-600 transition disabled:opacity-50"
                               >
                                 {isRowLoading(appointment._id, "confirm")
-                                  ? "..."
-                                  : "Confirm"}
+                                  ? t(
+                                      "secretary_appointments.actions.confirming",
+                                    )
+                                  : t("secretary_appointments.actions.confirm")}
                               </motion.button>
                             )}
 
@@ -676,7 +813,9 @@ export const SecretaryAppointmentsList = () => {
                                   "cancel",
                                 )}
                                 className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 transition disabled:opacity-50"
-                                title="Cancel"
+                                title={t(
+                                  "pages_SecretaryAppointmentsList.attr_title_cancel",
+                                )}
                               >
                                 <XCircle className="w-4 h-4" />
                               </motion.button>
@@ -693,7 +832,9 @@ export const SecretaryAppointmentsList = () => {
                                 )}
                                 className="px-3 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-sm font-medium hover:bg-amber-200 dark:hover:bg-amber-900/30 transition disabled:opacity-50"
                               >
-                                Reschedule
+                                {t(
+                                  "pages_SecretaryAppointmentsList.text_reschedule",
+                                )}
                               </motion.button>
                             )}
 
@@ -711,8 +852,12 @@ export const SecretaryAppointmentsList = () => {
                                 className="px-3 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium hover:bg-blue-600 transition disabled:opacity-50"
                               >
                                 {isRowLoading(appointment._id, "complete")
-                                  ? "Completing..."
-                                  : "Complete"}
+                                  ? t(
+                                      "secretary_appointments.actions.completing",
+                                    )
+                                  : t(
+                                      "secretary_appointments.actions.complete",
+                                    )}
                               </motion.button>
                             )}
 
@@ -728,7 +873,9 @@ export const SecretaryAppointmentsList = () => {
                                   "delete",
                                 )}
                                 className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition disabled:opacity-50"
-                                title="Delete"
+                                title={t(
+                                  "pages_SecretaryAppointmentsList.attr_title_delete",
+                                )}
                               >
                                 <Trash2 className="w-4 h-4" />
                               </motion.button>
@@ -740,7 +887,9 @@ export const SecretaryAppointmentsList = () => {
                       {appointment.notes && (
                         <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
                           <p className="text-sm text-gray-600 dark:text-gray-400">
-                            <span className="font-medium">Notes:</span>{" "}
+                            <span className="font-medium">
+                              {t("pages_SecretaryAppointmentsList.text_notes")}
+                            </span>{" "}
                             {appointment.notes}
                           </p>
                         </div>
@@ -766,6 +915,234 @@ export const SecretaryAppointmentsList = () => {
             setSuccess("Reschedule options proposed successfully.");
           }}
         />
+
+        <IntakeFormViewModal
+          isOpen={!!intakeViewAppointment}
+          onClose={() => setIntakeViewAppointment(null)}
+          appointment={intakeViewAppointment}
+        />
+
+        <Modal
+          isOpen={!!intakeEditAppointment}
+          onClose={() => {
+            if (intakeEditLoading) return;
+            setIntakeEditAppointment(null);
+            setIntakeEditForm(null);
+          }}
+          title={
+            intakeEditAppointment?.intakeForm
+              ? t("pages_SecretaryAppointmentsList.text_update_intake", {
+                  defaultValue: "تحديث استمارة الفحص",
+                })
+              : t("pages_SecretaryAppointmentsList.text_record_intake", {
+                  defaultValue: "تسجيل استمارة الفحص",
+                })
+          }
+          size="lg"
+          footer={
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="secondary"
+                disabled={intakeEditLoading}
+                onClick={() => {
+                  setIntakeEditAppointment(null);
+                  setIntakeEditForm(null);
+                }}
+              >
+                {t("pages_SecretaryAppointmentsList.text_cancel", {
+                  defaultValue: "إلغاء",
+                })}
+              </Button>
+              <Button
+                variant="primary"
+                disabled={intakeEditLoading}
+                onClick={handleSaveIntakeForm}
+              >
+                {intakeEditLoading
+                  ? t("pages_SecretaryAppointmentsList.text_saving", {
+                      defaultValue: "جاري الحفظ...",
+                    })
+                  : t("pages_SecretaryAppointmentsList.text_save_intake", {
+                      defaultValue: "حفظ الاستمارة",
+                    })}
+              </Button>
+            </div>
+          }
+        >
+          {intakeEditForm && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  الشكوى الرئيسية
+                </label>
+                <textarea
+                  value={intakeEditForm.chiefComplaint}
+                  onChange={(e) =>
+                    setIntakeEditForm({
+                      ...intakeEditForm,
+                      chiefComplaint: e.target.value,
+                    })
+                  }
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ضغط الدم
+                  </label>
+                  <input
+                    type="text"
+                    value={intakeEditForm.vitals.bloodPressure}
+                    onChange={(e) =>
+                      setIntakeEditForm({
+                        ...intakeEditForm,
+                        vitals: {
+                          ...intakeEditForm.vitals,
+                          bloodPressure: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    السكري
+                  </label>
+                  <input
+                    type="text"
+                    value={intakeEditForm.vitals.diabetes}
+                    onChange={(e) =>
+                      setIntakeEditForm({
+                        ...intakeEditForm,
+                        vitals: {
+                          ...intakeEditForm.vitals,
+                          diabetes: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  الحساسيات الدوائية
+                </label>
+                <textarea
+                  value={intakeEditForm.allergies}
+                  onChange={(e) =>
+                    setIntakeEditForm({
+                      ...intakeEditForm,
+                      allergies: e.target.value,
+                    })
+                  }
+                  rows={2}
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+
+              <div className="space-y-4 p-3 rounded-lg bg-gray-50 border border-purple-100">
+                <p className="font-semibold text-gray-900 text-sm">
+                  التاريخ الطبي
+                </p>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={intakeEditForm.medicalHistory.smoking}
+                    onChange={(e) =>
+                      setIntakeEditForm({
+                        ...intakeEditForm,
+                        medicalHistory: {
+                          ...intakeEditForm.medicalHistory,
+                          smoking: e.target.checked,
+                        },
+                      })
+                    }
+                    className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-gray-700">هل المريض يدخن؟</span>
+                </label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    عمليات القلب (إن وجدت)
+                  </label>
+                  <input
+                    type="text"
+                    value={intakeEditForm.medicalHistory.heartSurgeries}
+                    onChange={(e) =>
+                      setIntakeEditForm({
+                        ...intakeEditForm,
+                        medicalHistory: {
+                          ...intakeEditForm.medicalHistory,
+                          heartSurgeries: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    تاريخ عائلي بأمراض القلب
+                  </label>
+                  <input
+                    type="text"
+                    value={intakeEditForm.medicalHistory.familyHeartHistory}
+                    onChange={(e) =>
+                      setIntakeEditForm({
+                        ...intakeEditForm,
+                        medicalHistory: {
+                          ...intakeEditForm.medicalHistory,
+                          familyHeartHistory: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    مشاكل في الصدر (إن وجدت)
+                  </label>
+                  <input
+                    type="text"
+                    value={intakeEditForm.medicalHistory.chestProblems}
+                    onChange={(e) =>
+                      setIntakeEditForm({
+                        ...intakeEditForm,
+                        medicalHistory: {
+                          ...intakeEditForm.medicalHistory,
+                          chestProblems: e.target.value,
+                        },
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  الحمل أو الرضاعة (للمريضات)
+                </label>
+                <input
+                  type="text"
+                  value={intakeEditForm.pregnancyOrLactation}
+                  onChange={(e) =>
+                    setIntakeEditForm({
+                      ...intakeEditForm,
+                      pregnancyOrLactation: e.target.value,
+                    })
+                  }
+                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+              </div>
+            </div>
+          )}
+        </Modal>
       </div>
     </MainLayout>
   );

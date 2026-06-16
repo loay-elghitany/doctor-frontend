@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -51,6 +52,7 @@ const SECRETARY_TOUR_STEPS = [
 ];
 
 export const SecretaryDashboard = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -370,7 +372,7 @@ export const SecretaryDashboard = () => {
         {/* Quick Actions Section */}
         <div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Quick Actions
+            {t("pages_SecretaryDashboard.text_quick_actions")}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {quickActions.map((action, index) => (
@@ -442,7 +444,9 @@ export const SecretaryDashboard = () => {
             ) : (
               <EmptyState
                 icon={CalendarDays}
-                title="No recent activity"
+                title={t(
+                  "pages_SecretaryDashboard.attr_title_no_recent_activity",
+                )}
                 description="There are no recent appointments to display."
                 size="sm"
               />
@@ -475,7 +479,9 @@ export const SecretaryDashboard = () => {
                   <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                     {stats.todayAppointments}
                   </div>
-                  <p className="text-sm">appointments today</p>
+                  <p className="text-sm">
+                    {t("pages_SecretaryDashboard.text_appointments_today")}
+                  </p>
                 </div>
               </div>
             </div>

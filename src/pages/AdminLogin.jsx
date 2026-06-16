@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MainLayout } from "../components/layout/Layout";
@@ -11,6 +12,7 @@ import api from "../services/api.js";
  * Admin enters email and password to access subscription management dashboard
  */
 export const AdminLogin = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAdminAuthenticated } = useContext(AdminAuthContext);
@@ -68,8 +70,12 @@ export const AdminLogin = () => {
       <div className="w-full max-w-md">
         <Card className="shadow-lg">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Admin Portal</h1>
-            <p className="text-gray-600 mt-2">Manual Subscription Management</p>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t("pages_AdminLogin.text_admin_portal")}
+            </h1>
+            <p className="text-gray-600 mt-2">
+              {t("pages_AdminLogin.text_manual_subscription_management")}
+            </p>
           </div>
 
           {error && (
@@ -78,31 +84,36 @@ export const AdminLogin = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <Input
-              label="Email"
+              label={t("pages_AdminLogin.attr_label_email")}
               type="email"
               name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your admin email"
+              placeholder={t(
+                "pages_AdminLogin.attr_placeholder_enter_your_admin_email",
+              )}
               disabled={loading}
               required
             />
 
             <Input
-              label="Password"
+              label={t("pages_AdminLogin.attr_label_password")}
               type="password"
               name="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              placeholder={t(
+                "pages_AdminLogin.attr_placeholder_enter_your_password",
+              )}
               disabled={loading}
               required
             />
 
             <div className="text-sm text-gray-600">
               <p>
-                This portal allows you to manually create and manage doctor
-                subscriptions.
+                {t(
+                  "pages_AdminLogin.text_this_portal_allows_you_to_manually_creat",
+                )}
               </p>
             </div>
 
@@ -117,7 +128,9 @@ export const AdminLogin = () => {
           </form>
 
           <div className="mt-6 text-center text-xs text-gray-500">
-            <p>🔒 This portal requires authentication</p>
+            <p>
+              {t("pages_AdminLogin.text_this_portal_requires_authentication")}
+            </p>
           </div>
         </Card>
       </div>

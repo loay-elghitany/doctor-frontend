@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -24,6 +25,7 @@ const ImagePreviewModal = ({
   onNavigate,
   title = "Image Preview",
 }) => {
+  const { t } = useTranslation();
   const [zoom, setZoom] = useState(100);
   const [rotation, setRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -154,7 +156,7 @@ const ImagePreviewModal = ({
                   >
                     <img
                       src={displayUrl}
-                      alt="Preview"
+                      alt={t("components_ImagePreviewModal.attr_alt_preview")}
                       style={{
                         transform: `scale(${zoom / 100}) rotate(${rotation}deg)`,
                         objectFit: "contain",
@@ -189,22 +191,24 @@ const ImagePreviewModal = ({
                   onClick={handleZoomOut}
                   disabled={zoom <= 50}
                   className="p-2 rounded-lg bg-white hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  title="Zoom Out"
+                  title={t("components_ImagePreviewModal.attr_title_zoom_out")}
                 >
                   <ZoomOut className="w-5 h-5 text-gray-700" />
                 </button>
                 <button
                   onClick={handleReset}
                   className="p-2 rounded-lg bg-white hover:bg-gray-200 transition-colors"
-                  title="Reset View"
+                  title={t(
+                    "components_ImagePreviewModal.attr_title_reset_view",
+                  )}
                 >
-                  Reset
+                  {t("components_ImagePreviewModal.text_reset")}
                 </button>
                 <button
                   onClick={handleZoomIn}
                   disabled={zoom >= 200}
                   className="p-2 rounded-lg bg-white hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  title="Zoom In"
+                  title={t("components_ImagePreviewModal.attr_title_zoom_in")}
                 >
                   <ZoomIn className="w-5 h-5 text-gray-700" />
                 </button>
@@ -214,7 +218,8 @@ const ImagePreviewModal = ({
               <div className="bg-gray-100 px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">
-                    Zoom: {zoom}%
+                    {t("components_ImagePreviewModal.text_zoom")}
+                    {zoom}%
                   </span>
                 </div>
 
@@ -222,14 +227,16 @@ const ImagePreviewModal = ({
                   <button
                     onClick={handleRotate}
                     className="p-2 rounded-lg bg-white hover:bg-gray-200 transition-colors"
-                    title="Rotate"
+                    title={t("components_ImagePreviewModal.attr_title_rotate")}
                   >
                     <RotateCw className="w-5 h-5 text-gray-700" />
                   </button>
                   <button
                     onClick={handleDownload}
                     className="p-2 rounded-lg bg-blue-500 hover:bg-blue-600 transition-colors"
-                    title="Download"
+                    title={t(
+                      "components_ImagePreviewModal.attr_title_download",
+                    )}
                   >
                     <Download className="w-5 h-5 text-white" />
                   </button>

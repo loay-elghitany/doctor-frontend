@@ -1,7 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import axios from "axios";
 
 const AccountCredentialsSettings = () => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -85,7 +87,9 @@ const AccountCredentialsSettings = () => {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="example@clinic.com"
+            placeholder={t(
+              "components_AccountCredentialsSettings.attr_placeholder_example_clinic_com",
+            )}
             className="w-full rounded-3xl border border-slate-300 bg-slate-50 px-5 py-4 text-sm text-slate-900 outline-none transition focus:border-slate-400 focus:bg-white"
           />
         </div>

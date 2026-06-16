@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Navigate, useLocation } from "react-router-dom";
 import { useCurrentRole } from "../../hooks/useCurrentRole";
 
@@ -23,11 +24,12 @@ const ProtectedRoute = ({
   requiredRole = null,
   requiredRoles = null,
 }) => {
+  const { t } = useTranslation();
   const { isAuthenticated, loading, role, isAdmin } = useCurrentRole();
   const location = useLocation();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>{t("components_auth_ProtectedRoute.text_loading")}</div>;
   }
 
   // Block admin users from accessing normal user routes

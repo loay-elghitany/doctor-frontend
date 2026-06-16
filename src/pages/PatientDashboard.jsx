@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
 import { AppointmentCard } from "../components/Appointment/AppointmentCard";
@@ -9,8 +9,8 @@ import {
   StatusBadge,
   TimelineEvent,
   PremiumProgressBar,
-  Badge,
-} from "../components/ui";
+  Badge } from
+"../components/ui";
 import TelegramConnectButton from "../components/ui/TelegramConnectButton.jsx";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -32,8 +32,8 @@ import {
   Printer,
   ZoomIn,
   ZoomOut,
-  RotateCw,
-} from "lucide-react";
+  RotateCw } from
+"lucide-react";
 import { appointmentService } from "../services/appointmentService";
 import scannedPrescriptionService from "../services/scannedPrescriptionService";
 import { handleApiError } from "../utils/helpers";
@@ -44,25 +44,25 @@ import { GuidedTour } from "../components/GuidedTour";
 import PatientFinancials from "../components/PatientFinancials";
 
 const PATIENT_TOUR_STEPS = [
-  {
-    title: "مرحبا بك في لوحة التحكم الخاصة بك",
-    description:
-      "من خلال موقعنا الإلكتروني ستتمكن من حجز مواعيد و الإطلاع على الروشتات الخاصة بك و متابعة خططك المالية بكل سرعة وسهولة",
-    tip: "وأيضاً يمكنك الإطلاع على ملفك الطبي لتتابع نشاطك كاملاً منذ أن اشتركت معنا",
-  },
-  {
-    title: "المواعيد القادمة",
-    description:
-      "راجع مواعيدك القادمة و اعرف روشتاتك ونظم جدولك وكل هذا من مكان واحد",
-    tip: "إضغط على أي كارت خاص بالموعد لتظهر تفاصيله",
-  },
-  {
-    title: "الجدول الطبي",
-    description:
-      "اذهب إلى ملفك الطبي لترى كل نشاطك منذ أن اشتركت معنا وإلى الإن وتعلم كل شئ خاص بك ",
-    tip: "هذا النظام صمم مخصوصاً ليساعد وييسر تعاملك مع طبيبك الخاص",
-  },
-];
+{
+  title: "مرحبا بك في لوحة التحكم الخاصة بك",
+  description:
+  "من خلال موقعنا الإلكتروني ستتمكن من حجز مواعيد و الإطلاع على الروشتات الخاصة بك و متابعة خططك المالية بكل سرعة وسهولة",
+  tip: "وأيضاً يمكنك الإطلاع على ملفك الطبي لتتابع نشاطك كاملاً منذ أن اشتركت معنا"
+},
+{
+  title: "المواعيد القادمة",
+  description:
+  "راجع مواعيدك القادمة و اعرف روشتاتك ونظم جدولك وكل هذا من مكان واحد",
+  tip: "إضغط على أي كارت خاص بالموعد لتظهر تفاصيله"
+},
+{
+  title: "الجدول الطبي",
+  description:
+  "اذهب إلى ملفك الطبي لترى كل نشاطك منذ أن اشتركت معنا وإلى الإن وتعلم كل شئ خاص بك ",
+  tip: "هذا النظام صمم مخصوصاً ليساعد وييسر تعاملك مع طبيبك الخاص"
+}];
+
 
 // Map event types to icons
 const getEventIcon = (eventType) => {
@@ -76,7 +76,7 @@ const getEventIcon = (eventType) => {
     lab_result: Microscope,
     checkup: Heart,
     surgery: Syringe,
-    payment: CreditCard,
+    payment: CreditCard
   };
   return iconMap[eventType] || FileText;
 };
@@ -84,13 +84,13 @@ const getEventIcon = (eventType) => {
 // Format event type for display
 const formatEventType = (type) => {
   const normalizedType = String(type || "unknown");
-  return normalizedType
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  return normalizedType.
+  split("_").
+  map((word) => word.charAt(0).toUpperCase() + word.slice(1)).
+  join(" ");
 };
 
-export const PatientDashboard = () => {
+export const PatientDashboard = () => {const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [patientName, setPatientName] = useState("");
@@ -122,18 +122,18 @@ export const PatientDashboard = () => {
       setError("");
       try {
         const res = await appointmentService.getAppointments();
-        const appointmentList = Array.isArray(res.data?.data)
-          ? res.data.data
-          : [];
+        const appointmentList = Array.isArray(res.data?.data) ?
+        res.data.data :
+        [];
 
-        const sorted = appointmentList
-          .slice()
-          .sort((a, b) => {
-            const aTime = a?.date ? new Date(a.date).getTime() : Infinity;
-            const bTime = b?.date ? new Date(b.date).getTime() : Infinity;
-            return aTime - bTime;
-          })
-          .slice(0, 5);
+        const sorted = appointmentList.
+        slice().
+        sort((a, b) => {
+          const aTime = a?.date ? new Date(a.date).getTime() : Infinity;
+          const bTime = b?.date ? new Date(b.date).getTime() : Infinity;
+          return aTime - bTime;
+        }).
+        slice(0, 5);
 
         setAppointments(sorted);
 
@@ -171,14 +171,14 @@ export const PatientDashboard = () => {
   };
 
   const getDownloadUrl = (url) =>
-    url?.includes("/upload/")
-      ? url.replace("/upload/", "/upload/fl_attachment/")
-      : url || "";
+  url?.includes("/upload/") ?
+  url.replace("/upload/", "/upload/fl_attachment/") :
+  url || "";
 
   const downloadUrl = getDownloadUrl(previewModal?.fileUrl);
   const isPdfPreview =
-    previewModal?.fileType === "pdf" ||
-    previewModal?.fileUrl?.toLowerCase().endsWith(".pdf");
+  previewModal?.fileType === "pdf" ||
+  previewModal?.fileUrl?.toLowerCase().endsWith(".pdf");
 
   const fetchScannedPrescriptions = async () => {
     if (!user?._id) return;
@@ -186,16 +186,16 @@ export const PatientDashboard = () => {
     setScannedError("");
     try {
       const response =
-        await scannedPrescriptionService.getPatientScannedPrescriptions(
-          user._id,
-        );
+      await scannedPrescriptionService.getPatientScannedPrescriptions(
+        user._id
+      );
       setScannedPrescriptions(response.data?.data || []);
     } catch (err) {
       console.error("Error loading scanned prescriptions:", err);
       setScannedError(
         err.response?.data?.message ||
-          err.message ||
-          "Failed to load scanned prescriptions",
+        err.message ||
+        "Failed to load scanned prescriptions"
       );
     } finally {
       setScannedLoading(false);
@@ -221,8 +221,8 @@ export const PatientDashboard = () => {
             createdAt: apt.date,
             metadata: {
               time: apt.timeSlot,
-              status: apt.status,
-            },
+              status: apt.status
+            }
           });
         }
 
@@ -234,8 +234,8 @@ export const PatientDashboard = () => {
             eventDescription: `Visit completed successfully`,
             createdAt: apt.date,
             metadata: {
-              time: apt.timeSlot,
-            },
+              time: apt.timeSlot
+            }
           });
         }
 
@@ -247,8 +247,8 @@ export const PatientDashboard = () => {
             eventDescription: `New prescription was created`,
             createdAt: apt.updatedAt || apt.date,
             metadata: {
-              medications: apt.prescription.medications?.length || 0,
-            },
+              medications: apt.prescription.medications?.length || 0
+            }
           });
         }
 
@@ -258,7 +258,7 @@ export const PatientDashboard = () => {
       // Sort by date descending
       timelineEvents.sort(
         (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
       setTimeline(timelineEvents.slice(0, 10));
@@ -293,7 +293,7 @@ export const PatientDashboard = () => {
     try {
       await appointmentService.hideAppointment(appointment._id, true);
       setAppointments(
-        appointments.filter((apt) => apt._id !== appointment._id),
+        appointments.filter((apt) => apt._id !== appointment._id)
       );
       setSelectedAppointment(null);
     } catch (err) {
@@ -302,22 +302,22 @@ export const PatientDashboard = () => {
   };
 
   const tabs = [
-    { id: "appointments", label: "مواعيدي القادمة", icon: Calendar },
-    { id: "timeline", label: "التقرير الطبي", icon: Activity },
-    {
-      id: "scanned-prescriptions",
-      label: "الروشتات الورقية",
-      icon: FileText,
-    },
-    { id: "financials", label: "خططي المالية", icon: CreditCard },
-  ];
+  { id: "appointments", label: "مواعيدي القادمة", icon: Calendar },
+  { id: "timeline", label: "التقرير الطبي", icon: Activity },
+  {
+    id: "scanned-prescriptions",
+    label: "الروشتات الورقية",
+    icon: FileText
+  },
+  { id: "financials", label: "خططي المالية", icon: CreditCard }];
+
 
   if (loading) {
     return (
       <MainLayout userType="patient">
         <LoadingSpinner message="Loading your dashboard..." size="lg" />
-      </MainLayout>
-    );
+      </MainLayout>);
+
   }
 
   return (
@@ -327,8 +327,8 @@ export const PatientDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+          transition={{ duration: 0.5 }}>
+          
           <GlassCard className="relative overflow-hidden" gradient>
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-emerald-400/20 to-teal-300/20 rounded-full blur-3xl" />
             <div className="relative z-10">
@@ -338,32 +338,32 @@ export const PatientDashboard = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-sm uppercase tracking-[0.32em] text-emerald-600 dark:text-emerald-400 mb-3 font-semibold"
-                  >
+                    className="text-sm uppercase tracking-[0.32em] text-emerald-600 dark:text-emerald-400 mb-3 font-semibold">
+                    
                     مرحباً بعودتك
                   </motion.p>
                   <motion.h1
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
-                  >
+                    className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white">
+                    
                     {patientName ? patientName : "Patient"}
                   </motion.h1>
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="mt-3 text-lg text-gray-600 dark:text-gray-300"
-                  >
+                    className="mt-3 text-lg text-gray-600 dark:text-gray-300">
+                    
                     رحلة صحتك، منظمة بجمال.
                   </motion.p>
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
-                    className="mt-4 max-w-xl text-gray-500 dark:text-gray-400"
-                  >
+                    className="mt-4 max-w-xl text-gray-500 dark:text-gray-400">
+                    
                     من خلال لوحة التحكم الخاصة بك، يمكنك بسهولة إدارة مواعيدك
                     القادمة، مراجعة تاريخك الطبي، ومتابعة خططك المالية - كل ذلك
                     في مكان واحد مصمم خصيصًا لك.
@@ -372,19 +372,19 @@ export const PatientDashboard = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.6 }}
-                    className="mt-6 flex flex-wrap gap-3"
-                  >
+                    className="mt-6 flex flex-wrap gap-3">
+                    
                     <button
                       onClick={() => setTourOpen(true)}
-                      className="btn-premium btn-premium-primary px-6 py-3 flex items-center gap-2"
-                    >
+                      className="btn-premium btn-premium-primary px-6 py-3 flex items-center gap-2">
+                      
                       اذهب في جولة
                       <ArrowRight className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => setActiveTab("timeline")}
-                      className="inline-flex items-center gap-2 rounded-xl bg-white/50 dark:bg-gray-800/50 px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200 backdrop-blur-sm border border-gray-200 dark:border-gray-700 transition hover:bg-white/70 dark:hover:bg-gray-800/70"
-                    >
+                      className="inline-flex items-center gap-2 rounded-xl bg-white/50 dark:bg-gray-800/50 px-4 py-3 text-sm font-semibold text-gray-700 dark:text-gray-200 backdrop-blur-sm border border-gray-200 dark:border-gray-700 transition hover:bg-white/70 dark:hover:bg-gray-800/70">
+                      
                       استعرض ملفي الطبي
                       <ArrowRight className="h-4 w-4" />
                     </button>
@@ -392,8 +392,8 @@ export const PatientDashboard = () => {
                       userRole="patient"
                       userId={user?._id || user?.id}
                       isLinked={Boolean(user?.telegramChatId)}
-                      botUsername={import.meta.env.VITE_TELEGRAM_BOT_USERNAME}
-                    />
+                      botUsername={import.meta.env.VITE_TELEGRAM_BOT_USERNAME} />
+                    
                   </motion.div>
                 </div>
                 <div className="hidden lg:block">
@@ -415,128 +415,128 @@ export const PatientDashboard = () => {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`flex items-center gap-2 px-4 py-3 font-medium text-sm transition-all relative whitespace-nowrap ${
-                    activeTab === tab.id
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-                  }`}
-                >
+                  activeTab === tab.id ?
+                  "text-blue-600 dark:text-blue-400" :
+                  "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"}`
+                  }>
+                  
                   <Icon className="w-4 h-4" />
                   {tab.label}
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full"
-                    />
-                  )}
-                </button>
-              );
+                  {activeTab === tab.id &&
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-400 rounded-full" />
+
+                  }
+                </button>);
+
             })}
           </div>
 
           {/* Appointments Tab */}
-          {activeTab === "appointments" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {loading ? (
-                <LoadingSpinner message="Loading appointments..." />
-              ) : error ? (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl">
+          {activeTab === "appointments" &&
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}>
+            
+              {loading ?
+            <LoadingSpinner message="Loading appointments..." /> :
+            error ?
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl">
                   {error}
-                </div>
-              ) : appointments.length === 0 ? (
-                <EmptyState
-                  icon={Calendar}
-                  title="لا توجد مواعيد قادمة"
-                  description="ليس لديك أي مواعيد مجدولة للأسابيع القادمة."
-                  actionLabel="حجز موعد جديد"
-                  onAction={() => navigate("/patient/appointments/new")}
-                />
-              ) : (
-                <div className="space-y-4">
+                </div> :
+            appointments.length === 0 ?
+            <EmptyState
+              icon={Calendar}
+              title="لا توجد مواعيد قادمة"
+              description="ليس لديك أي مواعيد مجدولة للأسابيع القادمة."
+              actionLabel="حجز موعد جديد"
+              onAction={() => navigate("/patient/appointments/new")} /> :
+
+
+            <div className="space-y-4">
                   <AnimatePresence>
-                    {appointments.map((apt, index) => (
-                      <motion.div
-                        key={apt._id || apt.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        transition={{ delay: index * 0.05 }}
-                      >
+                    {appointments.map((apt, index) =>
+                <motion.div
+                  key={apt._id || apt.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ delay: index * 0.05 }}>
+                  
                         <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all">
                           <AppointmentCard
-                            appointment={apt}
-                            onView={() => setSelectedAppointment(apt)}
-                            onAction={() => handleRescheduleAction(apt)}
-                            onHide={() => handleHideAppointment(apt)}
-                          />
+                      appointment={apt}
+                      onView={() => setSelectedAppointment(apt)}
+                      onAction={() => handleRescheduleAction(apt)}
+                      onHide={() => handleHideAppointment(apt)} />
+                    
                         </div>
                       </motion.div>
-                    ))}
+                )}
                   </AnimatePresence>
                 </div>
-              )}
+            }
             </motion.div>
-          )}
+          }
 
           {/* Timeline Tab */}
-          {activeTab === "timeline" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {timelineLoading ? (
-                <LoadingSpinner message="Loading medical history..." />
-              ) : timeline.length > 0 ? (
-                <div className="timeline-container">
+          {activeTab === "timeline" &&
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}>
+            
+              {timelineLoading ?
+            <LoadingSpinner message="Loading medical history..." /> :
+            timeline.length > 0 ?
+            <div className="timeline-container">
                   {timeline.map((event, index) => {
-                    const Icon = getEventIcon(event.eventType);
-                    return (
-                      <TimelineEvent
-                        key={event._id}
-                        icon={Icon}
-                        title={event.eventTitle}
-                        description={event.eventDescription}
-                        date={formatDate(event.createdAt)}
-                        metadata={event.metadata}
-                        isLast={index === timeline.length - 1}
-                      />
-                    );
-                  })}
-                </div>
-              ) : (
-                <EmptyState
-                  icon={Activity}
-                  title="لا يوجد تاريخ طبي بعد"
-                  description="سيظهر تاريخك الطبي هنا بمجرد أن يكون لديك مواعيد أو علاجات."
-                />
-              )}
+                const Icon = getEventIcon(event.eventType);
+                return (
+                  <TimelineEvent
+                    key={event._id}
+                    icon={Icon}
+                    title={event.eventTitle}
+                    description={event.eventDescription}
+                    date={formatDate(event.createdAt)}
+                    metadata={event.metadata}
+                    isLast={index === timeline.length - 1} />);
+
+
+              })}
+                </div> :
+
+            <EmptyState
+              icon={Activity}
+              title="لا يوجد تاريخ طبي بعد"
+              description="سيظهر تاريخك الطبي هنا بمجرد أن يكون لديك مواعيد أو علاجات." />
+
+            }
             </motion.div>
-          )}
+          }
 
           {/* Scanned Prescriptions Tab */}
-          {activeTab === "scanned-prescriptions" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {scannedLoading ? (
-                <LoadingSpinner message="Loading scanned prescriptions..." />
-              ) : scannedError ? (
-                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl">
+          {activeTab === "scanned-prescriptions" &&
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}>
+            
+              {scannedLoading ?
+            <LoadingSpinner message="Loading scanned prescriptions..." /> :
+            scannedError ?
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded-xl">
                   {scannedError}
-                </div>
-              ) : scannedPrescriptions.length > 0 ? (
-                <div className="space-y-4">
-                  {scannedPrescriptions.map((prescription) => (
-                    <div
-                      key={prescription._id}
-                      className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow"
-                    >
+                </div> :
+            scannedPrescriptions.length > 0 ?
+            <div className="space-y-4">
+                  {scannedPrescriptions.map((prescription) =>
+              <div
+                key={prescription._id}
+                className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 hover:shadow-md transition-shadow">
+                
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
@@ -556,71 +556,71 @@ export const PatientDashboard = () => {
                         </div>
                         <div className="flex gap-2">
                           <button
-                            onClick={() => setPreviewModal(prescription)}
-                            className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors"
-                          >
+                      onClick={() => setPreviewModal(prescription)}
+                      className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors">
+                      
                             <Eye className="w-4 h-4 mr-2" />
                             معاينة
                           </button>
                           <a
-                            href={getDownloadUrl(prescription.fileUrl)}
-                            download={
-                              prescription.fileType === "pdf"
-                                ? "scanned-prescription.pdf"
-                                : prescription.fileUrl?.split("/").pop()
-                            }
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 transition-colors"
-                          >
+                      href={getDownloadUrl(prescription.fileUrl)}
+                      download={
+                      prescription.fileType === "pdf" ?
+                      "scanned-prescription.pdf" :
+                      prescription.fileUrl?.split("/").pop()
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-200 transition-colors">
+                      
                             <Download className="w-4 h-4 mr-2" />
                             تحميل
                           </a>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  icon={FileText}
-                  title="لا توجد روشتات ممسوحة"
-                  description="أي روشتات ممسوحة ستظهر هنا بعد رفعها من قبل سكرتيرك أو الطبيب."
-                />
               )}
+                </div> :
+
+            <EmptyState
+              icon={FileText}
+              title="لا توجد روشتات ممسوحة"
+              description="أي روشتات ممسوحة ستظهر هنا بعد رفعها من قبل سكرتيرك أو الطبيب." />
+
+            }
             </motion.div>
-          )}
+          }
 
           {/* Financials Tab */}
-          {activeTab === "financials" && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
+          {activeTab === "financials" &&
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}>
+            
               <PatientFinancials />
             </motion.div>
-          )}
+          }
         </GlassCard>
 
         {/* Appointment Details Modal */}
-        {selectedAppointment && (
-          <motion.div
-            className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeInOut" }}
-            onClick={() => setSelectedAppointment(null)}
-          >
+        {selectedAppointment &&
+        <motion.div
+          className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.25, ease: "easeInOut" }}
+          onClick={() => setSelectedAppointment(null)}>
+          
             <motion.div
-              className="max-w-xl w-full bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-2xl"
-              initial={{ opacity: 0, scale: 0.97, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.97, y: 10 }}
-              transition={{ duration: 0.25, ease: "easeInOut" }}
-              onClick={(e) => e.stopPropagation()}
-            >
+            className="max-w-xl w-full bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-2xl"
+            initial={{ opacity: 0, scale: 0.97, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.97, y: 10 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+            onClick={(e) => e.stopPropagation()}>
+            
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
@@ -632,28 +632,28 @@ export const PatientDashboard = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => setSelectedAppointment(null)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
-                >
+                onClick={() => setSelectedAppointment(null)}
+                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                
                   <svg
-                    className="w-5 h-5 text-gray-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  className="w-5 h-5 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  
                     <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12" />
+                  
                   </svg>
                 </button>
               </div>
 
               {/* Cancellation Notice */}
-              {selectedAppointment.status === "cancelled" && (
-                <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-800 dark:text-red-300">
+              {selectedAppointment.status === "cancelled" &&
+            <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-800 dark:text-red-300">
                   <p className="font-semibold">
                     للأسف، تم إلغاء هذا الموعد. يرجى التواصل مع طبيبك إذا كان
                     لديك أي أسئلة أو لجدولة موعد جديد.
@@ -663,7 +663,7 @@ export const PatientDashboard = () => {
                     لم تعد بحاجة إلى رؤيته.
                   </p>
                 </div>
-              )}
+            }
 
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
@@ -676,8 +676,8 @@ export const PatientDashboard = () => {
                     </p>
                     <p className="font-medium text-gray-900 dark:text-white">
                       {selectedAppointment.doctor?.name ||
-                        selectedAppointment.doctorName ||
-                        "Doctor"}
+                    selectedAppointment.doctorName ||
+                    "Doctor"}
                     </p>
                   </div>
                 </div>
@@ -694,8 +694,8 @@ export const PatientDashboard = () => {
                   </div>
                 </div>
 
-                {selectedAppointment.notes && (
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
+                {selectedAppointment.notes &&
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl">
                     <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
                       ملاحظات
                     </p>
@@ -703,124 +703,124 @@ export const PatientDashboard = () => {
                       {selectedAppointment.notes}
                     </p>
                   </div>
-                )}
+              }
 
                 {/* Reschedule options */}
                 {selectedAppointment.status === "reschedule_proposed" &&
-                  selectedAppointment.rescheduleOptions?.length > 0 && (
-                    <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+              selectedAppointment.rescheduleOptions?.length > 0 &&
+              <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                       <h4 className="font-bold text-gray-900 dark:text-white mb-3">
                         الأوقات المقترحة
                       </h4>
                       <div className="space-y-2">
                         {selectedAppointment.rescheduleOptions.map(
-                          (opt, idx) => (
-                            <div
-                              key={idx}
-                              className="p-3 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-400 dark:hover:border-blue-500 transition flex justify-between items-center"
-                            >
+                    (opt, idx) =>
+                    <div
+                      key={idx}
+                      className="p-3 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-blue-400 dark:hover:border-blue-500 transition flex justify-between items-center">
+                      
                               <div>
                                 <p className="text-gray-900 dark:text-white font-medium">
                                   {formatDate(opt.date)}
                                   {opt.timeSlot ? ` at ${opt.timeSlot}` : ""}
                                 </p>
-                                {opt.chosen && (
-                                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">
-                                    (Selected)
-                                  </p>
-                                )}
+                                {opt.chosen &&
+                        <p className="text-sm text-green-600 dark:text-green-400 font-medium">{t("pages_PatientDashboard.text_selected")}
+
+                        </p>
+                        }
                               </div>
                             </div>
-                          ),
-                        )}
+
+                  )}
                       </div>
                     </div>
-                  )}
+              }
               </div>
 
               <div className="flex justify-end gap-2 mt-6">
                 <button
-                  onClick={() => setSelectedAppointment(null)}
-                  className="btn-secondary px-4 py-2 rounded-xl"
-                >
+                onClick={() => setSelectedAppointment(null)}
+                className="btn-secondary px-4 py-2 rounded-xl">
+                
                   إغلاق
                 </button>
-                {selectedAppointment.status !== "cancelled" && (
-                  <button
-                    onClick={() => setShowPrescriptions(true)}
-                    className="btn-premium btn-premium-primary px-4 py-2 rounded-xl"
-                  >
+                {selectedAppointment.status !== "cancelled" &&
+              <button
+                onClick={() => setShowPrescriptions(true)}
+                className="btn-premium btn-premium-primary px-4 py-2 rounded-xl">
+                
                     عرض الروشتات
                   </button>
-                )}
-                {selectedAppointment.status === "reschedule_proposed" && (
-                  <button
-                    onClick={() => {
-                      handleRescheduleAction(selectedAppointment);
-                      setSelectedAppointment(null);
-                    }}
-                    className="btn-premium btn-premium-primary px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700"
-                  >
+              }
+                {selectedAppointment.status === "reschedule_proposed" &&
+              <button
+                onClick={() => {
+                  handleRescheduleAction(selectedAppointment);
+                  setSelectedAppointment(null);
+                }}
+                className="btn-premium btn-premium-primary px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700">
+                
                     اختيار الوقت
                   </button>
-                )}
-                {selectedAppointment.status === "cancelled" && (
-                  <button
-                    onClick={() => handleHideAppointment(selectedAppointment)}
-                    className="btn-secondary px-4 py-2 rounded-xl bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-300"
-                  >
+              }
+                {selectedAppointment.status === "cancelled" &&
+              <button
+                onClick={() => handleHideAppointment(selectedAppointment)}
+                className="btn-secondary px-4 py-2 rounded-xl bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-300">
+                
                     إزالة من لوحة التحكم
                   </button>
-                )}
+              }
               </div>
             </motion.div>
           </motion.div>
-        )}
+        }
 
         {/* Prescriptions Modal */}
-        {showPrescriptions && selectedAppointment && (
-          <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4">
+        {showPrescriptions && selectedAppointment &&
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center p-4">
             <div className="max-w-2xl w-full bg-white dark:bg-gray-900 rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
               <PrescriptionModal
-                appointmentId={selectedAppointment._id}
-                userRole="patient"
-                onClose={() => {
-                  setShowPrescriptions(false);
-                  setSelectedAppointment(null);
-                }}
-                onSuccess={() => {}}
-              />
+              appointmentId={selectedAppointment._id}
+              userRole="patient"
+              onClose={() => {
+                setShowPrescriptions(false);
+                setSelectedAppointment(null);
+              }}
+              onSuccess={() => {}} />
+            
             </div>
           </div>
-        )}
+        }
 
         {/* Preview Modal */}
-        {previewModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
+        {previewModal &&
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
             <div className="relative w-full max-w-6xl max-h-[95vh] flex flex-col bg-slate-50 rounded-lg shadow-xl overflow-hidden">
               {/* Header */}
               <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between">
                 <h3 className="text-xl font-semibold">عرض الروشتة الورقية</h3>
                 <button
-                  onClick={() => {
-                    setPreviewModal(null);
-                    setImageZoom(1);
-                    setImageRotation(0);
-                  }}
-                  className="p-2 rounded-full hover:bg-blue-700 transition-colors"
-                >
+                onClick={() => {
+                  setPreviewModal(null);
+                  setImageZoom(1);
+                  setImageRotation(0);
+                }}
+                className="p-2 rounded-full hover:bg-blue-700 transition-colors">
+                
                   <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  
                     <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12" />
+                  
                   </svg>
                 </button>
               </div>
@@ -828,73 +828,73 @@ export const PatientDashboard = () => {
               {/* Document Viewer */}
               <div className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col items-center justify-center">
                 <div className="flex justify-center">
-                  {isPdfPreview ? (
-                    <iframe
-                      src={previewModal.fileUrl}
-                      className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
-                      title="PDF Preview"
-                    />
-                  ) : (
-                    <img
-                      src={previewModal.fileUrl}
-                      alt="Scanned Prescription"
-                      className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
-                      style={{
-                        transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
-                        transition: "transform 0.2s ease-in-out",
-                      }}
-                    />
-                  )}
+                  {isPdfPreview ?
+                <iframe
+                  src={previewModal.fileUrl}
+                  className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
+                  title={t("pages_PatientDashboard.attr_title_pdf_preview")} /> :
+
+
+                <img
+                  src={previewModal.fileUrl}
+                  alt={t("pages_PatientDashboard.attr_alt_scanned_prescription")}
+                  className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
+                  style={{
+                    transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
+                    transition: "transform 0.2s ease-in-out"
+                  }} />
+
+                }
                 </div>
 
                 {/* Enhanced Controls */}
-                {!isPdfPreview && (
-                  <div className="flex justify-center gap-4 mt-6">
+                {!isPdfPreview &&
+              <div className="flex justify-center gap-4 mt-6">
                     <button
-                      onClick={handleZoomOut}
-                      className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                      title="تصغير"
-                    >
+                  onClick={handleZoomOut}
+                  className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                  title="تصغير">
+                  
                       <ZoomOut className="w-5 h-5 text-gray-700" />
                     </button>
                     <button
-                      onClick={handleZoomIn}
-                      className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                      title="تكبير"
-                    >
+                  onClick={handleZoomIn}
+                  className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                  title="تكبير">
+                  
                       <ZoomIn className="w-5 h-5 text-gray-700" />
                     </button>
                     <button
-                      onClick={handleRotate}
-                      className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                      title="دوران"
-                    >
+                  onClick={handleRotate}
+                  className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
+                  title="دوران">
+                  
                       <RotateCw className="w-5 h-5 text-gray-700" />
                     </button>
                   </div>
-                )}
+              }
 
                 {/* Download Button */}
                 <div className="absolute bottom-6 right-6">
                   <a
-                    href={downloadUrl || previewModal.fileUrl}
-                    download={
-                      isPdfPreview
-                        ? "scanned-prescription.pdf"
-                        : previewModal.fileUrl?.split("/").pop()
-                    }
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md"
-                  >
-                    <Download className="w-4 h-4" />
-                    تحميل PDF
-                  </a>
+                  href={downloadUrl || previewModal.fileUrl}
+                  download={
+                  isPdfPreview ?
+                  "scanned-prescription.pdf" :
+                  previewModal.fileUrl?.split("/").pop()
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md">
+                  
+                    <Download className="w-4 h-4" />{t("pages_PatientDashboard.text_pdf")}
+
+                </a>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        }
 
         <GuidedTour
           isOpen={tourOpen}
@@ -902,9 +902,9 @@ export const PatientDashboard = () => {
           currentStep={tourStep}
           onNext={handleTourNext}
           onBack={handleTourBack}
-          onClose={handleTourClose}
-        />
+          onClose={handleTourClose} />
+        
       </div>
-    </MainLayout>
-  );
+    </MainLayout>);
+
 };

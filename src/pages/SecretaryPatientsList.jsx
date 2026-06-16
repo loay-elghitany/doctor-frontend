@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
@@ -8,6 +9,7 @@ import {
   StatusBadge,
   EmptyState,
   LoadingSpinner,
+  PremiumSearch,
   QuickActionButton,
 } from "../components/ui";
 import { Button, Alert, Modal, Input } from "../components/ui";
@@ -24,12 +26,17 @@ import {
   User,
   ArrowRight,
   Calendar,
+  Copy,
+  Filter,
+  ChevronDown,
+  X,
 } from "lucide-react";
 
 /**
  * SecretaryPatientsList - Display and manage patients for secretary's doctor
  */
 export const SecretaryPatientsList = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
 
@@ -41,11 +48,12 @@ export const SecretaryPatientsList = () => {
   const [addingPatient, setAddingPatient] = useState(false);
   const [newPatient, setNewPatient] = useState({
     name: "",
-    email: "",
     phoneNumber: "",
-    password: "",
-    clinicSlug: user?.clinicSlug || "",
   });
+  const [createdCredentialsModal, setCreatedCredentialsModal] = useState(null);
+  const [copiedCredentialsStatus, setCopiedCredentialsStatus] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("all");
 
   // Fetch secretary patients on mount
   const fetchPatients = async () => {
@@ -102,19 +110,8 @@ export const SecretaryPatientsList = () => {
       return;
     }
 
-    if (!newPatient.email || !newPatient.email.trim()) {
-      setError("بريد المريض الإلكتروني مطلوب");
-      return;
-    }
-
-    if (!newPatient.password || !newPatient.password.trim()) {
-      setError("كلمة مرور المريض مطلوبة");
-      return;
-    }
-
-    const clinicSlug = newPatient.clinicSlug || user?.clinicSlug;
-    if (!clinicSlug) {
-      setError("معلومات العيادة مفقودة. يرجى التواصل مع الدعم.");
+    if (!newPatient.phoneNumber || !newPatient.phoneNumber.trim()) {
+      setError("رقم الهاتف مطلوب");
       return;
     }
 
@@ -125,8 +122,7 @@ export const SecretaryPatientsList = () => {
     try {
       debugLog("SecretaryPatientsList", "Creating new patient", {
         name: newPatient.name,
-        email: newPatient.email,
-        clinicSlug,
+        phoneNumber: newPatient.phoneNumber,
       });
 
       const currentToken = localStorage.getItem("token");
@@ -135,10 +131,7 @@ export const SecretaryPatientsList = () => {
       // Create patient using the secretary-specific endpoint
       const response = await api.post("/secretaries/patients", {
         name: newPatient.name.trim(),
-        email: newPatient.email.trim(),
         phoneNumber: newPatient.phoneNumber.trim() || "",
-        password: newPatient.password,
-        clinicSlug,
       });
 
       console.log("Patient created successfully:", response.data);
@@ -152,17 +145,18 @@ export const SecretaryPatientsList = () => {
       // Update patients list immediately with the newly created patient
       if (createdPatient) {
         setPatients((prevPatients) => [...prevPatients, createdPatient]);
+        setCreatedCredentialsModal({
+          name: createdPatient.name,
+          phoneNumber: createdPatient.phoneNumber,
+        });
       }
 
-      setSuccess("تم إضافة المريض بنجاح!");
+      setSuccess(t("add_patient_success"));
 
       // Reset form and close modal
       setNewPatient({
         name: "",
-        email: "",
         phoneNumber: "",
-        password: "",
-        clinicSlug: user?.clinicSlug || "",
       });
       setShowAddModal(false);
     } catch (err) {
@@ -175,6 +169,22 @@ export const SecretaryPatientsList = () => {
       debugError("SecretaryPatientsList", "Failed to add patient", err);
     } finally {
       setAddingPatient(false);
+    }
+  };
+
+  const copyCreatedCredentials = async () => {
+    if (!createdCredentialsModal) return;
+    const phone = createdCredentialsModal.phoneNumber || "";
+    const email = `${phone}@mydoc90.local`;
+    const password = `Pt@${phone}`;
+    const text = `اسم المريض: ${createdCredentialsModal.name}\nالبريد الإلكتروني: ${email}\nكلمة المرور الافتراضية: ${password}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCredentialsStatus("تم النسخ إلى الحافظة");
+      setTimeout(() => setCopiedCredentialsStatus(""), 3000);
+    } catch (e) {
+      setCopiedCredentialsStatus("فشل النسخ");
+      setTimeout(() => setCopiedCredentialsStatus(""), 3000);
     }
   };
 
@@ -267,6 +277,36 @@ export const SecretaryPatientsList = () => {
       onClick: () => navigate("/secretary/appointments"),
     },
   ];
+
+  const filteredPatients = patients.filter((patient) => {
+    const patientName = patient?.name || "";
+    const patientEmail = patient?.email || "";
+    const patientPhone = patient?.phoneNumber || "";
+
+    const matchesSearch =
+      patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      patientPhone.includes(searchTerm);
+
+    if (!matchesSearch) return false;
+    if (filterType === "all") return true;
+
+    const now = new Date();
+    const hasUpcoming = patient.lastAppointmentDate
+      ? new Date(patient.lastAppointmentDate) >= now
+      : false;
+    const hasPast = patient.lastAppointmentDate
+      ? new Date(patient.lastAppointmentDate) < now
+      : false;
+    const hasCancelled =
+      patient.statusSummary && patient.statusSummary.includes("cancelled");
+
+    if (filterType === "upcoming") return hasUpcoming;
+    if (filterType === "past") return hasPast;
+    if (filterType === "cancelled") return hasCancelled;
+
+    return true;
+  });
 
   return (
     <MainLayout userType="secretary">
@@ -376,23 +416,65 @@ export const SecretaryPatientsList = () => {
           </motion.div>
         )}
 
+        <GlassCard className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div className="md:col-span-8">
+              <PremiumSearch
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="ابحث عن مريض بالاسم، البريد الإلكتروني، أو رقم الهاتف..."
+                className="w-full"
+              />
+            </div>
+
+            <div className="md:col-span-4">
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <select
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer text-sm"
+                >
+                  <option value="all">جميع المرضى</option>
+                  <option value="upcoming">مع مواعيد قادمة</option>
+                  <option value="past">مع مواعيد سابقة</option>
+                  <option value="cancelled">مع مواعيد ملغاة</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+            يتم عرض{" "}
+            <span className="font-medium text-gray-900 dark:text-white">
+              {filteredPatients.length}
+            </span>{" "}
+            من أصل{" "}
+            <span className="font-medium text-gray-900 dark:text-white">
+              {patients.length}
+            </span>{" "}
+            مرضى
+          </p>
+        </GlassCard>
+
         {/* Patients List */}
         {loading ? (
           <div className="flex justify-center py-12">
-            <LoadingSpinner size="lg" message="Loading patients..." />
+            <LoadingSpinner size="lg" message={t("loading_patients")} />
           </div>
-        ) : patients.length === 0 ? (
+        ) : filteredPatients.length === 0 ? (
           <EmptyState
             icon={Users}
-            title="No patients yet"
-            description="أضف المريض الأول لبدء العمل."
-            actionLabel="Add Patient"
+            title={t("no_patients")}
+            description={t("add_patient")}
+            actionLabel={t("add_patient")}
             onAction={() => setShowAddModal(true)}
           />
         ) : (
           <div className="space-y-4">
             <AnimatePresence>
-              {patients.map((patient, index) => (
+              {filteredPatients.map((patient, index) => (
                 <motion.div
                   key={patient._id || patient.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -461,51 +543,25 @@ export const SecretaryPatientsList = () => {
               onChange={(e) =>
                 setNewPatient({ ...newPatient, name: e.target.value })
               }
-              placeholder="Enter patient's full name"
+              placeholder={t(
+                "pages_SecretaryPatientsList.attr_placeholder_enter_patient_s_full_name",
+              )}
               required
               disabled={addingPatient}
             />
-            <Input
-              label="البريد الإلكتروني"
-              type="email"
-              value={newPatient.email}
-              onChange={(e) =>
-                setNewPatient({ ...newPatient, email: e.target.value })
-              }
-              placeholder="Enter patient's email"
-              required
-              disabled={addingPatient}
-            />
-            <Input
-              label="كلمة المرور"
-              type="password"
-              value={newPatient.password}
-              onChange={(e) =>
-                setNewPatient({ ...newPatient, password: e.target.value })
-              }
-              placeholder="Set a password for the patient"
-              required
-              disabled={addingPatient}
-            />
+
             <Input
               label="رقم الهاتف"
               value={newPatient.phoneNumber}
               onChange={(e) =>
                 setNewPatient({ ...newPatient, phoneNumber: e.target.value })
               }
-              placeholder="Enter patient's phone number (optional)"
+              placeholder={t(
+                "pages_SecretaryPatientsList.attr_placeholder_enter_patient_s_phon",
+              )}
               disabled={addingPatient}
             />
-            <Input
-              label="Clinic Slug"
-              value={newPatient.clinicSlug}
-              onChange={(e) =>
-                setNewPatient({ ...newPatient, clinicSlug: e.target.value })
-              }
-              placeholder="Clinic identifier"
-              disabled={addingPatient}
-              readOnly={!newPatient.clinicSlug && user?.clinicSlug}
-            />
+
             {error && <Alert type="error" message={error} />}
             <div className="flex justify-end space-x-2">
               <Button
@@ -523,11 +579,83 @@ export const SecretaryPatientsList = () => {
                 onClick={handleAddPatient}
                 disabled={addingPatient}
               >
-                {addingPatient ? "Adding..." : "Add Patient"}
+                {addingPatient ? "Adding..." : t("add_patient")}
               </Button>
             </div>
           </div>
         </Modal>
+        {/* Created credentials bottom modal */}
+        {createdCredentialsModal && (
+          <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-lg px-4">
+            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-full">
+                    <svg
+                      className="w-6 h-6 text-green-600 dark:text-green-300"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M20 6L9 17l-5-5" />
+                    </svg>
+                  </div>
+                  <div>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                      تم تسجيل المريض بنجاح! إليك بيانات تسجيل الدخول الخاصة
+                      بالبوابة:
+                    </div>
+                    <div className="mt-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md p-3">
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="text-xs text-gray-500">
+                              البريد الإلكتروني
+                            </div>
+                            <div className="font-mono mt-1 text-sm text-gray-900 dark:text-white">
+                              {createdCredentialsModal.phoneNumber}
+                              @mydoc90.local
+                            </div>
+                          </div>
+                        </div>
+                        <div className="mt-3">
+                          <div className="text-xs text-gray-500">
+                            كلمة المرور الافتراضية
+                          </div>
+                          <div className="font-mono mt-1 text-sm text-gray-900 dark:text-white">
+                            Pt@{createdCredentialsModal.phoneNumber}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex items-center gap-2">
+                      <Button
+                        variant="primary"
+                        onClick={copyCreatedCredentials}
+                      >
+                        <Copy className="w-4 h-4 mr-2" /> نسخ بيانات الدخول
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => setCreatedCredentialsModal(null)}
+                      >
+                        <X className="w-4 h-4 mr-2" /> إغلاق
+                      </Button>
+                      {copiedCredentialsStatus && (
+                        <div className="text-sm text-green-600 dark:text-green-300">
+                          {copiedCredentialsStatus}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </MainLayout>
   );

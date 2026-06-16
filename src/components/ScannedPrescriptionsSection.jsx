@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FileText, Loader, AlertCircle, Download, Eye, X } from "lucide-react";
@@ -11,6 +12,7 @@ import { formatDate } from "../utils/helpers";
  * Allows viewing, downloading, and managing prescriptions
  */
 const ScannedPrescriptionsSection = ({ patientId }) => {
+  const { t } = useTranslation();
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -164,22 +166,29 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
               <div className="relative h-40 bg-gray-100 dark:bg-gray-700 overflow-hidden">
                 <img
                   src={prescription.fileUrl}
-                  alt="Prescription"
+                  alt={t(
+                    "components_ScannedPrescriptionsSection.attr_alt_prescription",
+                  )}
                   className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                 />
+
                 {/* Overlay Actions */}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
                   <button
                     onClick={() => handleViewPrescription(index)}
                     className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition-all"
-                    title="View"
+                    title={t(
+                      "components_ScannedPrescriptionsSection.attr_title_view",
+                    )}
                   >
                     <Eye className="w-5 h-5" />
                   </button>
                   <button
                     onClick={() => handleDownload(prescription.fileUrl)}
                     className="p-2 rounded-full bg-green-500 hover:bg-green-600 text-white transition-all"
-                    title="Download"
+                    title={t(
+                      "components_ScannedPrescriptionsSection.attr_title_download",
+                    )}
                   >
                     <Download className="w-5 h-5" />
                   </button>
@@ -220,9 +229,12 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <img
                   src={prescription.fileUrl}
-                  alt="Prescription"
+                  alt={t(
+                    "components_ScannedPrescriptionsSection.attr_alt_prescription_1",
+                  )}
                   className="w-16 h-16 rounded object-cover flex-shrink-0"
                 />
+
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-gray-600 dark:text-gray-400">
                     {formatDate(prescription.createdAt)}
@@ -240,14 +252,18 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
                 <button
                   onClick={() => handleViewPrescription(index)}
                   className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 transition-all"
-                  title="View"
+                  title={t(
+                    "components_ScannedPrescriptionsSection.attr_title_view_1",
+                  )}
                 >
                   <Eye className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => handleDownload(prescription.fileUrl)}
                   className="p-2 rounded-lg bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 transition-all"
-                  title="Download"
+                  title={t(
+                    "components_ScannedPrescriptionsSection.attr_title_download_1",
+                  )}
                 >
                   <Download className="w-5 h-5" />
                 </button>

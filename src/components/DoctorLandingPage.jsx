@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -112,6 +113,7 @@ const socialConfig = [
 
 // Individual social icon component with animation
 const SocialIcon = ({ link, config, index }) => {
+  const { t } = useTranslation();
   const { Icon, hoverColor, label } = config;
 
   return (
@@ -135,6 +137,7 @@ const SocialIcon = ({ link, config, index }) => {
 
 // Floating WhatsApp button with pulse animation
 const FloatingWhatsAppButton = ({ phoneNumber }) => {
+  const { t } = useTranslation();
   const whatsappLink = phoneNumber
     ? `https://wa.me/${cleanPhoneNumber(phoneNumber)}`
     : null;
@@ -161,8 +164,10 @@ const FloatingWhatsAppButton = ({ phoneNumber }) => {
       }}
       whileHover={{ scale: 1.1 }}
       whileTap={{ scale: 0.95 }}
-      aria-label="Contact us on WhatsApp"
-      title="تواصل معنا عبر WhatsApp"
+      aria-label={t(
+        "components_DoctorLandingPage.attr_aria_label_contact_us_on_whatsapp",
+      )}
+      title={t("components_DoctorLandingPage.attr_title_whatsapp")}
     >
       <MessageCircle size={24} strokeWidth={2} />
     </motion.a>
@@ -170,6 +175,7 @@ const FloatingWhatsAppButton = ({ phoneNumber }) => {
 };
 
 export const DoctorLandingPage = () => {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -205,7 +211,7 @@ export const DoctorLandingPage = () => {
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-200">
-        Loading clinic profile...
+        {t("components_DoctorLandingPage.text_loading_clinic_profile")}
       </div>
     );
   }
@@ -213,7 +219,9 @@ export const DoctorLandingPage = () => {
   if (notFound) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-50 px-4 text-center">
-        <h1 className="text-3xl font-bold text-slate-900">Clinic Not Found</h1>
+        <h1 className="text-3xl font-bold text-slate-900">
+          {t("components_DoctorLandingPage.text_clinic_not_found")}
+        </h1>
         <p className="text-slate-600">
           هذا العنوان غير مرتبط بأي عيادة مسجلة لدينا. يرجى التحقق من الرابط أو
           العودة إلى الموقع الرئيسي للعثور على العيادة الصحيحة.
@@ -263,6 +271,7 @@ export const DoctorLandingPage = () => {
               : fallbackPattern(themeColor)
           }
         />
+
         <div className="absolute inset-0 bg-gradient-to-b from-slate-950/55 via-slate-900/70 to-slate-950/90" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.18),transparent_38%)]" />
 
@@ -366,11 +375,13 @@ export const DoctorLandingPage = () => {
             title="علاج موثوق وآمن"
             text="رعاية صحية موثوقة وآمنة مع التزام صارم بأعلى معايير الجودة والسلامة في كل خطوة من رحلتك العلاجية."
           />
+
           <StatCard
             icon={Stethoscope}
             title="الطب العام"
             text="خبرة متخصصة مصممة لاحتياجاتك وسجلك الطبي وأهدافك الصحية طويلة المدى."
           />
+
           <StatCard
             icon={HeartPulse}
             title="تجربة مخصصة"
@@ -412,6 +423,7 @@ export const DoctorLandingPage = () => {
                     alt={`Clinic ${idx + 1}`}
                     className="h-full w-full object-cover transition duration-300 group-hover:scale-105 group-hover:brightness-95"
                   />
+
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-0 transition group-hover:opacity-100" />
                 </motion.div>
               ))}

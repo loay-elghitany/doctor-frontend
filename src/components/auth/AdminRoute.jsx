@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAdminAuth } from "../../context/AdminAuthContext";
 
@@ -14,11 +15,12 @@ import { useAdminAuth } from "../../context/AdminAuthContext";
  * </AdminRoute>
  */
 const AdminRoute = ({ children }) => {
+  const { t } = useTranslation();
   const { isAdminAuthenticated, loading } = useAdminAuth();
   const location = useLocation();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>{t("components_auth_AdminRoute.text_loading")}</div>;
   }
 
   if (!isAdminAuthenticated) {

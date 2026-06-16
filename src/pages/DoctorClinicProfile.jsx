@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "../components/layout/Layout";
@@ -31,9 +32,21 @@ import {
 
 // Tab configuration
 const TABS = [
-  { id: "basic", label: "Basic Info", icon: User },
-  { id: "visuals", label: "Visuals", icon: Image },
-  { id: "details", label: "Clinic Details", icon: Settings },
+  {
+    id: "basic",
+    labelKey: "pages_DoctorClinicProfile.text_basic_info",
+    icon: User,
+  },
+  {
+    id: "visuals",
+    labelKey: "pages_DoctorClinicProfile.text_visuals",
+    icon: Image,
+  },
+  {
+    id: "details",
+    labelKey: "pages_DoctorClinicProfile.text_details",
+    icon: Settings,
+  },
 ];
 
 // Animation variants
@@ -41,12 +54,6 @@ const tabVariants = {
   hidden: { opacity: 0, y: 10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   exit: { opacity: 0, y: -10, transition: { duration: 0.2 } },
-};
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -20 },
 };
 
 // Glassmorphism Card Component
@@ -72,6 +79,7 @@ const ImageUploadPreview = ({
   placeholder,
   icon: Icon,
 }) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef(null);
 
   const aspectClasses = {
@@ -95,6 +103,7 @@ const ImageUploadPreview = ({
               alt={label}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
+
             {/* Overlay with actions */}
             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
               <motion.button
@@ -138,7 +147,7 @@ const ImageUploadPreview = ({
               {placeholder || "Click to upload"}
             </p>
             <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
-              PNG, JPG, WEBP (max 5MB)
+              {t("pages_DoctorClinicProfile.text_png_jpg_webp_max_5mb")}
             </p>
           </motion.div>
         )}
@@ -170,6 +179,7 @@ const PhotoGalleryItem = ({ url, index, onDelete, uploading }) => (
       alt={`Clinic photo ${index + 1}`}
       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
     />
+
     {/* Delete button */}
     <motion.button
       type="button"
@@ -213,6 +223,7 @@ const Skeleton = ({ className = "" }) => (
 
 // Main Component
 export const DoctorClinicProfile = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("basic");
   const [form, setForm] = useState({
@@ -234,7 +245,6 @@ export const DoctorClinicProfile = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [uploadingPhotoIndex, setUploadingPhotoIndex] = useState(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
@@ -404,10 +414,10 @@ export const DoctorClinicProfile = () => {
           transition={{ duration: 0.4 }}
         >
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-            ملف العيادة
+            {t("pages_DoctorClinicProfile.text_clinic_profile_title")}
           </h1>
           <p className="mt-2 text-slate-600 dark:text-slate-400">
-            قم بإدارة معلومات عيادتك، صورك، وروابط التواصل الاجتماعي التي تظهر
+            {t("pages_DoctorClinicProfile.text_clinic_profile_subtitle")}
           </p>
           <div className="mt-6">
             <TelegramConnectButton
@@ -467,7 +477,7 @@ export const DoctorClinicProfile = () => {
                   whileTap={{ scale: 0.98 }}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="hidden sm:inline">{t(tab.labelKey)}</span>
                 </motion.button>
               );
             })}
@@ -490,31 +500,35 @@ export const DoctorClinicProfile = () => {
                 <GlassCard className="p-6">
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <User className="w-5 h-5 text-blue-600" />
-                    المعلومات الأساسية
+                    {t("pages_DoctorClinicProfile.text_basic_info")}
                   </h2>
                   <div className="space-y-6">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                        نبذة عن العيادة
+                        {t("pages_DoctorClinicProfile.text_bio_label")}
                       </label>
                       <textarea
                         value={form.bio}
                         onChange={(e) => updateField("bio", e.target.value)}
-                        placeholder="Tell patients about your clinic..."
+                        placeholder={t(
+                          "pages_DoctorClinicProfile.attr_placeholder_tell_patients_about_your_clinic",
+                        )}
                         rows={4}
                         className="input-base resize-none"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                        التخصص
+                        {t("pages_DoctorClinicProfile.text_specialty_label")}
                       </label>
                       <input
                         value={form.specialty}
                         onChange={(e) =>
                           updateField("specialty", e.target.value)
                         }
-                        placeholder="e.g., Cardiology, Dermatology, General Practice"
+                        placeholder={t(
+                          "pages_DoctorClinicProfile.attr_placeholder_e_g_cardiology_derma",
+                        )}
                         className="input-base"
                       />
                     </div>
@@ -525,7 +539,7 @@ export const DoctorClinicProfile = () => {
                 <GlassCard className="p-6">
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <Globe className="w-5 h-5 text-blue-600" />
-                    Social Media Links
+                    {t("pages_DoctorClinicProfile.text_social_media_links")}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="relative">
@@ -535,7 +549,9 @@ export const DoctorClinicProfile = () => {
                         onChange={(e) =>
                           updateSocial("facebook", e.target.value)
                         }
-                        placeholder="Facebook URL"
+                        placeholder={t(
+                          "pages_DoctorClinicProfile.attr_placeholder_facebook_url",
+                        )}
                         className="input-base pl-10"
                       />
                     </div>
@@ -546,7 +562,9 @@ export const DoctorClinicProfile = () => {
                         onChange={(e) =>
                           updateSocial("instagram", e.target.value)
                         }
-                        placeholder="Instagram URL"
+                        placeholder={t(
+                          "pages_DoctorClinicProfile.attr_placeholder_instagram_url",
+                        )}
                         className="input-base pl-10"
                       />
                     </div>
@@ -557,7 +575,9 @@ export const DoctorClinicProfile = () => {
                         onChange={(e) =>
                           updateSocial("twitter", e.target.value)
                         }
-                        placeholder="Twitter URL"
+                        placeholder={t(
+                          "pages_DoctorClinicProfile.attr_placeholder_twitter_url",
+                        )}
                         className="input-base pl-10"
                       />
                     </div>
@@ -579,27 +599,36 @@ export const DoctorClinicProfile = () => {
                 <GlassCard className="p-6">
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <Camera className="w-5 h-5 text-blue-600" />
-                    Branding Images
+                    {t("pages_DoctorClinicProfile.text_branding_images")}
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ImageUploadPreview
-                      label="صورة الملف الشخصي"
+                      label={t(
+                        "pages_DoctorClinicProfile.text_profile_picture_label",
+                      )}
                       imageSrc={form.profilePicture}
                       onUpload={handleProfilePictureUpload}
                       onRemove={handleRemoveProfilePicture}
                       uploading={uploading}
                       aspectRatio="square"
-                      placeholder="رفع صورة ملف شخصي"
+                      placeholder={t(
+                        "pages_DoctorClinicProfile.text_upload_profile_picture",
+                      )}
                       icon={User}
                     />
+
                     <ImageUploadPreview
-                      label="صورة الغلاف"
+                      label={t(
+                        "pages_DoctorClinicProfile.text_cover_image_label",
+                      )}
                       imageSrc={form.coverImage}
                       onUpload={handleCoverImageUpload}
                       onRemove={handleRemoveCoverImage}
                       uploading={uploading}
                       aspectRatio="wide"
-                      placeholder="قم بتحميل صورة غلاف "
+                      placeholder={t(
+                        "pages_DoctorClinicProfile.text_upload_cover_image",
+                      )}
                       icon={Image}
                     />
                   </div>
@@ -610,10 +639,13 @@ export const DoctorClinicProfile = () => {
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                       <Image className="w-5 h-5 text-blue-600" />
-                      Clinic Photos Gallery
+                      {t(
+                        "pages_DoctorClinicProfile.text_clinic_photos_gallery",
+                      )}
                     </h2>
                     <span className="text-sm text-slate-500 dark:text-slate-400">
-                      {form.clinicPhotos.length} photo
+                      {form.clinicPhotos.length}
+                      {t("pages_DoctorClinicProfile.text_photo")}
                       {form.clinicPhotos.length !== 1 ? "s" : ""}
                     </span>
                   </div>
@@ -641,9 +673,7 @@ export const DoctorClinicProfile = () => {
                               url={url}
                               index={idx}
                               onDelete={handleDeletePhoto}
-                              uploading={
-                                uploading && uploadingPhotoIndex === idx
-                              }
+                              uploading={uploading}
                             />
                           ))}
                         </AnimatePresence>
@@ -659,15 +689,21 @@ export const DoctorClinicProfile = () => {
                           whileTap={{ scale: 0.99 }}
                         >
                           <Plus className="w-5 h-5" />
-                          <span className="font-medium">أضف مزيد من الصور</span>
+                          <span className="font-medium">
+                            {t(
+                              "pages_DoctorClinicProfile.text_add_more_photos",
+                            )}
+                          </span>
                         </motion.button>
                       </div>
                     </>
                   ) : (
                     <EmptyState
                       icon={Image}
-                      title="ليس هناك صور بعد"
-                      description="أضف صور للعيادة لتساعد المرضى على رؤية المزيد عنك وعن عيادتك"
+                      title={t("pages_DoctorClinicProfile.text_no_photos_yet")}
+                      description={t(
+                        "pages_DoctorClinicProfile.text_empty_state_description",
+                      )}
                       action={
                         <motion.button
                           type="button"
@@ -677,7 +713,9 @@ export const DoctorClinicProfile = () => {
                           whileTap={{ scale: 0.98 }}
                         >
                           <Plus className="w-4 h-4" />
-                          ارفع صورتك الأولى
+                          {t(
+                            "pages_DoctorClinicProfile.text_upload_first_photo",
+                          )}
                         </motion.button>
                       }
                     />
@@ -699,12 +737,12 @@ export const DoctorClinicProfile = () => {
                 <GlassCard className="p-6">
                   <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                     <Palette className="w-5 h-5 text-blue-600" />
-                    Landing Page Settings
+                    {t("pages_DoctorClinicProfile.text_landing_page_settings")}
                   </h2>
                   <div className="space-y-6">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                        Theme Color
+                        {t("pages_DoctorClinicProfile.text_theme_color")}
                       </label>
                       <div className="flex items-center gap-4">
                         <div className="relative">
@@ -725,9 +763,12 @@ export const DoctorClinicProfile = () => {
                           onChange={(e) =>
                             updateLandingSettings("themeColor", e.target.value)
                           }
-                          placeholder="#2563eb"
+                          placeholder={t(
+                            "pages_DoctorClinicProfile.attr_placeholder_2563eb",
+                          )}
                           className="input-base w-40 font-mono"
                         />
+
                         <div
                           className="px-4 py-2 rounded-lg text-white font-medium"
                           style={{
@@ -735,14 +776,16 @@ export const DoctorClinicProfile = () => {
                               form.landingPageSettings.themeColor,
                           }}
                         >
-                          Preview
+                          {t("pages_DoctorClinicProfile.text_preview")}
                         </div>
                       </div>
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                         <MessageSquare className="w-4 h-4 inline mr-1" />
-                        رسالة ترحيبية
+                        {t(
+                          "pages_DoctorClinicProfile.text_welcome_message_label",
+                        )}
                       </label>
                       <input
                         value={form.landingPageSettings.welcomeMessage}
@@ -752,11 +795,16 @@ export const DoctorClinicProfile = () => {
                             e.target.value,
                           )
                         }
-                        placeholder="Welcome to our clinic..."
+                        placeholder={t(
+                          "pages_DoctorClinicProfile.attr_placeholder_welcome_to_our_clinic",
+                        )}
                         className="input-base"
                       />
+
                       <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        هذة الرسالة ستظهر على واجهة ملفك الشخصي
+                        {t(
+                          "pages_DoctorClinicProfile.text_welcome_message_help",
+                        )}
                       </p>
                     </div>
                   </div>
@@ -784,7 +832,7 @@ export const DoctorClinicProfile = () => {
                 {uploading && (
                   <span className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Uploading images...
+                    {t("pages_DoctorClinicProfile.text_uploading_images")}
                   </span>
                 )}
               </div>
@@ -799,7 +847,7 @@ export const DoctorClinicProfile = () => {
                     whileTap={{ scale: 0.98 }}
                   >
                     <ExternalLink className="w-4 h-4" />
-                    Live Preview
+                    {t("pages_DoctorClinicProfile.text_live_preview")}
                   </motion.a>
                 )}
                 <motion.button
@@ -812,12 +860,12 @@ export const DoctorClinicProfile = () => {
                   {saving ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
+                      {t("pages_DoctorClinicProfile.text_saving")}
                     </>
                   ) : (
                     <>
                       <Save className="w-4 h-4" />
-                      حفظ التغيرات
+                      {t("pages_DoctorClinicProfile.text_save_changes")}
                     </>
                   )}
                 </motion.button>

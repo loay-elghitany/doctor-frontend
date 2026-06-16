@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, ArrowLeft, CheckCircle2, Info } from "lucide-react";
 
@@ -9,6 +10,7 @@ export const GuidedTour = ({
   onBack,
   onClose,
 }) => {
+  const { t } = useTranslation();
   const step = steps[currentStep] || {};
 
   return (
@@ -45,7 +47,9 @@ export const GuidedTour = ({
               <button
                 onClick={onClose}
                 className="text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
-                aria-label="Close tour"
+                aria-label={t(
+                  "components_GuidedTour.attr_aria_label_close_tour",
+                )}
               >
                 ×
               </button>
@@ -55,7 +59,9 @@ export const GuidedTour = ({
               <p>{step.description}</p>
               {step.tip && (
                 <div className="rounded-2xl bg-slate-50 p-4 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                  <p className="font-semibold">Tip</p>
+                  <p className="font-semibold">
+                    {t("components_GuidedTour.text_tip")}
+                  </p>
                   <p className="mt-2">{step.tip}</p>
                 </div>
               )}
@@ -66,7 +72,9 @@ export const GuidedTour = ({
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
                   {currentStep + 1}
                 </span>
-                of {steps.length} steps
+                {t("components_GuidedTour.text_of")}
+                {steps.length}
+                {t("components_GuidedTour.text_steps")}
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <button

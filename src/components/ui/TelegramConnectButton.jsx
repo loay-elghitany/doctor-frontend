@@ -1,7 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Send } from "lucide-react";
 
 const TelegramConnectButton = ({ userRole, userId, isLinked, botUsername }) => {
+  const { t } = useTranslation();
   const payload = `${userRole}_${userId}`;
   const telegramDeepLink = `https://t.me/${botUsername}?start=${encodeURIComponent(payload)}`;
 
@@ -16,7 +18,11 @@ const TelegramConnectButton = ({ userRole, userId, isLinked, botUsername }) => {
     return (
       <div className="rounded-3xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700 dark:border-rose-700 dark:bg-rose-900/20 dark:text-rose-200">
         يرجى تكوين متغير البيئة{" "}
-        <code className="font-mono">VITE_TELEGRAM_BOT_USERNAME</code>
+        <code className="font-mono">
+          {t(
+            "components_ui_TelegramConnectButton.text_vite_telegram_bot_username",
+          )}
+        </code>
       </div>
     );
   }
@@ -41,7 +47,9 @@ const TelegramConnectButton = ({ userRole, userId, isLinked, botUsername }) => {
           target="_blank"
           rel="noopener noreferrer"
           className={`${baseClasses} ${unlinkedClasses}`}
-          aria-label="Activate Telegram notifications"
+          aria-label={t(
+            "components_ui_TelegramConnectButton.attr_aria_label_activate_telegram_no",
+          )}
         >
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white">
             <Send className="w-4 h-4" />

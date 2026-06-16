@@ -1,8 +1,10 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, FileText, DollarSign, ClipboardList } from "lucide-react";
 
 const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [totalCost, setTotalCost] = useState("");
   const [notes, setNotes] = useState("");
@@ -81,10 +83,14 @@ const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
               <div className="relative bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4">
                 <h2 className="text-xl font-bold text-white flex items-center gap-2">
                   <ClipboardList className="w-5 h-5" />
-                  New Treatment Plan
+                  {t(
+                    "components_CreateTreatmentPlanModal.text_new_treatment_plan",
+                  )}
                 </h2>
                 <p className="text-teal-100 text-sm mt-1">
-                  Create a new treatment plan for the patient
+                  {t(
+                    "components_CreateTreatmentPlanModal.text_create_a_new_treatme",
+                  )}
                 </p>
                 <button
                   onClick={handleClose}
@@ -101,18 +107,21 @@ const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     <span className="flex items-center gap-1.5">
                       <FileText className="w-4 h-4 text-teal-500" />
-                      Plan Title
+                      {t("components_CreateTreatmentPlanModal.text_plan_title")}
                     </span>
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    placeholder="e.g., Orthodontics / تقويم أسنان"
+                    placeholder={t(
+                      "components_CreateTreatmentPlanModal.attr_placeholder_e_g_orthodontics",
+                    )}
                     className={`w-full px-4 py-2.5 bg-white/60 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all ${
                       errors.title ? "border-red-300" : "border-gray-200"
                     }`}
                   />
+
                   {errors.title && (
                     <p className="text-red-500 text-xs mt-1">{errors.title}</p>
                   )}
@@ -123,20 +132,25 @@ const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
                     <span className="flex items-center gap-1.5">
                       <DollarSign className="w-4 h-4 text-teal-500" />
-                      Total Cost (EGP)
+                      {t(
+                        "components_CreateTreatmentPlanModal.text_total_cost_egp",
+                      )}
                     </span>
                   </label>
                   <input
                     type="number"
                     value={totalCost}
                     onChange={(e) => setTotalCost(e.target.value)}
-                    placeholder="e.g., 15000"
+                    placeholder={t(
+                      "components_CreateTreatmentPlanModal.attr_placeholder_e_g_15000",
+                    )}
                     min="0"
                     step="0.01"
                     className={`w-full px-4 py-2.5 bg-white/60 border rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all ${
                       errors.totalCost ? "border-red-300" : "border-gray-200"
                     }`}
                   />
+
                   {errors.totalCost && (
                     <p className="text-red-500 text-xs mt-1">
                       {errors.totalCost}
@@ -147,12 +161,16 @@ const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
                 {/* Notes Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Notes (Optional)
+                    {t(
+                      "components_CreateTreatmentPlanModal.text_notes_optional",
+                    )}
                   </label>
                   <textarea
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Additional details about the treatment plan..."
+                    placeholder={t(
+                      "components_CreateTreatmentPlanModal.attr_placeholder_additional_details_a",
+                    )}
                     rows={3}
                     className="w-full px-4 py-2.5 bg-white/60 border border-gray-200 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all resize-none"
                   />
@@ -165,7 +183,7 @@ const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
                     onClick={handleClose}
                     className="flex-1 px-4 py-2.5 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors"
                   >
-                    Cancel
+                    {t("components_CreateTreatmentPlanModal.text_cancel")}
                   </button>
                   <button
                     type="submit"
@@ -183,7 +201,7 @@ const CreateTreatmentPlanModal = ({ isOpen, onClose, onSave, patientId }) => {
                           }}
                           className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full"
                         />
-                        Saving...
+                        {t("components_CreateTreatmentPlanModal.text_saving")}
                       </>
                     ) : (
                       "Save Plan"

@@ -1,8 +1,24 @@
+import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { Stethoscope } from "lucide-react";
+import { Stethoscope, FileText } from "lucide-react";
 import { formatDateSafe } from "../../utils/date/formatDateSafe";
 import { getStatusLabel } from "../../utils/helpers";
 import { getAppointmentPermissions } from "../../utils/appointmentPermissions.js";
+
+const hasIntakeFormData = (intakeForm) => {
+  if (!intakeForm) return false;
+  return !!(
+    intakeForm.chiefComplaint ||
+    intakeForm.vitals?.bloodPressure ||
+    intakeForm.vitals?.diabetes ||
+    intakeForm.medicalHistory?.smoking ||
+    intakeForm.medicalHistory?.heartSurgeries ||
+    intakeForm.medicalHistory?.familyHeartHistory ||
+    intakeForm.medicalHistory?.chestProblems ||
+    intakeForm.allergies ||
+    intakeForm.pregnancyOrLactation
+  );
+};
 
 // Appointment card component
 export const AppointmentCard = ({
@@ -12,7 +28,9 @@ export const AppointmentCard = ({
   actionLabel,
   onHide,
   onMarkCompleted,
+  onViewIntake,
 }) => {
+  const { t } = useTranslation();
   const statusColors = {
     pending: "border-yellow-500",
     confirmed: "border-blue-500",
@@ -25,6 +43,10 @@ export const AppointmentCard = ({
   };
 
   const isCancelled = appointment.status === "cancelled";
+  const isWalkIn =
+    appointment.createdBy === "secretary" &&
+    (appointment.status === "scheduled" || appointment.status === "confirmed");
+  const permissions = getAppointmentPermissions(appointment.status);
 
   const patientLabel =
     appointment.patientId?.name ||
@@ -60,12 +82,19 @@ export const AppointmentCard = ({
               تم إلغاء هذا الموعد من قبل الدكتور
             </p>
           )}
+          {isWalkIn && (
+            <p className="text-sm font-medium text-emerald-600 mt-2">
+              موعد حضور مباشر — مؤكد
+            </p>
+          )}
         </div>
         {/* Normalize status to CSS class name (replace underscores with dashes) */}
         <span
           className={`badge ${String(appointment.status || "unknown").replace(/_/g, "-")}`}
         >
-          {getStatusLabel(appointment.status)}
+          {t(
+            `appointment_records.statuses.${String(appointment.status || "unknown").toLowerCase()}`,
+          )}
         </span>
       </div>
 
@@ -82,15 +111,32 @@ export const AppointmentCard = ({
             <span className="text-gray-600">{appointment.notes}</span>
           </p>
         )}
+        {appointment.intakeForm?.chiefComplaint && (
+          <p>
+            <span className="font-medium text-gray-700">الشكوى الرئيسية:</span>{" "}
+            <span className="text-gray-600">
+              {appointment.intakeForm.chiefComplaint}
+            </span>
+          </p>
+        )}
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button
           onClick={() => onView(appointment)}
           className="btn-primary text-sm"
         >
           عرض التفاصيل
         </button>
+        {appointment.intakeForm && onViewIntake && hasIntakeFormData(appointment.intakeForm) && (
+          <button
+            onClick={() => onViewIntake(appointment)}
+            className="btn-secondary text-sm flex items-center gap-1"
+          >
+            <FileText className="w-4 h-4" />
+            استمارة الفحص
+          </button>
+        )}
         {appointment.status === "reschedule_proposed" && (
           <button
             onClick={() => onAction?.(appointment)}
@@ -99,39 +145,53 @@ export const AppointmentCard = ({
             اختر وقتًا جديدًا
           </button>
         )}
-        {(() => {
-          const permissions = getAppointmentPermissions(appointment.status);
-          return (
-            <>
-              {permissions.canMarkCompleted && onMarkCompleted && (
-                <button
-                  onClick={() => onMarkCompleted(appointment)}
-                  className="btn-primary text-sm bg-green-600 hover:bg-green-700"
-                >
-                  تحديد كمكتمل
-                </button>
-              )}
-              {permissions.canDelete && onHide && (
-                <button
-                  onClick={() => onHide(appointment)}
-                  className="btn-secondary text-sm bg-red-100 text-red-700 hover:bg-red-200"
-                >
-                  حذف
-                </button>
-              )}
-            </>
-          );
-        })()}
+        {permissions.canConfirm && onAction && (
+          <button
+            onClick={() => onAction(appointment)}
+            className="btn-primary text-sm bg-emerald-600 hover:bg-emerald-700"
+          >
+            {actionLabel ||
+              t("secretary_appointments.actions.confirm", {
+                defaultValue: "تأكيد الموعد",
+              })}
+          </button>
+        )}
+        {permissions.canMarkCompleted && onMarkCompleted && (
+          <button
+            onClick={() => onMarkCompleted(appointment)}
+            className="btn-primary text-sm bg-green-600 hover:bg-green-700"
+          >
+            {t("appointment_records.actions.mark_completed", {
+              defaultValue: "تحديد كمكتمل",
+            })}
+          </button>
+        )}
+        {permissions.canDelete && onHide && (
+          <button
+            onClick={() => onHide(appointment)}
+            className="btn-secondary text-sm bg-red-100 text-red-700 hover:bg-red-200"
+          >
+            {t("appointment_records.actions.delete", {
+              defaultValue: "حذف",
+            })}
+          </button>
+        )}
         {onAction &&
+          permissions.canCancel &&
+          !permissions.canConfirm &&
           !isCancelled &&
           appointment.status !== "reschedule_proposed" &&
           appointment.status !== "scheduled" &&
+          appointment.status !== "confirmed" &&
           appointment.status !== "completed" && (
             <button
               onClick={() => onAction(appointment)}
               className="btn-secondary text-sm"
             >
-              {actionLabel || "Action"}
+              {actionLabel ||
+                t("appointment_records.actions.default_action", {
+                  defaultValue: "إجراء",
+                })}
             </button>
           )}
       </div>
@@ -140,7 +200,13 @@ export const AppointmentCard = ({
 };
 
 // Appointment detail modal content
-export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
+export const AppointmentDetails = ({
+  appointment,
+  onClose,
+  onAction,
+  onViewIntake,
+}) => {
+  const { t } = useTranslation();
   const patientLabel =
     appointment.patientId?.name ||
     appointment.patientId?.email ||
@@ -187,6 +253,45 @@ export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
             <p className="text-gray-900">{appointment.notes}</p>
           </div>
         )}
+        {hasIntakeFormData(appointment.intakeForm) && (
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              استمارة الفحص الطبي
+            </label>
+            <div className="mt-2 space-y-2 text-sm text-gray-700">
+              {appointment.intakeForm.chiefComplaint && (
+                <p>
+                  <span className="font-medium">الشكوى الرئيسية:</span>{" "}
+                  {appointment.intakeForm.chiefComplaint}
+                </p>
+              )}
+              {(appointment.intakeForm.vitals?.bloodPressure ||
+                appointment.intakeForm.vitals?.diabetes) && (
+                <p>
+                  <span className="font-medium">العلامات الحيوية:</span>{" "}
+                  {[
+                    appointment.intakeForm.vitals?.bloodPressure &&
+                      `ضغط الدم: ${appointment.intakeForm.vitals.bloodPressure}`,
+                    appointment.intakeForm.vitals?.diabetes &&
+                      `السكري: ${appointment.intakeForm.vitals.diabetes}`,
+                  ]
+                    .filter(Boolean)
+                    .join(" | ")}
+                </p>
+              )}
+            </div>
+            {onViewIntake && (
+              <button
+                type="button"
+                onClick={() => onViewIntake(appointment)}
+                className="mt-3 btn-secondary text-sm flex items-center gap-1"
+              >
+                <FileText className="w-4 h-4" />
+                عرض استمارة الفحص الكاملة
+              </button>
+            )}
+          </div>
+        )}
         {appointment.rescheduleOptions?.length > 0 && (
           <div>
             <label className="text-sm font-medium text-gray-700">
@@ -197,7 +302,11 @@ export const AppointmentDetails = ({ appointment, onClose, onAction }) => {
                 <li key={idx} className="text-gray-900">
                   {formatDateSafe(opt.date)} {opt.timeSlot || ""}
                   {opt.chosen && (
-                    <span className="ml-2 text-green-600">(Selected)</span>
+                    <span className="ml-2 text-green-600">
+                      {t(
+                        "components_Appointment_AppointmentCard.text_selected",
+                      )}
+                    </span>
                   )}
                 </li>
               ))}

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React, { useState, useEffect } from "react";
 import {
   MessageCircle,
@@ -17,6 +18,7 @@ import {
  * Features: Per-type opt-in/out, quiet hours, SMS fallback, GDPR opt-out
  */
 const NotificationPreferencesPanel = () => {
+  const { t } = useTranslation();
   // Notification types
   const NOTIFICATION_TYPES = [
     { id: "appointment_created", label: "Appointment Created" },
@@ -232,7 +234,9 @@ const NotificationPreferencesPanel = () => {
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 flex items-start gap-3">
             <AlertCircle className="text-red-600 mt-0.5" size={20} />
             <div>
-              <p className="font-medium text-red-800">Error</p>
+              <p className="font-medium text-red-800">
+                {t("components_NotificationPreferencesPanel.text_error")}
+              </p>
               <p className="text-red-700 text-sm">{error}</p>
             </div>
           </div>
@@ -281,9 +285,15 @@ const NotificationPreferencesPanel = () => {
             {/* GDPR Opt-Out */}
             <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <div>
-                <p className="font-medium text-gray-800">GDPR Opt-Out</p>
+                <p className="font-medium text-gray-800">
+                  {t(
+                    "components_NotificationPreferencesPanel.text_gdpr_opt_out",
+                  )}
+                </p>
                 <p className="text-sm text-gray-600">
-                  Opt out of all data processing and notifications (permanent)
+                  {t(
+                    "components_NotificationPreferencesPanel.text_opt_out_of_all_data_",
+                  )}
                 </p>
               </div>
               <button
@@ -309,16 +319,22 @@ const NotificationPreferencesPanel = () => {
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <MessageCircle className="text-green-500" size={24} />
-            <h2 className="text-lg font-bold text-gray-800">WhatsApp</h2>
+            <h2 className="text-lg font-bold text-gray-800">
+              {t("components_NotificationPreferencesPanel.text_whatsapp")}
+            </h2>
           </div>
 
           <div className="space-y-4">
             {/* Enable WhatsApp */}
             <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <div>
-                <p className="font-medium text-gray-800">Enable WhatsApp</p>
+                <p className="font-medium text-gray-800">
+                  {t(
+                    "components_NotificationPreferencesPanel.text_enable_whatsapp",
+                  )}
+                </p>
                 <p className="text-sm text-gray-600">
-                  استلام الإشعارات عبر WhatsApp
+                  {t("components_NotificationPreferencesPanel.text_whatsapp_1")}
                 </p>
               </div>
               <button
@@ -356,6 +372,7 @@ const NotificationPreferencesPanel = () => {
                       onChange={handleInputChange}
                       className="w-4 h-4 text-blue-600 rounded"
                     />
+
                     <label
                       htmlFor="whatsappQuietHours"
                       className="text-gray-700"
@@ -368,7 +385,9 @@ const NotificationPreferencesPanel = () => {
                     <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 rounded">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          وقت البداية (24hr)
+                          {t(
+                            "components_NotificationPreferencesPanel.text_24hr",
+                          )}
                         </label>
                         <input
                           type="time"
@@ -380,7 +399,9 @@ const NotificationPreferencesPanel = () => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          وقت النهاية (24hr)
+                          {t(
+                            "components_NotificationPreferencesPanel.text_24hr_1",
+                          )}
                         </label>
                         <input
                           type="time"
@@ -431,16 +452,20 @@ const NotificationPreferencesPanel = () => {
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Smartphone className="text-blue-500" size={24} />
-            <h2 className="text-lg font-bold text-gray-800">SMS</h2>
+            <h2 className="text-lg font-bold text-gray-800">
+              {t("components_NotificationPreferencesPanel.text_sms")}
+            </h2>
           </div>
 
           <div className="space-y-4">
             {/* Enable SMS */}
             <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <div>
-                <p className="font-medium text-gray-800">Enable SMS</p>
+                <p className="font-medium text-gray-800">
+                  {t("components_NotificationPreferencesPanel.text_enable_sms")}
+                </p>
                 <p className="text-sm text-gray-600">
-                  استلام الإشعارات عبر SMS
+                  {t("components_NotificationPreferencesPanel.text_sms_1")}
                 </p>
               </div>
               <button
@@ -472,11 +497,16 @@ const NotificationPreferencesPanel = () => {
                     name="smsPhoneNumber"
                     value={formData.smsPhoneNumber}
                     onChange={handleInputChange}
-                    placeholder="+1234567890"
+                    placeholder={t(
+                      "components_NotificationPreferencesPanel.attr_placeholder_1234567890",
+                    )}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+
                   <p className="text-xs text-gray-600 mt-1">
-                    أضف رمز البلد (e.g., +1 for USA)
+                    {t(
+                      "components_NotificationPreferencesPanel.text_e_g_1_for_usa",
+                    )}
                   </p>
                 </div>
 
@@ -490,8 +520,11 @@ const NotificationPreferencesPanel = () => {
                     onChange={handleInputChange}
                     className="w-4 h-4 text-blue-600 rounded"
                   />
+
                   <label htmlFor="smsFallbackOnly" className="text-gray-700">
-                    استخدم SMS كاحتياط فقط عندما يفشل WhatsApp
+                    {t(
+                      "components_NotificationPreferencesPanel.text_sms_whatsapp",
+                    )}
                   </label>
                 </div>
 
@@ -532,14 +565,20 @@ const NotificationPreferencesPanel = () => {
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <Mail className="text-blue-600" size={24} />
-            <h2 className="text-lg font-bold text-gray-800">Email</h2>
+            <h2 className="text-lg font-bold text-gray-800">
+              {t("components_NotificationPreferencesPanel.text_email")}
+            </h2>
           </div>
 
           <div className="space-y-4">
             {/* Enable Email */}
             <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
               <div>
-                <p className="font-medium text-gray-800">Enable Email</p>
+                <p className="font-medium text-gray-800">
+                  {t(
+                    "components_NotificationPreferencesPanel.text_enable_email",
+                  )}
+                </p>
                 <p className="text-sm text-gray-600">
                   استلام الإشعارات عبر البريد الإلكتروني
                 </p>
@@ -602,12 +641,14 @@ const NotificationPreferencesPanel = () => {
           {saving ? (
             <>
               <Loader className="animate-spin" size={20} />
-              Saving...
+              {t("components_NotificationPreferencesPanel.text_saving")}
             </>
           ) : (
             <>
               <Save size={20} />
-              Save Preferences
+              {t(
+                "components_NotificationPreferencesPanel.text_save_preferences",
+              )}
             </>
           )}
         </button>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Card, Button } from "../components/ui";
@@ -10,6 +11,7 @@ import { getTenantSubdomain, getMainDomain } from "../utils/subdomain";
 
 // Enhanced Home/Landing Page
 export const Home = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const scrollToSection = (sectionId) => {
@@ -111,7 +113,7 @@ export const Home = () => {
               <span className="text-white font-bold text-lg">M</span>
             </div>
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-              mydoc90
+              {t("pages_Auth.text_mydoc90")}
             </h1>
           </div>
           <nav className="hidden md:flex items-center gap-8">
@@ -147,7 +149,7 @@ export const Home = () => {
             className="text-center"
           >
             <h2 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
-              mydoc90 — إدارة عيادتك بذكاء وسهولة
+              {t("pages_Auth.text_mydoc90_1")}
             </h2>
             <p className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed">
               نظام متكامل لإدارة المرضى، المواعيد، والسكرتارية… سواء كنت دكتور،
@@ -386,7 +388,7 @@ export const Home = () => {
       {/* Footer */}
       <footer className="bg-gray-900 dark:bg-gray-950 text-white py-8 border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-gray-400">© 2024 mydoc90. جميع الحقوق محفوظة.</p>
+          <p className="text-gray-400">{t("pages_Auth.text_2024_mydoc90")}</p>
         </div>
       </footer>
     </div>
@@ -395,6 +397,7 @@ export const Home = () => {
 
 // Placeholder Login Page
 export const Login = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
@@ -448,7 +451,9 @@ export const Login = () => {
     console.log("Login attempt:", { userType, email: trimmedEmail });
 
     try {
-      const user = await login(trimmedEmail, password, userType, { clinicSlug });
+      const user = await login(trimmedEmail, password, userType, {
+        clinicSlug,
+      });
       console.log("Login success:", user);
 
       // Tenant-aware redirection logic
@@ -463,7 +468,9 @@ export const Login = () => {
 
       // For doctors, patients, and secretaries, check if they belong to the current subdomain
       if (
-        (userType === "doctor" || userType === "patient" || userType === "secretary") &&
+        (userType === "doctor" ||
+          userType === "patient" ||
+          userType === "secretary") &&
         userClinicSlug
       ) {
         // Case B: Mismatch - redirect to correct subdomain
@@ -474,7 +481,7 @@ export const Login = () => {
               from: currentSubdomain || "(no subdomain)",
               to: userClinicSlug,
               userType,
-            }
+            },
           );
 
           // Construct the correct URL for the user's tenant
@@ -505,30 +512,30 @@ export const Login = () => {
   const buildTenantUrl = (tenantSlug, path = "/dashboard") => {
     const host = window.location.host; // e.g., "mohamed.localhost:5173" OR "clinic.vercel.app" OR "myclinic.com"
     const protocol = window.location.protocol; // http: or https:
-    
+
     let baseDomain;
-    
+
     // Logic to strip the current subdomain and get the base domain
-    if (host.includes('localhost')) {
-        // For Local Development
-        baseDomain = 'localhost:5173';
+    if (host.includes("localhost")) {
+      // For Local Development
+      baseDomain = "localhost:5173";
     } else {
-        // For Production (Vercel/Render/Custom Domain)
-        // This logic removes the first part (subdomain) and keeps the rest
-        const parts = host.split('.');
-        if (parts.length > 2) {
-            // if it's "mohamed.myclinic.com" -> returns "myclinic.com"
-            // if it's "mohamed.clinic.vercel.app" -> returns "clinic.vercel.app"
-            baseDomain = parts.slice(1).join('.');
-        } else {
-            baseDomain = host;
-        }
+      // For Production (Vercel/Render/Custom Domain)
+      // This logic removes the first part (subdomain) and keeps the rest
+      const parts = host.split(".");
+      if (parts.length > 2) {
+        // if it's "mohamed.myclinic.com" -> returns "myclinic.com"
+        // if it's "mohamed.clinic.vercel.app" -> returns "clinic.vercel.app"
+        baseDomain = parts.slice(1).join(".");
+      } else {
+        baseDomain = host;
+      }
     }
-    
+
     // Construct the final URL
     const correctHostname = `${tenantSlug}.${baseDomain}`;
     const correctUrl = `${protocol}//${correctHostname}${path}`;
-    
+
     return correctUrl;
   };
 
@@ -536,7 +543,7 @@ export const Login = () => {
     <AuthLayout>
       <Card className="w-full">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-          Login
+          {t("pages_Auth.text_login")}
         </h2>
 
         {error && (
@@ -550,41 +557,53 @@ export const Login = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="flex gap-4 mb-6">
+            {/* 1. راديو المريض */}
             <label className="flex items-center">
               <input
                 type="radio"
-                value="patient"
+                value="patient" //
                 checked={userType === "patient"}
                 onChange={(e) => setUserType(e.target.value)}
                 className="mr-2"
               />
-              <span className="text-gray-700">Patient</span>
+              <span className="text-gray-700">
+                {t("pages_Auth.text_patient")}{" "}
+                {/* الترجمة هنا بس عشان تظهر للمستخدم */}
+              </span>
             </label>
+
+            {/* 2. راديو الطبيب */}
             <label className="flex items-center">
               <input
                 type="radio"
-                value="doctor"
+                value="doctor" //
                 checked={userType === "doctor"}
                 onChange={(e) => setUserType(e.target.value)}
                 className="mr-2"
               />
-              <span className="text-gray-700">Doctor</span>
+              <span className="text-gray-700">
+                {t("pages_Auth.text_doctor")} {/* الترجمة هنا بس */}
+              </span>
             </label>
+
+            {/* 3. راديو السكرتارية */}
             <label className="flex items-center">
               <input
                 type="radio"
-                value="secretary"
+                value="secretary" //
                 checked={userType === "secretary"}
                 onChange={(e) => setUserType(e.target.value)}
                 className="mr-2"
               />
-              <span className="text-gray-700">Secretary</span>
+              <span className="text-gray-700">
+                {t("pages_Auth.text_secretary")} {/* الترجمة هنا بس */}
+              </span>
             </label>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
+              {t("pages_Auth.text_email")}
             </label>
             <input
               type="email"
@@ -598,7 +617,7 @@ export const Login = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Password
+              {t("pages_Auth.text_password")}
             </label>
             <input
               type="password"
@@ -621,9 +640,9 @@ export const Login = () => {
         </form>
 
         <p className="text-center text-gray-600 mt-4">
-          Don't have an account?{" "}
+          {t("pages_Auth.text_don_t_have_an_account")}{" "}
           <a href="/register" className="text-blue-600 hover:underline">
-            Register
+            {t("pages_Auth.text_register")}
           </a>
         </p>
       </Card>

@@ -1,6 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Zoom from "react-medium-image-zoom";
+import "react-medium-image-zoom/dist/styles.css";
 import { MainLayout } from "../components/layout/Layout";
 import {
   GlassCard,
@@ -14,31 +16,34 @@ import { DoctorPatientTimeline } from "../components/DoctorPatientTimeline";
 import { handleApiError } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
 import api from "../services/api";
+import {
+  getPrivateFiles,
+  createPrivateFile,
+  deletePrivateFile,
+} from "../services/doctorPrivateFilesService";
+import { uploadFileToCloudinary } from "../utils/cloudinaryStorage";
 import WhatsAppButtonForDoctor from "../components/WhatsAppButtonForDoctor";
 import {
   Users,
-  Search,
   Calendar,
   Phone,
   Mail,
   ChevronDown,
-  ChevronUp,
   History,
   Filter,
   ArrowRight,
-  Activity,
   Clock,
   FileText,
   Lock,
   Plus,
   Mic,
   Pin,
-  Edit,
+  X,
   Trash2,
 } from "lucide-react";
 
 export const DoctorPatientRecords = () => {
-  const navigate = useNavigate();
+  const { t } = useTranslation();
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -56,6 +61,28 @@ export const DoctorPatientRecords = () => {
   const [newNoteColor, setNewNoteColor] = useState("yellow");
   const [newNotePinned, setNewNotePinned] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [privateFiles, setPrivateFiles] = useState({});
+  const [filesLoading, setFilesLoading] = useState({});
+  const [showAddFileForm, setShowAddFileForm] = useState({});
+  const [newFileName, setNewFileName] = useState("");
+  const [newFileType, setNewFileType] = useState("image");
+  const [newFileNotes, setNewFileNotes] = useState("");
+  const [selectedUploadFile, setSelectedUploadFile] = useState(null);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+  const [audioRecordingSeconds, setAudioRecordingSeconds] = useState(0);
+  const [, setRecordedAudioBlob] = useState(null);
+  const audioMediaRecorder = useRef(null);
+  const audioChunksRef = useRef([]);
+  const audioStreamRef = useRef(null);
+  const [isUploadingFile, setIsUploadingFile] = useState({});
+  const [filePreviewModal, setFilePreviewModal] = useState({
+    isOpen: false,
+    file: null,
+  });
+
+  const closeFilePreviewModal = () => {
+    setFilePreviewModal({ isOpen: false, file: null });
+  };
 
   // Static color mappings to prevent Tailwind purging
   const pickerColors = {
@@ -176,6 +203,7 @@ export const DoctorPatientRecords = () => {
       await Promise.all([
         fetchPatientAppointments(patientId),
         fetchPrivateNotes(patientId),
+        fetchPrivateFiles(patientId),
       ]);
       setExpandedPatientId(patientId);
     }
@@ -245,6 +273,194 @@ export const DoctorPatientRecords = () => {
       }));
     } catch (err) {
       debugError("DoctorPatientRecords", "Failed to delete note", err);
+    }
+  };
+
+  // Fetch private files for a patient
+  const fetchPrivateFiles = async (patientId) => {
+    setFilesLoading((prev) => ({
+      ...prev,
+      [patientId]: true,
+    }));
+
+    try {
+      const response = await getPrivateFiles(patientId);
+      const files = response?.data || [];
+
+      setPrivateFiles((prev) => ({
+        ...prev,
+        [patientId]: files,
+      }));
+    } catch (err) {
+      debugError("DoctorPatientRecords", "Failed to fetch private files", err);
+      setPrivateFiles((prev) => ({
+        ...prev,
+        [patientId]: [],
+      }));
+    } finally {
+      setFilesLoading((prev) => ({
+        ...prev,
+        [patientId]: false,
+      }));
+    }
+  };
+
+  // Handle creating a new private file
+  const handleCreateFile = async (patientId) => {
+    const fileToUpload = selectedUploadFile || null;
+    if (!newFileName.trim()) {
+      alert("الرجاء إدخال اسم الملف قبل الرفع.");
+      return;
+    }
+
+    if (!fileToUpload) {
+      alert("الرجاء اختيار ملف أو تسجيل صوتي قبل الرفع.");
+      return;
+    }
+
+    try {
+      setIsUploadingFile((prev) => ({ ...prev, [patientId]: true }));
+
+      // Upload file to Cloudinary
+      const fileUrl = await uploadFileToCloudinary(fileToUpload, newFileType);
+
+      // Create file record in database
+      const response = await createPrivateFile(patientId, {
+        title: newFileName,
+        fileUrl,
+        fileType: newFileType,
+        notes: newFileNotes,
+      });
+
+      const newFile = response?.data;
+      setPrivateFiles((prev) => ({
+        ...prev,
+        [patientId]: [newFile, ...prev[patientId]],
+      }));
+
+      // Reset form
+      setNewFileName("");
+      setNewFileType("image");
+      setNewFileNotes("");
+      setSelectedUploadFile(null);
+      setRecordedAudioBlob(null);
+      setAudioRecordingSeconds(0);
+      setShowAddFileForm((prev) => ({ ...prev, [patientId]: false }));
+    } catch (err) {
+      debugError("DoctorPatientRecords", "Failed to create file", err);
+    } finally {
+      setIsUploadingFile((prev) => ({ ...prev, [patientId]: false }));
+    }
+  };
+
+  const handleSelectUploadFile = (event) => {
+    const file = event.target.files?.[0] || null;
+    event.target.value = "";
+    setSelectedUploadFile(file);
+    setRecordedAudioBlob(null);
+  };
+
+  useEffect(() => {
+    if (
+      audioMediaRecorder.current &&
+      audioMediaRecorder.current.state !== "inactive"
+    ) {
+      audioMediaRecorder.current.stop();
+    }
+
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach((track) => track.stop());
+      audioStreamRef.current = null;
+    }
+
+    setSelectedUploadFile(null);
+    setRecordedAudioBlob(null);
+    setAudioRecordingSeconds(0);
+  }, [newFileType]);
+
+  const startAudioRecording = async () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      alert("التسجيل الصوتي غير مدعوم في متصفحك.");
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioStreamRef.current = stream;
+      audioChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      audioMediaRecorder.current = recorder;
+
+      recorder.ondataavailable = (event) => {
+        if (event.data && event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+        setRecordedAudioBlob(audioBlob);
+        setSelectedUploadFile(
+          new File([audioBlob], "voice-note.mp3", { type: "audio/mp3" }),
+        );
+        setIsRecordingAudio(false);
+        setAudioRecordingSeconds(0);
+        if (audioStreamRef.current) {
+          audioStreamRef.current.getTracks().forEach((track) => track.stop());
+          audioStreamRef.current = null;
+        }
+      };
+
+      recorder.start();
+      setIsRecordingAudio(true);
+      setAudioRecordingSeconds(0);
+    } catch (err) {
+      debugError(
+        "DoctorPatientRecords",
+        "Failed to start audio recording",
+        err,
+      );
+      alert("فشل بدء التسجيل الصوتي. تأكد من منح الأذن للوصول إلى الميكروفون.");
+    }
+  };
+
+  const stopAudioRecording = () => {
+    if (
+      audioMediaRecorder.current &&
+      audioMediaRecorder.current.state !== "inactive"
+    ) {
+      audioMediaRecorder.current.stop();
+    }
+  };
+
+  useEffect(() => {
+    if (!isRecordingAudio) return undefined;
+
+    const interval = setInterval(() => {
+      setAudioRecordingSeconds((prev) => prev + 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [isRecordingAudio]);
+
+  // Handle deleting a file
+  const handleDeleteFile = async (patientId, fileId) => {
+    try {
+      await deletePrivateFile(fileId, patientId);
+
+      // If the deleted file is currently open in the preview modal, close it to avoid stale state
+      if (filePreviewModal?.file && filePreviewModal.file._id === fileId) {
+        setFilePreviewModal({ isOpen: false, file: null });
+      }
+
+      setPrivateFiles((prev) => ({
+        ...prev,
+        [patientId]: prev[patientId].filter((file) => file._id !== fileId),
+      }));
+    } catch (err) {
+      debugError("DoctorPatientRecords", "Failed to delete file", err);
     }
   };
 
@@ -461,7 +677,9 @@ export const DoctorPatientRecords = () => {
                   <PremiumSearch
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search by name, email, or phone..."
+                    placeholder={t(
+                      "pages_DoctorPatientRecords.attr_placeholder_search_by_name_email_or_phone",
+                    )}
                     className="w-full"
                   />
                 </div>
@@ -475,10 +693,30 @@ export const DoctorPatientRecords = () => {
                       onChange={(e) => setFilterType(e.target.value)}
                       className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
                     >
-                      <option value="all">جميع المرضى</option>
-                      <option value="upcoming">مع مواعيد قادمة</option>
-                      <option value="past">مع مواعيد سابقة</option>
-                      <option value="cancelled">مع مواعيد ملغاة</option>
+                      <option
+                        value={t("pages_DoctorPatientRecords.attr_value_all")}
+                      >
+                        جميع المرضى
+                      </option>
+                      <option
+                        value={t(
+                          "pages_DoctorPatientRecords.attr_value_upcoming",
+                        )}
+                      >
+                        مع مواعيد قادمة
+                      </option>
+                      <option
+                        value={t("pages_DoctorPatientRecords.attr_value_past")}
+                      >
+                        مع مواعيد سابقة
+                      </option>
+                      <option
+                        value={t(
+                          "pages_DoctorPatientRecords.attr_value_cancelled",
+                        )}
+                      >
+                        مع مواعيد ملغاة
+                      </option>
                     </select>
                     <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
                   </div>
@@ -486,15 +724,15 @@ export const DoctorPatientRecords = () => {
               </div>
 
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                Showing{" "}
+                {t("pages_DoctorPatientRecords.text_showing")}{" "}
                 <span className="font-medium text-gray-900 dark:text-white">
                   {filteredPatients.length}
                 </span>{" "}
-                of{" "}
+                {t("pages_DoctorPatientRecords.text_of")}{" "}
                 <span className="font-medium text-gray-900 dark:text-white">
                   {patients.length}
                 </span>{" "}
-                patients
+                {t("pages_DoctorPatientRecords.text_patients")}
               </p>
             </GlassCard>
 
@@ -567,7 +805,7 @@ export const DoctorPatientRecords = () => {
                                 </p>
                                 {patient.lastAppointmentDate && (
                                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Last:{" "}
+                                    {t("pages_DoctorPatientRecords.text_last")}{" "}
                                     {patient.lastAppointmentDate
                                       ? new Date(
                                           patient.lastAppointmentDate,
@@ -650,7 +888,9 @@ export const DoctorPatientRecords = () => {
                                       ?.length === 0 ? (
                                     <EmptyState
                                       icon={Calendar}
-                                      title="No appointments"
+                                      title={t(
+                                        "pages_DoctorPatientRecords.attr_title_no_appointments",
+                                      )}
                                       description="This patient has no appointment history yet."
                                       size="sm"
                                     />
@@ -699,6 +939,7 @@ export const DoctorPatientRecords = () => {
                                               <WhatsAppButtonForDoctor
                                                 patientId={patient.id}
                                               />
+
                                               <StatusBadge
                                                 status={apt.status}
                                                 size="sm"
@@ -752,6 +993,7 @@ export const DoctorPatientRecords = () => {
                                           className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"
                                           rows={3}
                                         />
+
                                         <div className="flex items-center gap-4 mt-3">
                                           {/* Color Selector */}
                                           <div className="flex gap-2">
@@ -770,7 +1012,10 @@ export const DoctorPatientRecords = () => {
                                                   newNoteColor === color
                                                     ? "ring-2 ring-offset-2 ring-gray-600"
                                                     : ""
-                                                } ${pickerColors[color] || pickerColors.default}`}
+                                                } ${
+                                                  pickerColors[color] ||
+                                                  pickerColors.default
+                                                }`}
                                               />
                                             ))}
                                           </div>
@@ -858,7 +1103,10 @@ export const DoctorPatientRecords = () => {
                                               note.isPinned
                                                 ? "border-yellow-400 shadow-lg"
                                                 : "border-gray-200 dark:border-gray-700"
-                                            } ${cardColors[note.color] || cardColors.default}`}
+                                            } ${
+                                              cardColors[note.color] ||
+                                              cardColors.default
+                                            }`}
                                           >
                                             {note.isPinned && (
                                               <Pin className="w-4 h-4 text-yellow-500 absolute top-2 right-2" />
@@ -926,6 +1174,337 @@ export const DoctorPatientRecords = () => {
                                     </div>
                                   )}
                                 </div>
+
+                                {/* Private Medical Files Section */}
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                    <Lock className="w-4 h-4" />
+                                    🔒 الملفات الطبية الخاصة المرفوعة
+                                  </h4>
+
+                                  {/* Add File Button */}
+                                  <motion.button
+                                    onClick={() =>
+                                      setShowAddFileForm((prev) => ({
+                                        ...prev,
+                                        [patient.id]: !prev[patient.id],
+                                      }))
+                                    }
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    className="mb-4 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg flex items-center gap-2 text-sm font-medium shadow-lg"
+                                  >
+                                    <Plus className="w-4 h-4" />
+                                    رفع ملف طبي
+                                  </motion.button>
+
+                                  {/* Add File Form */}
+                                  <AnimatePresence>
+                                    {showAddFileForm[patient.id] && (
+                                      <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: "auto" }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        className="mb-4 p-5 bg-gray-800/50 border border-gray-700/50 dark:border-gray-600/50 rounded-2xl backdrop-blur-sm"
+                                      >
+                                        {/* File Name Input */}
+                                        <input
+                                          type="text"
+                                          value={newFileName}
+                                          onChange={(e) =>
+                                            setNewFileName(e.target.value)
+                                          }
+                                          placeholder="اسم الملف (مثال: أشعة رنين)"
+                                          className="w-full mb-4 p-3 border border-gray-600 dark:border-gray-500 rounded-lg bg-gray-700/50 dark:bg-gray-900/50 text-gray-100 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 transition"
+                                        />
+
+                                        {/* File Type Dropdown */}
+                                        <select
+                                          value={newFileType}
+                                          onChange={(e) =>
+                                            setNewFileType(e.target.value)
+                                          }
+                                          className="w-full mb-4 p-3 border border-gray-600 dark:border-gray-500 rounded-lg bg-gray-700/50 dark:bg-gray-900/50 text-gray-100 dark:text-white focus:outline-none focus:border-blue-500/50 transition"
+                                        >
+                                          <option
+                                            value={t(
+                                              "pages_DoctorPatientRecords.attr_value_image",
+                                            )}
+                                          >
+                                            أشعة / صورة
+                                          </option>
+                                          <option
+                                            value={t(
+                                              "pages_DoctorPatientRecords.attr_value_pdf",
+                                            )}
+                                          >
+                                            {t(
+                                              "pages_DoctorPatientRecords.text_pdf",
+                                            )}
+                                          </option>
+                                          <option
+                                            value={t(
+                                              "pages_DoctorPatientRecords.attr_value_audio",
+                                            )}
+                                          >
+                                            تسجيل صوتي
+                                          </option>
+                                          <option
+                                            value={t(
+                                              "pages_DoctorPatientRecords.attr_value_other",
+                                            )}
+                                          >
+                                            أخرى
+                                          </option>
+                                        </select>
+
+                                        {/* File Notes */}
+                                        <textarea
+                                          value={newFileNotes}
+                                          onChange={(e) =>
+                                            setNewFileNotes(e.target.value)
+                                          }
+                                          placeholder="ملاحظات اختيارية..."
+                                          className="w-full mb-4 p-3 border border-gray-600 dark:border-gray-500 rounded-lg bg-gray-700/50 dark:bg-gray-900/50 text-gray-100 dark:text-white placeholder-gray-400 focus:outline-none focus:border-blue-500/50 transition resize-none"
+                                          rows={2}
+                                        />
+
+                                        {/* File Input and Upload Buttons */}
+                                        <input
+                                          type="file"
+                                          id={`file-input-${patient.id}`}
+                                          onChange={handleSelectUploadFile}
+                                          className="hidden"
+                                          accept={
+                                            newFileType === "image"
+                                              ? "image/*"
+                                              : newFileType === "pdf"
+                                                ? ".pdf"
+                                                : newFileType === "audio"
+                                                  ? "audio/*"
+                                                  : "*"
+                                          }
+                                        />
+
+                                        <div className="flex flex-wrap gap-3 mb-4">
+                                          <motion.label
+                                            htmlFor={`file-input-${patient.id}`}
+                                            whileHover={{
+                                              scale: 1.05,
+                                              backgroundColor:
+                                                "rgba(59, 130, 246, 0.1)",
+                                            }}
+                                            whileTap={{ scale: 0.95 }}
+                                            className="px-4 py-2 border border-blue-500/50 dark:border-blue-400/60 bg-transparent hover:bg-blue-500/10 text-blue-300 dark:text-blue-200 rounded-full text-sm font-medium text-center cursor-pointer transition-all duration-200 flex-shrink-0"
+                                          >
+                                            {selectedUploadFile
+                                              ? selectedUploadFile.name
+                                              : "📁 اختر الملف"}
+                                          </motion.label>
+
+                                          {newFileType === "audio" &&
+                                            !isRecordingAudio && (
+                                              <motion.button
+                                                onClick={startAudioRecording}
+                                                whileHover={{ scale: 1.05 }}
+                                                whileTap={{ scale: 0.95 }}
+                                                type="button"
+                                                className="px-4 py-2 border border-green-500/50 dark:border-green-400/60 bg-transparent hover:bg-green-500/10 text-green-300 dark:text-green-200 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                              >
+                                                <Mic className="w-4 h-4" />
+                                                تسجيل صوتي
+                                              </motion.button>
+                                            )}
+
+                                          {isRecordingAudio && (
+                                            <motion.button
+                                              onClick={stopAudioRecording}
+                                              whileHover={{ scale: 1.05 }}
+                                              whileTap={{ scale: 0.95 }}
+                                              type="button"
+                                              className="px-4 py-2 border border-red-500/50 dark:border-red-400/60 bg-red-500/10 text-red-300 dark:text-red-200 rounded-full text-sm font-medium transition-all duration-200 flex items-center gap-2"
+                                            >
+                                              <span className="inline-flex h-2 w-2 rounded-full bg-red-400 animate-pulse" />
+                                              إيقاف ({audioRecordingSeconds}
+                                              {t(
+                                                "pages_DoctorPatientRecords.text_s",
+                                              )}
+                                            </motion.button>
+                                          )}
+                                        </div>
+
+                                        {selectedUploadFile && (
+                                          <motion.div
+                                            initial={{ opacity: 0, y: -10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mb-4 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-blue-200"
+                                          >
+                                            ✓ جاهز للرفع:{" "}
+                                            {selectedUploadFile.name}
+                                          </motion.div>
+                                        )}
+
+                                        <div className="flex flex-wrap gap-3">
+                                          <motion.button
+                                            onClick={() =>
+                                              handleCreateFile(patient.id)
+                                            }
+                                            whileHover={{
+                                              scale: 1.02,
+                                              boxShadow:
+                                                "0 0 20px rgba(99, 102, 241, 0.5)",
+                                            }}
+                                            whileTap={{ scale: 0.95 }}
+                                            disabled={
+                                              isUploadingFile[patient.id] ||
+                                              !selectedUploadFile
+                                            }
+                                            className="flex-1 min-w-[120px] px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                                          >
+                                            {isUploadingFile[patient.id]
+                                              ? "جاري الرفع..."
+                                              : "🚀 رفع الملف"}
+                                          </motion.button>
+
+                                          <motion.button
+                                            onClick={() =>
+                                              setShowAddFileForm((prev) => ({
+                                                ...prev,
+                                                [patient.id]: false,
+                                              }))
+                                            }
+                                            whileHover={{ scale: 1.05 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            type="button"
+                                            className="px-6 py-2 border border-gray-500/50 dark:border-gray-400/50 bg-transparent hover:bg-gray-500/10 text-gray-300 dark:text-gray-200 rounded-lg text-sm font-medium transition-all duration-200"
+                                          >
+                                            إلغاء
+                                          </motion.button>
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
+
+                                  {/* Files List */}
+                                  {filesLoading[patient.id] ? (
+                                    <div className="flex justify-center py-4">
+                                      <LoadingSpinner size="sm" />
+                                    </div>
+                                  ) : privateFiles[patient.id]?.length === 0 ? (
+                                    <EmptyState
+                                      icon={FileText}
+                                      title="لا توجد ملفات طبية"
+                                      description="رفع ملفات طبية آمنة وخاصة لهذا المريض."
+                                      size="sm"
+                                    />
+                                  ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                      {privateFiles[patient.id]?.map(
+                                        (file, idx) => (
+                                          <motion.div
+                                            key={file._id}
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            className="relative group p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition-all"
+                                          >
+                                            {file.fileType === "image" && (
+                                              <motion.div
+                                                whileHover={{ scale: 1.05 }}
+                                                onClick={() =>
+                                                  setFilePreviewModal({
+                                                    isOpen: true,
+                                                    file,
+                                                  })
+                                                }
+                                                className="mb-3 w-full h-40 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 cursor-pointer"
+                                              >
+                                                <img
+                                                  src={file.fileUrl}
+                                                  alt={file.title}
+                                                  className="w-full h-full object-cover"
+                                                />
+                                              </motion.div>
+                                            )}
+
+                                            {file.fileType === "audio" && (
+                                              <div className="mb-3">
+                                                <audio
+                                                  controls
+                                                  className="w-full"
+                                                >
+                                                  <source src={file.fileUrl} />
+                                                  {t(
+                                                    "pages_DoctorPatientRecords.text_your_browser_does_not_support_the_audio_",
+                                                  )}
+                                                </audio>
+                                              </div>
+                                            )}
+
+                                            {file.fileType === "pdf" && (
+                                              <div className="mb-3 flex items-center justify-center h-32 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                                <div className="text-center">
+                                                  <FileText className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                                                  <a
+                                                    href={file.fileUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                                  >
+                                                    {t(
+                                                      "pages_DoctorPatientRecords.text_pdf_1",
+                                                    )}
+                                                  </a>
+                                                </div>
+                                              </div>
+                                            )}
+
+                                            <div className="flex justify-between items-start">
+                                              <div className="flex-1">
+                                                <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                                  {file.title}
+                                                </p>
+                                                {file.notes && (
+                                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    {file.notes}
+                                                  </p>
+                                                )}
+                                                <p className="text-xs text-gray-400 mt-2">
+                                                  {file.createdAt
+                                                    ? new Date(
+                                                        file.createdAt,
+                                                      ).toLocaleDateString(
+                                                        "ar-EG",
+                                                        {
+                                                          calendar: "gregory",
+                                                          year: "numeric",
+                                                          month: "short",
+                                                          day: "numeric",
+                                                        },
+                                                      )
+                                                    : "-"}
+                                                </p>
+                                              </div>
+                                              <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() =>
+                                                  handleDeleteFile(
+                                                    patient.id,
+                                                    file._id,
+                                                  )
+                                                }
+                                                className="p-1 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                              >
+                                                <Trash2 className="w-4 h-4" />
+                                              </motion.button>
+                                            </div>
+                                          </motion.div>
+                                        ),
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </motion.div>
                           )}
@@ -939,6 +1518,71 @@ export const DoctorPatientRecords = () => {
           </>
         )}
       </div>
+      {/* Image Preview Modal */}
+      <AnimatePresence>
+        {filePreviewModal.isOpen && filePreviewModal.file && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={closeFilePreviewModal}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm animate-fade-in"
+          >
+            <motion.div
+              initial={{ scale: 0.97, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.97, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="absolute inset-0 overflow-visible"
+            >
+              {/* Top Premium Navbar */}
+              <div className="flex items-center justify-between gap-4 px-6 py-4 bg-slate-950/95 border-b border-slate-800 text-white">
+                <div className="max-w-[85%]">
+                  <h3 className="text-base font-semibold">
+                    معاينة مستند الأشعة: {filePreviewModal.file.title}
+                  </h3>
+                  {filePreviewModal.file.notes && (
+                    <p className="text-sm text-slate-300 mt-1">
+                      {filePreviewModal.file.notes}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFilePreviewModal({ isOpen: false, file: null });
+                  }}
+                  className="relative z-[99999] p-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700/60 text-slate-200 hover:text-white transition-all cursor-pointer shadow-lg"
+                  aria-label={t(
+                    "pages_DoctorPatientRecords.attr_aria_label_close_preview",
+                  )}
+                >
+                  <X className="w-5 h-5 pointer-events-none" />
+                </button>
+              </div>
+
+              {/* Unlimited Fullscreen Canvas Workspace */}
+              <div className="absolute inset-0 flex items-center justify-center overflow-visible p-6">
+                <div className="relative max-h-full max-w-full overflow-visible">
+                  <Zoom>
+                    <img
+                      src={filePreviewModal.file.fileUrl}
+                      alt={filePreviewModal.file.title}
+                      className="w-full h-auto max-h-[calc(100vh-140px)] object-contain rounded-3xl shadow-2xl select-none"
+                    />
+                  </Zoom>
+                </div>
+              </div>
+
+              {/* Footer Tip Indicator */}
+              <div className="absolute bottom-6 left-6 z-20 rounded-2xl bg-slate-950/90 border border-slate-800 p-3 text-sm text-slate-200 shadow-lg">
+                💡 انقر على الصورة مباشرة للتكبير الاحترافي وحرك الماوس بحرية
+                تامة للتصفح
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </MainLayout>
   );
 };

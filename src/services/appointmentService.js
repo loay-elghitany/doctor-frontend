@@ -54,6 +54,9 @@ export const appointmentService = {
   createSecretaryAppointment: (appointmentData) =>
     api.post("/appointments", appointmentData),
 
+  updateIntakeForm: (appointmentId, intakeForm) =>
+    api.patch(`/appointments/${appointmentId}/intake`, { intakeForm }),
+
   // Soft-delete a single appointment from doctor's dashboard
   softDeleteAppointment: (appointmentId) =>
     api.post(`/doctor-appointments/${appointmentId}/soft-delete`),

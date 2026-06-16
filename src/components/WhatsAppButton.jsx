@@ -1,9 +1,11 @@
+import { useTranslation } from "react-i18next";
 import React, { useState } from "react";
 import { Spinner, Alert } from "./ui";
 import { communicationService } from "../services/communicationService";
 import { handleApiError } from "../utils/helpers";
 
 const WhatsAppButton = () => {
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,7 +29,7 @@ const WhatsAppButton = () => {
   return (
     <div className="mb-6">
       <h3 className="text-lg font-semibold mb-3">
-        تواصل مع طبيبك من خلال WhatsApp
+        {t("components_WhatsAppButton.text_whatsapp")}
       </h3>
       <div className="space-y-2">
         <button

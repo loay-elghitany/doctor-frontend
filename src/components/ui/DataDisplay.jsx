@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useState } from "react";
 import { Spinner } from "../ui";
 
@@ -9,6 +10,7 @@ export const Table = ({
   onRowClick,
   actions,
 }) => {
+  const { t } = useTranslation();
   return (
     <div className="overflow-x-auto">
       {loading ? (
@@ -29,7 +31,7 @@ export const Table = ({
               ))}
               {actions && (
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
-                  Actions
+                  {t("components_ui_DataDisplay.text_actions")}
                 </th>
               )}
             </tr>
@@ -41,7 +43,7 @@ export const Table = ({
                   colSpan={columns.length + (actions ? 1 : 0)}
                   className="px-6 py-4 text-center text-gray-500"
                 >
-                  No data available
+                  {t("components_ui_DataDisplay.text_no_data_available")}
                 </td>
               </tr>
             ) : (
@@ -87,17 +89,20 @@ export const Pagination = ({ currentPage, totalPages, onPageChange }) => {
         disabled={currentPage === 1}
         className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg disabled:opacity-50"
       >
-        Previous
+        {t("components_ui_DataDisplay.text_previous")}
       </button>
       <span className="text-gray-700">
-        Page {currentPage} of {totalPages}
+        {t("components_ui_DataDisplay.text_page")}
+        {currentPage}
+        {t("components_ui_DataDisplay.text_of")}
+        {totalPages}
       </span>
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg disabled:opacity-50"
       >
-        Next
+        {t("components_ui_DataDisplay.text_next")}
       </button>
     </div>
   );

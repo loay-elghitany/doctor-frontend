@@ -10,6 +10,36 @@ export const createPrescription = async (prescriptionData) => {
   }
 };
 
+export const processVoicePrescription = async ({
+  rawText,
+  existingDiagnosis,
+  existingMedications,
+  existingNotes,
+}) => {
+  try {
+    const response = await api.post("/prescriptions/process-voice", {
+      rawText,
+      existingDiagnosis,
+      existingMedications,
+      existingNotes,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getDrugAlternatives = async (name) => {
+  try {
+    const response = await api.get("/prescriptions/alternatives", {
+      params: { name },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Get all prescriptions created by a doctor (Doctor only)
 export const getDoctorPrescriptions = async () => {
   try {
