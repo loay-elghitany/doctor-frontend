@@ -94,10 +94,13 @@ export const PrescriptionForm = ({
   // 2️⃣ الدالة الثانية: إيقاف الوصفة الصوتية يدوياً وبأمان
   const stopVoiceRecognition = () => {
     if (recognitionRef.current) {
-      // سحب النص المتجمع فوراً قبل فك الارتباط
-      const finalTranscript = accumulatedTranscriptRef.current.trim();
-      // تفريغ المجمع فوراً ليبدأ جلسة جديدة نظيفة
-      accumulatedTranscriptRef.current = "";
+      let finalTranscript = accumulatedTranscriptRef.current.trim();
+
+      // 🌟 الإنقاذ السحري: لو المجمع فاضي بسبب لاق السيرفر، اسحب المقذوف المؤقت الأخير فوراً!
+      if (!finalTranscript && window.lastInterimResult) {
+        finalTranscript = window.lastInterimResult.trim();
+        window.lastInterimResult = ""; // تصفير المخزن بعد الإنقاذ
+      }
 
       // فك الارتباط بالـ Listeners تماماً لمنع التداخل وحماية الداتا
       recognitionRef.current.onresult = null;
@@ -112,6 +115,7 @@ export const PrescriptionForm = ({
 
       recognitionRef.current = null;
       setIsListening(false);
+      accumulatedTranscriptRef.current = ""; // تصفير بعد التجميع بأمان
 
       if (finalTranscript) {
         handleVoiceTranscript(finalTranscript);
@@ -164,29 +168,35 @@ export const PrescriptionForm = ({
 
     recognition.onresult = (event) => {
       try {
-        let interimParts = [];
+        let interimTranscript = "";
+        let finalTranscript = "";
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const result = event.results[i];
-          const alt = result[0];
           const piece =
-            alt && alt.transcript ? String(alt.transcript).trim() : "";
-          if (!piece) continue;
+            result[0] && result[0].transcript ? result[0].transcript : "";
 
           if (result.isFinal) {
-            // Append final fragments to the persistent accumulator with a space
-            if (accumulatedTranscriptRef.current) {
-              accumulatedTranscriptRef.current += " ";
-            }
-            accumulatedTranscriptRef.current += piece;
+            finalTranscript += piece;
           } else {
-            // Collect interim pieces for a lightweight preview (no network calls)
-            interimParts.push(piece);
+            interimTranscript += piece;
           }
         }
 
-        // (Optional) update a non-destructive preview shown in the UI
-        // We intentionally avoid sending anything to backend here.
-        // If you want to show interim text, you can add state to display
+        // نحدث المرجع بصفة مستمرة باللي جاز بالكامل
+        if (finalTranscript) {
+          accumulatedTranscriptRef.current = (
+            accumulatedTranscriptRef.current +
+            " " +
+            finalTranscript
+          ).trim();
+        }
+
+        // سحر الـ Production: لو الدكتور وقف فجأة، نكون مأمنين النص المؤقت برضه في المرجع كخيار احتياطي
+        if (interimTranscript) {
+          // بنحفظه مؤقتاً عشان لو دالة الـ stop اتدعت حالا تلاقيه
+          window.lastInterimResult = interimTranscript;
+        }
       } catch (e) {
         console.warn("onresult handling error:", e);
       }
