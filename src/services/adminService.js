@@ -21,8 +21,8 @@ export const createAdminService = (token) => {
     deactivateDoctor: (doctorId, reason) =>
       api.post(`/admin/deactivate-doctor/${doctorId}`, { reason }),
 
-    reactivateDoctor: (doctorId) =>
-      api.post(`/admin/reactivate-doctor/${doctorId}`),
+    reactivateDoctor: (doctorId, data) =>
+      api.post(`/admin/reactivate-doctor/${doctorId}`, data),
 
     getAllDoctors: () => api.get("/admin/doctors"),
 

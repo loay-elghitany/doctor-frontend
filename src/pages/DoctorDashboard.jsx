@@ -50,6 +50,42 @@ const DASHBOARD_STATUS_MAPPING = {
   pendingStatuses: ["pending", "reschedule_proposed"],
 };
 
+// مكون العداد التنازلي الذكي للفرونت إند
+const SubscriptionCountdown = ({ expiresAt }) => {
+  const [timeLeft, setTimeLeft] = useState("");
+
+  useEffect(() => {
+    if (!expiresAt) {
+      setTimeLeft("خطة تجريبية مفتوحة");
+      return;
+    }
+
+    const calculate = () => {
+      const difference = new Date(expiresAt) - new Date();
+      if (difference <= 0) {
+        setTimeLeft("منتهي ⚠️ يرجى التجديد");
+        return;
+      }
+
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+
+      setTimeLeft(`متبقي على تجديد الاشتراك: ${days} يوم و ${hours} ساعة`);
+    };
+
+    calculate();
+    const interval = setInterval(calculate, 60000); // تحديث كل دقيقة
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+
+  return (
+    <div className="inline-flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+      ⏳ {timeLeft}
+    </div>
+  );
+};
+
 const DOCTOR_TOUR_STEPS = [
   {
     title: "مرحبًا بك في لوحة القيادة الجديدة",
@@ -452,6 +488,13 @@ export const DoctorDashboard = () => {
 
                     {welcomeName}
                   </motion.h1>
+                  {user?.subscriptionExpiresAt && (
+                    <div className="mt-3">
+                      <SubscriptionCountdown
+                        expiresAt={user.subscriptionExpiresAt}
+                      />
+                    </div>
+                  )}
                   <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}

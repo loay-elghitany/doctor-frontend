@@ -194,7 +194,7 @@ export const AdminDashboard = () => {
     setActionType(type);
     setSelectedDoctor(doctor);
     setShowActionModal(true);
-    setActionReason("");
+    setActionReason(type === "reactivate" ? "1" : "");
   };
 
   // Handle action (deactivate, reactivate, delete)
@@ -217,11 +217,20 @@ export const AdminDashboard = () => {
         );
         setSuccess(`Doctor "${selectedDoctor.name}" deactivated successfully`);
       } else if (actionType === "reactivate") {
-        debugLog("AdminDashboard", "Reactivating doctor", {
-          doctorId: selectedDoctor._id,
+        debugLog(
+          "AdminDashboard",
+          "Reactivating doctor with subscription duration",
+          {
+            doctorId: selectedDoctor._id,
+            months: actionReason || "1",
+          },
+        );
+
+        const monthsToActivate = actionReason || "1";
+        response = await adminService.reactivateDoctor(selectedDoctor._id, {
+          months: monthsToActivate,
         });
-        response = await adminService.reactivateDoctor(selectedDoctor._id);
-        setSuccess(`Doctor "${selectedDoctor.name}" reactivated successfully`);
+        setSuccess(`تم تفعيل اشتراك الدكتور "${selectedDoctor.name}" بنجاح!`);
       } else if (actionType === "delete") {
         debugLog("AdminDashboard", "Permanently deleting doctor", {
           doctorId: selectedDoctor._id,
@@ -420,17 +429,8 @@ export const AdminDashboard = () => {
                         ))}
                         <td className="px-6 py-3 text-sm">
                           <div className="flex gap-2">
-                            {doctor.isActive ? (
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() =>
-                                  confirmAction("deactivate", doctor)
-                                }
-                              >
-                                {t("pages_AdminDashboard.text_pause")}
-                              </Button>
-                            ) : (
+                            <div className="flex gap-2">
+                              {/* زرار الاشتراك / التجديد يظهر دايماً للدكتور سواء نشط أو غير نشط */}
                               <Button
                                 variant="success"
                                 size="sm"
@@ -438,9 +438,24 @@ export const AdminDashboard = () => {
                                   confirmAction("reactivate", doctor)
                                 }
                               >
-                                {t("pages_AdminDashboard.text_activate")}
+                                {doctor.isActive
+                                  ? "شحن/تجديد الاشتراك"
+                                  : t("pages_AdminDashboard.text_activate")}
                               </Button>
-                            )}
+
+                              {/* زرار الإيقاف المؤقت يظهر فقط لو الدكتور نشط حالياً */}
+                              {doctor.isActive && (
+                                <Button
+                                  variant="danger"
+                                  size="sm"
+                                  onClick={() =>
+                                    confirmAction("deactivate", doctor)
+                                  }
+                                >
+                                  {t("pages_AdminDashboard.text_pause")}
+                                </Button>
+                              )}
+                            </div>
 
                             <Button
                               variant="secondary"
@@ -671,13 +686,28 @@ export const AdminDashboard = () => {
                   "pages_AdminDashboard.text_are_you_sure_you_want_to_reactivate",
                 )}{" "}
                 <strong>{selectedDoctor?.name}</strong>
-                {t("pages_AdminDashboard.text_s_account_1")}
               </p>
-              <p className="text-sm text-gray-600">
-                {t(
-                  "pages_AdminDashboard.text_the_doctor_will_be_able_to_create_new_ap",
-                )}
+              <p className="text-sm text-gray-600 mt-2">
+                سيتم تفعيل حساب العيادة وتمديد العداد التنازلي للاشتراك بناءً
+                على عدد الشهور المحددة.
               </p>
+
+              {/* 🌟 إضافة خانة تحديد عدد الشهور المشحونة عبر فودافون كاش */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  مدة الاشتراك المطلوبة (بالشهور)
+                </label>
+                <select
+                  value={actionReason || "1"} // هنستخدم نفس متغير الـ actionReason لتخزين الرقم مؤقتاً
+                  onChange={(e) => setActionReason(e.target.value)}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="1">شهر واحد (خطة Basic)</option>
+                  <option value="3">3 شهور (ربع سنوي)</option>
+                  <option value="6">6 شهور (نصف سنوي)</option>
+                  <option value="12">12 شهر / سنة كاملة (خطة Pro)</option>
+                </select>
+              </div>
             </>
           )}
 
