@@ -42,7 +42,6 @@ export const SecretaryCreateAppointment = () => {
   const [appointmentData, setAppointmentData] = useState({
     patientId: "",
     date: "",
-    timeSlot: "09:00",
     notes: "",
   });
   // دالة المايك الذكية لتحويل الصوت لنص لحظياً
@@ -201,27 +200,6 @@ export const SecretaryCreateAppointment = () => {
       setLoading(false);
     }
   };
-
-  // Time slot options
-  const timeSlots = [
-    "09:00",
-    "09:30",
-    "10:00",
-    "10:30",
-    "11:00",
-    "11:30",
-    "12:00",
-    "12:30",
-    "13:00",
-    "13:30",
-    "14:00",
-    "14:30",
-    "15:00",
-    "15:30",
-    "16:00",
-    "16:30",
-    "17:00",
-  ];
 
   return (
     <MainLayout userType="secretary">
@@ -408,35 +386,7 @@ export const SecretaryCreateAppointment = () => {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    <span className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-amber-500" />
-                      الوقت الزمني
-                    </span>
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={appointmentData.timeSlot}
-                      onChange={(e) =>
-                        setAppointmentData({
-                          ...appointmentData,
-                          timeSlot: e.target.value,
-                        })
-                      }
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 appearance-none cursor-pointer"
-                    >
-                      {timeSlots.map((slot) => (
-                        <option key={slot} value={slot}>
-                          {slot}
-                        </option>
-                      ))}
-                    </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                      <Clock className="w-5 h-5" />
-                    </div>
-                  </div>
-                </div>
+                {/* Time slot removed for walk-in queueing; server auto-assigns current time and queue number */}
               </div>
 
               {/* Notes */}

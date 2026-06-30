@@ -37,6 +37,8 @@ import {
   FileText,
   RotateCcw,
   Stethoscope,
+  Printer,
+  MessageSquare,
 } from "lucide-react";
 /**
  * SecretaryAppointmentsList - Display and manage appointments for secretary's doctor
@@ -59,6 +61,7 @@ export const SecretaryAppointmentsList = () => {
   const [intakeEditAppointment, setIntakeEditAppointment] = useState(null);
   const [intakeEditForm, setIntakeEditForm] = useState(null);
   const [intakeEditLoading, setIntakeEditLoading] = useState(false);
+  const [printAppointmentId, setPrintAppointmentId] = useState(null);
 
   const tabs = buildStatusTabs(appointments);
 
@@ -195,7 +198,14 @@ export const SecretaryAppointmentsList = () => {
       if (updatedAppointment) {
         setAppointments((prev) =>
           prev.map((item) =>
-            item?._id === updatedAppointment._id ? updatedAppointment : item,
+            item?._id === updatedAppointment._id
+              ? {
+                  ...updatedAppointment,
+                  patientId: item.patientId,
+                  doctorId: item.doctorId,
+                  prescription: item.prescription,
+                }
+              : item,
           ),
         );
       }
@@ -219,7 +229,14 @@ export const SecretaryAppointmentsList = () => {
       if (updatedAppointment) {
         setAppointments((prev) =>
           prev.map((item) =>
-            item?._id === updatedAppointment._id ? updatedAppointment : item,
+            item?._id === updatedAppointment._id
+              ? {
+                  ...updatedAppointment,
+                  patientId: item.patientId,
+                  doctorId: item.doctorId,
+                  prescription: item.prescription,
+                }
+              : item,
           ),
         );
       }
@@ -243,7 +260,14 @@ export const SecretaryAppointmentsList = () => {
       if (updatedAppointment) {
         setAppointments((prev) =>
           prev.map((item) =>
-            item?._id === updatedAppointment._id ? updatedAppointment : item,
+            item?._id === updatedAppointment._id
+              ? {
+                  ...updatedAppointment,
+                  patientId: item.patientId,
+                  doctorId: item.doctorId,
+                  prescription: item.prescription,
+                }
+              : item,
           ),
         );
       }
@@ -285,6 +309,39 @@ export const SecretaryAppointmentsList = () => {
     return effectiveStatus === activeTab;
   });
 
+  const isSameDay = (d1, d2) => {
+    if (!d1 || !d2) return false;
+    return new Date(d1).toDateString() === new Date(d2).toDateString();
+  };
+
+  // Sort appointments: for today's appointments sort by creation time (or timeSlot) ascending
+  const sortedAppointments = filteredAppointments.slice().sort((a, b) => {
+    const today = new Date();
+    const aIsToday = isSameDay(a?.date, today);
+    const bIsToday = isSameDay(b?.date, today);
+
+    if (aIsToday && bIsToday) {
+      const aCreated = a?.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bCreated = b?.createdAt ? new Date(b.createdAt).getTime() : 0;
+      if (aCreated && bCreated && aCreated !== bCreated)
+        return aCreated - bCreated;
+      // fallback to comparing timeSlot strings (HH:MM)
+      const aSlot = a?.timeSlot || "00:00";
+      const bSlot = b?.timeSlot || "00:00";
+      return aSlot.localeCompare(bSlot);
+    }
+
+    // If only one is today, put today's earlier
+    if (aIsToday && !bIsToday) return -1;
+    if (!aIsToday && bIsToday) return 1;
+
+    // Otherwise sort by date then timeSlot
+    const aDate = new Date(a?.date).getTime() || 0;
+    const bDate = new Date(b?.date).getTime() || 0;
+    if (aDate !== bDate) return aDate - bDate;
+    return (a?.timeSlot || "00:00").localeCompare(b?.timeSlot || "00:00");
+  });
+
   const normalizedStatusCounts = appointments.reduce((counts, appointment) => {
     const effectiveStatus = normalizeStatus(appointment?.status);
     if (!effectiveStatus) return counts;
@@ -306,6 +363,40 @@ export const SecretaryAppointmentsList = () => {
         [action]: value,
       },
     }));
+  };
+
+  const handlePrintPrescription = (appointment) => {
+    if (!appointment) return;
+    setPrintAppointmentId(appointment._id);
+    // give React a moment to render the print area, then trigger print
+    setTimeout(() => {
+      try {
+        window.print();
+      } finally {
+        // clear selection after a short delay
+        setTimeout(() => setPrintAppointmentId(null), 500);
+      }
+    }, 300);
+  };
+
+  const handleWhatsApp = (appointment) => {
+    const phone =
+      appointment?.patientId?.phoneNumber ||
+      appointment?.patientId?.phone ||
+      "";
+    if (!phone) {
+      setError("رقم هاتف المريض غير متوفر");
+      return;
+    }
+    const cleaned = String(phone).replace(/[^0-9+]/g, "");
+    const patientName = appointment?.patientId?.name || "";
+    const doctorName = appointment?.doctorId?.name || "العيادة";
+    const dateLabel = formatDateSafe(appointment?.date);
+    const text = `مرحباً ${patientName}، تم إصدار روشتة طبية لزيارتك مع ${doctorName} بتاريخ ${dateLabel}. لمزيد من المعلومات تواصل معنا.`;
+    const url = `https://wa.me/${encodeURIComponent(cleaned)}?text=${encodeURIComponent(
+      text,
+    )}`;
+    window.open(url, "_blank");
   };
 
   const isRowLoading = (appointmentId, action) =>
@@ -686,7 +777,7 @@ export const SecretaryAppointmentsList = () => {
         ) : (
           <div className="space-y-4">
             <AnimatePresence>
-              {filteredAppointments.map((appointment, index) => {
+              {sortedAppointments.map((appointment, index) => {
                 const permissions = getAppointmentPermissions(
                   appointment.status,
                 );
@@ -716,6 +807,11 @@ export const SecretaryAppointmentsList = () => {
                           <div>
                             <h3 className="font-semibold text-gray-900 dark:text-white">
                               {patientName}
+                              {appointment?.queueNumber ? (
+                                <span className="mr-2 inline-block px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-medium">
+                                  دور رقم: {appointment.queueNumber}
+                                </span>
+                              ) : null}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                               <Calendar className="w-4 h-4" />
@@ -861,6 +957,35 @@ export const SecretaryAppointmentsList = () => {
                               </motion.button>
                             )}
 
+                            {/* Prescription actions for completed appointments */}
+                            {normalizeStatus(appointment.status) ===
+                              "completed" &&
+                              appointment.prescription && (
+                                <>
+                                  <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() =>
+                                      handlePrintPrescription(appointment)
+                                    }
+                                    className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-50 flex items-center gap-2"
+                                  >
+                                    <Printer className="w-4 h-4" />
+                                    🖨️ طباعة الروشتة
+                                  </motion.button>
+
+                                  <motion.button
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    onClick={() => handleWhatsApp(appointment)}
+                                    className="px-3 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition disabled:opacity-50 flex items-center gap-2"
+                                  >
+                                    <MessageSquare className="w-4 h-4" />
+                                    💬 واتساب
+                                  </motion.button>
+                                </>
+                              )}
+
                             {permissions.canDelete && (
                               <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -915,6 +1040,69 @@ export const SecretaryAppointmentsList = () => {
             setSuccess("Reschedule options proposed successfully.");
           }}
         />
+
+        {/* Hidden printable prescription areas */}
+        <style>{`
+          @media print {
+            body * { visibility: hidden; }
+            .print-area[data-active="true"], .print-area[data-active="true"] * { visibility: visible; }
+            .print-area[data-active="true"] { position: fixed; left: 0; top: 0; width: 100%; padding: 20px; }
+          }
+          @media screen {
+            .print-area { display: none; }
+          }
+        `}</style>
+
+        {appointments.map((apt) => (
+          <div
+            key={`print-${apt._id}`}
+            className="print-area"
+            data-active={String(printAppointmentId) === String(apt._id)}
+          >
+            {String(printAppointmentId) === String(apt._id) &&
+              apt.prescription && (
+                <div className="max-w-3xl mx-auto bg-white text-black">
+                  <h2 className="text-2xl font-bold mb-2">روشتة طبية</h2>
+                  <div className="mb-4">
+                    <div>المريض: {apt.patientId?.name || ""}</div>
+                    <div>التاريخ: {formatDateSafe(apt.date)}</div>
+                    <div>العيادة / الطبيب: {apt.doctorId?.name || ""}</div>
+                  </div>
+                  <div className="mb-4">
+                    <div className="font-semibold mb-1">التشخيص:</div>
+                    <div>{apt.prescription.diagnosis || "-"}</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold mb-2">الأدوية:</div>
+                    <table className="w-full border-collapse text-sm">
+                      <thead>
+                        <tr>
+                          <th className="text-left border-b pb-1">الدواء</th>
+                          <th className="text-left border-b pb-1">الجرعة</th>
+                          <th className="text-left border-b pb-1">التكرار</th>
+                          <th className="text-left border-b pb-1">المدة</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {(apt.prescription.medications || []).map((m, i) => (
+                          <tr key={i}>
+                            <td className="py-2">{m.name}</td>
+                            <td className="py-2">{m.dosage || "-"}</td>
+                            <td className="py-2">{m.frequency || "-"}</td>
+                            <td className="py-2">{m.duration || "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="mt-8 text-right">
+                    <div>توقيع الطبيب:</div>
+                    <div className="mt-8">__________________________</div>
+                  </div>
+                </div>
+              )}
+          </div>
+        ))}
 
         <IntakeFormViewModal
           isOpen={!!intakeViewAppointment}

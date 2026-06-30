@@ -50,14 +50,19 @@ export const PrescriptionModal = ({
       setSubmitting(true);
       setError(null);
       setSuccessMessage(null);
-      await prescriptionService.createPrescription(prescriptionData);
-      setShowForm(false);
-      setSelectedPrescription(null);
+      const createdPrescription =
+        await prescriptionService.createPrescription(prescriptionData);
       setSuccessMessage("تم إنشاء الروشتة الطبية بنجاح!");
-      // Auto-dismiss success message after 3 seconds
-      setTimeout(() => setSuccessMessage(null), 3000);
-      await loadPrescriptions();
+      window.requestAnimationFrame(() => {
+        setShowForm(false);
+        setSelectedPrescription(null);
+      });
+      window.setTimeout(() => setSuccessMessage(null), 3000);
+      loadPrescriptions().catch((refreshError) => {
+        console.error("Error refreshing prescriptions:", refreshError);
+      });
       onSuccess?.();
+      return createdPrescription;
     } catch (err) {
       console.error("Error creating prescription:", err);
       setError(

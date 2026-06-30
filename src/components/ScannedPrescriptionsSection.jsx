@@ -1,8 +1,16 @@
 import { useTranslation } from "react-i18next";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { FileText, Loader, AlertCircle, Download, Eye, X } from "lucide-react";
-import ImagePreviewModal from "./ImagePreviewModal";
+import {
+  FileText,
+  Loader,
+  AlertCircle,
+  Download,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import ImagePreviewModal from "../components/ImagePreviewModal";
 import { getPatientScannedPrescriptions } from "../services/scannedPrescriptionService";
 import { formatDate } from "../utils/helpers";
 
@@ -23,11 +31,10 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
   const [totalPages, setTotalPages] = useState(1);
   const [viewType, setViewType] = useState("grid"); // grid or list
 
-  useEffect(() => {
-    fetchPrescriptions();
-  }, [patientId, page]);
+  const activePrescription = prescriptions[selectedPrescriptionIndex] || null;
+  const activeUrl = activePrescription?.fileUrl || "";
 
-  const fetchPrescriptions = async () => {
+  const fetchPrescriptions = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -48,7 +55,11 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [patientId, page]);
+
+  useEffect(() => {
+    fetchPrescriptions();
+  }, [fetchPrescriptions]);
 
   const handleViewPrescription = (index) => {
     setSelectedPrescriptionIndex(index);
@@ -62,23 +73,6 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
 
   const handleNavigateImage = (index) => {
     setSelectedPrescriptionIndex(index);
-  };
-
-  const handleDownload = async (fileUrl) => {
-    try {
-      const response = await fetch(fileUrl);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `prescription-${Date.now()}.jpg`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error("Error downloading prescription:", error);
-    }
   };
 
   if (loading) {
@@ -306,14 +300,17 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
         </div>
       )}
 
-      {/* Image Preview Modal */}
       <ImagePreviewModal
-        isOpen={isModalOpen}
+        isOpen={isModalOpen && selectedPrescriptionIndex !== null}
         onClose={handleModalClose}
+        imageUrl={activeUrl}
         images={prescriptions}
         currentIndex={selectedPrescriptionIndex || 0}
         onNavigate={handleNavigateImage}
-        title="الروشتة الورقية"
+        title={t("components_ScannedPrescriptionsSection.text_preview_prescription")}
+        subtitle={activePrescription?.notes}
+        fileType={activePrescription?.fileType}
+        downloadUrl={activeUrl}
       />
     </div>
   );

@@ -791,78 +791,85 @@ export const SecretaryPatientDetails = () => {
 
       {/* Preview Modal */}
       {previewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 overflow-y-auto">
-          <div className="relative w-full max-w-6xl max-h-[95vh] flex flex-col bg-slate-50 rounded-lg shadow-xl overflow-hidden">
-            {/* Header */}
-            <div className="bg-blue-600 text-white px-6 py-4 flex items-center justify-between">
-              <h3 className="text-xl font-semibold">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 overflow-y-auto"
+          onClick={() => setPreviewModal(null)}
+        >
+          <div
+            className="relative w-full max-w-4xl h-[85vh] flex flex-col bg-slate-900 rounded-2xl overflow-hidden shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-14 bg-slate-800 text-white flex items-center justify-between px-6 border-b border-slate-700 font-medium z-10">
+              <h3 className="text-lg font-semibold">
                 {t("view_scanned_prescription")}
               </h3>
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
+                type="button"
+                aria-label={t("close")}
                 onClick={() => setPreviewModal(null)}
-                className="text-white hover:bg-blue-700"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-white transition hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500"
               >
-                <X className="w-6 h-6" />
-              </Button>
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Document Viewer */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 flex flex-col items-center justify-center">
-              <div className="flex justify-center">
-                {isPdfPreview ? (
-                  <iframe
-                    src={previewModal.fileUrl}
-                    className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
-                    title={t(
-                      "pages_SecretaryPatientDetails.attr_title_pdf_preview",
-                    )}
-                  />
-                ) : (
-                  <img
-                    src={previewModal.fileUrl}
-                    alt={t(
-                      "pages_SecretaryPatientDetails.attr_alt_scanned_prescription",
-                    )}
-                    className="object-contain w-auto h-auto max-w-full max-h-[85vh] mx-auto rounded-md shadow-lg"
-                    style={{
-                      transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
-                      transition: "transform 0.2s ease-in-out",
-                    }}
-                  />
-                )}
-              </div>
-
-              {/* Enhanced Controls */}
-              {!isPdfPreview && (
-                <div className="flex justify-center gap-4 mt-6">
-                  <button
-                    onClick={handleZoomOut}
-                    className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                    title={t("zoom_out")}
-                  >
-                    <ZoomOut className="w-5 h-5 text-gray-700" />
-                  </button>
-                  <button
-                    onClick={handleZoomIn}
-                    className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                    title={t("zoom_in")}
-                  >
-                    <ZoomIn className="w-5 h-5 text-gray-700" />
-                  </button>
-                  <button
-                    onClick={handleRotate}
-                    className="p-3 bg-white rounded-full shadow-md hover:shadow-lg transition-shadow"
-                    title={t("rotate")}
-                  >
-                    <RotateCw className="w-5 h-5 text-gray-700" />
-                  </button>
-                </div>
+            <div className="flex-1 w-full h-full bg-slate-950 flex items-center justify-center p-4 overflow-auto">
+              {isPdfPreview ? (
+                <iframe
+                  src={previewModal.fileUrl}
+                  title={t(
+                    "pages_SecretaryPatientDetails.attr_title_pdf_preview",
+                  )}
+                  className="max-w-full max-h-full w-auto h-auto rounded-2xl shadow-lg"
+                />
+              ) : (
+                <img
+                  src={previewModal.fileUrl}
+                  alt={t(
+                    "pages_SecretaryPatientDetails.attr_alt_scanned_prescription",
+                  )}
+                  className="max-w-full max-h-full object-contain rounded-2xl shadow-lg"
+                  style={{
+                    transform: `scale(${imageZoom}) rotate(${imageRotation}deg)`,
+                    transition: "transform 0.2s ease-in-out",
+                  }}
+                />
               )}
+            </div>
 
-              {/* Download Button */}
-              <div className="absolute bottom-6 right-6">
+            <div className="sticky bottom-0 left-0 right-0 bg-slate-900/95 border-t border-slate-700 px-4 py-3 backdrop-blur-sm z-10">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-wrap gap-2">
+                  {!isPdfPreview && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleZoomOut}
+                        className="inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-sm text-white transition hover:bg-slate-700"
+                      >
+                        <ZoomOut className="w-4 h-4" />
+                        {t("zoom_out")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleZoomIn}
+                        className="inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-sm text-white transition hover:bg-slate-700"
+                      >
+                        <ZoomIn className="w-4 h-4" />
+                        {t("zoom_in")}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRotate}
+                        className="inline-flex items-center gap-2 rounded-full bg-slate-800 px-4 py-2 text-sm text-white transition hover:bg-slate-700"
+                      >
+                        <RotateCw className="w-4 h-4" />
+                        {t("rotate")}
+                      </button>
+                    </>
+                  )}
+                </div>
+
                 <a
                   href={downloadUrl || previewModal.fileUrl}
                   download={
@@ -872,7 +879,7 @@ export const SecretaryPatientDetails = () => {
                   }
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+                  className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-500"
                 >
                   <Download className="w-4 h-4" />
                   {t("download_pdf")}
