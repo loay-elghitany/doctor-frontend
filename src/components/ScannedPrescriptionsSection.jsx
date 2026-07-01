@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   FileText,
@@ -7,10 +7,13 @@ import {
   AlertCircle,
   Download,
   Eye,
+  X,
   ChevronLeft,
   ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  RotateCw,
 } from "lucide-react";
-import ImagePreviewModal from "../components/ImagePreviewModal";
 import { getPatientScannedPrescriptions } from "../services/scannedPrescriptionService";
 import { formatDate } from "../utils/helpers";
 
@@ -27,12 +30,18 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
   const [selectedPrescriptionIndex, setSelectedPrescriptionIndex] =
     useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [imageZoom, setImageZoom] = useState(1);
+  const [imageRotation, setImageRotation] = useState(0);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [viewType, setViewType] = useState("grid"); // grid or list
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [startY, setStartY] = useState(0);
+  const containerRef = useRef(null);
 
-  const activePrescription = prescriptions[selectedPrescriptionIndex] || null;
-  const activeUrl = activePrescription?.fileUrl || "";
+  const activeUrl = prescriptions[selectedPrescriptionIndex]?.fileUrl || "";
 
   const fetchPrescriptions = useCallback(async () => {
     try {
@@ -61,18 +70,71 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
     fetchPrescriptions();
   }, [fetchPrescriptions]);
 
+  useEffect(() => {
+    if (imageZoom <= 1) {
+      setIsDragging(false);
+    }
+  }, [imageZoom]);
+
+  const resetPreviewState = () => {
+    setImageZoom(1);
+    setImageRotation(0);
+    setPanOffset({ x: 0, y: 0 });
+    setIsDragging(false);
+    setStartX(0);
+    setStartY(0);
+  };
+
   const handleViewPrescription = (index) => {
     setSelectedPrescriptionIndex(index);
+    resetPreviewState();
     setIsModalOpen(true);
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
+    resetPreviewState();
     setTimeout(() => setSelectedPrescriptionIndex(null), 300);
   };
 
+  const handleImagePanMouseDown = (e) => {
+    if (imageZoom <= 1) return;
+
+    setIsDragging(true);
+    setStartX(e.clientX - panOffset.x);
+    setStartY(e.clientY - panOffset.y);
+  };
+
+  const handleImagePanMouseMove = (e) => {
+    if (!isDragging) return;
+
+    e.preventDefault();
+    setPanOffset({ x: e.clientX - startX, y: e.clientY - startY });
+  };
+
+  const handleImagePanMouseUp = () => setIsDragging(false);
+  const handleImagePanMouseLeave = () => setIsDragging(false);
+
   const handleNavigateImage = (index) => {
     setSelectedPrescriptionIndex(index);
+    resetPreviewState();
+  };
+
+  const handleDownload = async (fileUrl) => {
+    try {
+      const response = await fetch(fileUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `prescription-${Date.now()}.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error downloading prescription:", error);
+    }
   };
 
   if (loading) {
@@ -300,18 +362,140 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
         </div>
       )}
 
-      <ImagePreviewModal
-        isOpen={isModalOpen && selectedPrescriptionIndex !== null}
-        onClose={handleModalClose}
-        imageUrl={activeUrl}
-        images={prescriptions}
-        currentIndex={selectedPrescriptionIndex || 0}
-        onNavigate={handleNavigateImage}
-        title={t("components_ScannedPrescriptionsSection.text_preview_prescription")}
-        subtitle={activePrescription?.notes}
-        fileType={activePrescription?.fileType}
-        downloadUrl={activeUrl}
-      />
+      {/* Image Preview Modal */}
+      {isModalOpen && selectedPrescriptionIndex !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-hidden"
+          onClick={handleModalClose}
+        >
+          <div
+            className="relative w-full max-w-4xl h-[85vh] flex flex-col bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="h-14 bg-slate-800 text-white flex items-center justify-between px-6 border-b border-slate-700 z-10 font-medium">
+              <span>معاينة الروشتة الورقية</span>
+              <button
+                type="button"
+                onClick={handleModalClose}
+                className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-slate-700 text-white transition hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                aria-label="Close preview"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div
+              ref={containerRef}
+              className={`flex-1 w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden relative select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+              onMouseDown={handleImagePanMouseDown}
+              onMouseMove={handleImagePanMouseMove}
+              onMouseUp={handleImagePanMouseUp}
+              onMouseLeave={handleImagePanMouseLeave}
+            >
+              {prescriptions.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleNavigateImage(
+                        (selectedPrescriptionIndex - 1 + prescriptions.length) %
+                          prescriptions.length,
+                      )
+                    }
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-800/80 p-2.5 text-white shadow-lg hover:bg-slate-700"
+                    aria-label="Previous prescription"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleNavigateImage(
+                        (selectedPrescriptionIndex + 1) % prescriptions.length,
+                      )
+                    }
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-800/80 p-2.5 text-white shadow-lg hover:bg-slate-700"
+                    aria-label="Next prescription"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+
+              <img
+                src={activeUrl}
+                alt={t(
+                  "components_ScannedPrescriptionsSection.attr_alt_prescription",
+                )}
+                className="max-w-full max-h-full rounded-lg shadow-xl"
+                style={{
+                  transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${imageZoom}) rotate(${imageRotation}deg)`,
+                  transition: isDragging ? "none" : "transform 0.15s ease-out",
+                  maxHeight: "80vh",
+                  maxWidth: "100%",
+                  objectContain: "contain",
+                  userSelect: "none",
+                  pointerEvents: "auto",
+                }}
+              />
+
+              <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-slate-900/95 px-3 py-2 shadow-2xl border border-slate-700/60">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setImageZoom((prev) => Math.max(0.5, prev - 0.25))
+                  }
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
+                  aria-label="Zoom out"
+                >
+                  <ZoomOut className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setImageZoom((prev) => Math.min(3, prev + 0.25))
+                  }
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
+                  aria-label="Zoom in"
+                >
+                  <ZoomIn className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setImageRotation((prev) => (prev + 90) % 360)}
+                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
+                  aria-label="Rotate"
+                >
+                  <RotateCw className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDownload(activeUrl)}
+                  className="inline-flex h-10 items-center justify-center rounded-full bg-blue-600 text-white px-3 transition hover:bg-blue-500"
+                  aria-label="Download"
+                >
+                  <Download className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="relative bg-slate-900 border-t border-slate-700/60 px-6 py-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm text-slate-300">
+                  {prescriptions[selectedPrescriptionIndex]?.notes || ""}
+                </div>
+                <div className="flex items-center gap-3 flex-wrap justify-end">
+                  {prescriptions.length > 1 && (
+                    <div className="text-sm text-slate-400">
+                      {selectedPrescriptionIndex + 1} / {prescriptions.length}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
