@@ -20,6 +20,7 @@ import FinancialManager from "../components/FinancialManager";
 import {
   FileText,
   Upload,
+  Camera,
   X,
   Eye,
   Download,
@@ -668,7 +669,18 @@ export const SecretaryPatientDetails = () => {
                   onChange={(event) => {
                     handleFileSelect(event.target.files?.[0] || null);
                   }}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-0"
+                />
+
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  capture="environment"
+                  style={{ display: "none" }}
+                  id="camera-capture-input"
+                  onChange={(event) => {
+                    handleFileSelect(event.target.files?.[0] || null);
+                  }}
                 />
 
                 <div className="space-y-2">
@@ -685,6 +697,22 @@ export const SecretaryPatientDetails = () => {
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {t("file_types_limit")}
                     </p>
+                    <div className="mt-3">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const cam = document.getElementById(
+                            "camera-capture-input",
+                          );
+                          if (cam) cam.click();
+                        }}
+                        className="relative z-10 inline-flex items-center gap-2 rounded-md bg-white dark:bg-slate-800 border border-gray-200 dark:border-gray-700 px-3 py-2 text-sm font-medium text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-slate-700 transition"
+                      >
+                        <Camera className="w-4 h-4" />
+                        التقاط صورة بالكاميرا
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
