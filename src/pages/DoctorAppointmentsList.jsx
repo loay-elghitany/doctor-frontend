@@ -608,6 +608,11 @@ export const DoctorAppointmentsList = () => {
                           <div>
                             <h3 className="font-semibold text-gray-900 dark:text-white">
                               {patientName}
+                              {appointment?.queueNumber ? (
+                                <span className="mr-2 inline-block px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-xs font-medium dark:bg-blue-900/30 dark:text-blue-300">
+                                  دور رقم: {appointment.queueNumber}
+                                </span>
+                              ) : null}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                               <Calendar className="w-4 h-4" />
