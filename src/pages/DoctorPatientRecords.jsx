@@ -73,6 +73,7 @@ export const DoctorPatientRecords = () => {
   const [isRecordingAudio, setIsRecordingAudio] = useState(false);
   const [audioRecordingSeconds, setAudioRecordingSeconds] = useState(0);
   const [, setRecordedAudioBlob] = useState(null);
+  const addNoteTextareaRef = useRef(null);
   const audioMediaRecorder = useRef(null);
   const audioChunksRef = useRef([]);
   const audioStreamRef = useRef(null);
@@ -141,7 +142,8 @@ export const DoctorPatientRecords = () => {
     );
 
     if (targetPatient) {
-      handleExpandPatient(targetPatient._id || targetPatient.id);
+      const targetPatientId = targetPatient._id || targetPatient.id;
+      handleExpandPatient(targetPatientId, { autoOpenInput: true });
     }
   }, [patientId, patients]);
 
@@ -213,16 +215,33 @@ export const DoctorPatientRecords = () => {
   };
 
   // Handle patient expansion
-  const handleExpandPatient = async (patientId) => {
+  const handleExpandPatient = async (patientId, options = {}) => {
+    const { autoOpenInput = false } = options;
+
     if (expandedPatientId === patientId) {
-      setExpandedPatientId(null);
-    } else {
-      await Promise.all([
-        fetchPatientAppointments(patientId),
-        fetchPrivateNotes(patientId),
-        fetchPrivateFiles(patientId),
-      ]);
-      setExpandedPatientId(patientId);
+      if (autoOpenInput) {
+        setShowAddNoteForm((prev) => ({ ...prev, [patientId]: true }));
+        setShowAddFileForm((prev) => ({ ...prev, [patientId]: true }));
+        setTimeout(() => {
+          addNoteTextareaRef.current?.focus();
+        }, 120);
+      }
+      return;
+    }
+
+    await Promise.all([
+      fetchPatientAppointments(patientId),
+      fetchPrivateNotes(patientId),
+      fetchPrivateFiles(patientId),
+    ]);
+    setExpandedPatientId(patientId);
+
+    if (autoOpenInput) {
+      setShowAddNoteForm((prev) => ({ ...prev, [patientId]: true }));
+      setShowAddFileForm((prev) => ({ ...prev, [patientId]: true }));
+      setTimeout(() => {
+        addNoteTextareaRef.current?.focus();
+      }, 180);
     }
   };
 
@@ -1002,6 +1021,7 @@ export const DoctorPatientRecords = () => {
                                         className="mb-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl"
                                       >
                                         <textarea
+                                          ref={addNoteTextareaRef}
                                           value={newNoteContent}
                                           onChange={(e) =>
                                             setNewNoteContent(e.target.value)
