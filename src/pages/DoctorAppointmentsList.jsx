@@ -30,6 +30,7 @@ import {
   CheckCircle,
   XCircle,
   Users,
+  FolderOpen,
   Plus,
   ArrowRight,
   Trash2,
@@ -69,6 +70,8 @@ export const DoctorAppointmentsList = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [activePatientRecordId, setActivePatientRecordId] = useState(null);
+  const [showPatientRecordModal, setShowPatientRecordModal] = useState(false);
 
   const tabs = buildStatusTabs(appointments);
 
@@ -234,6 +237,20 @@ export const DoctorAppointmentsList = () => {
   const handleProposeTimes = (appointment) => {
     setSelectedAppointment(appointment);
     setShowRescheduleModal(true);
+  };
+
+  const handleOpenPatientRecord = (appointment) => {
+    const patientRecordId =
+      appointment?.patientId?._id ||
+      appointment?.patientId ||
+      appointment?.patient?.id ||
+      appointment?.patient?._id;
+
+    if (!patientRecordId) return;
+
+    setActivePatientRecordId(patientRecordId);
+    setShowPatientRecordModal(true);
+    navigate(`/doctor/patient-records/${patientRecordId}`);
   };
 
   const isDeletable = (appointment) => {
@@ -666,6 +683,21 @@ export const DoctorAppointmentsList = () => {
                               title="الروشتة"
                             >
                               <FileText className="w-4 h-4" />
+                            </motion.button>
+
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={() =>
+                                handleOpenPatientRecord(appointment)
+                              }
+                              className="px-3 py-2 rounded-lg bg-violet-50 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 text-sm font-medium hover:bg-violet-100 dark:hover:bg-violet-900/30 transition flex items-center gap-1"
+                              title="الملف الطبي"
+                            >
+                              <FolderOpen className="w-4 h-4" />
+                              <span className="hidden sm:inline">
+                                الملف الطبي
+                              </span>
                             </motion.button>
 
                             {permissions.canConfirm && (

@@ -46,7 +46,10 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait" initial={false}>
       <Routes location={location} key={location.pathname}>
         {/* Public Routes */}
-        <Route path="/" element={renderTenantLanding ? <DoctorLandingPage /> : <Home />} />
+        <Route
+          path="/"
+          element={renderTenantLanding ? <DoctorLandingPage /> : <Home />}
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
@@ -119,6 +122,14 @@ const AnimatedRoutes = () => {
         />
         <Route
           path="/doctor/patient-records"
+          element={
+            <ProtectedRoute requiredRole="doctor">
+              <DoctorPatientRecords />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/doctor/patient-records/:patientId"
           element={
             <ProtectedRoute requiredRole="doctor">
               <DoctorPatientRecords />

@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef } from "react";
+import { useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Zoom from "react-medium-image-zoom";
 import "react-medium-image-zoom/dist/styles.css";
@@ -44,6 +45,7 @@ import {
 
 export const DoctorPatientRecords = () => {
   const { t } = useTranslation();
+  const { patientId } = useParams();
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -127,6 +129,21 @@ export const DoctorPatientRecords = () => {
 
     fetchPatients();
   }, []);
+
+  useEffect(() => {
+    if (!patientId || !patients.length) return;
+
+    const targetPatient = patients.find(
+      (patient) =>
+        patient?._id === patientId ||
+        patient?.id === patientId ||
+        patient?.patientId === patientId,
+    );
+
+    if (targetPatient) {
+      handleExpandPatient(targetPatient._id || targetPatient.id);
+    }
+  }, [patientId, patients]);
 
   // Fetch appointments for a specific patient
   const fetchPatientAppointments = async (patientId) => {
