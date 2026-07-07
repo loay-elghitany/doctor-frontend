@@ -61,7 +61,9 @@ export const SecretaryPatientsList = () => {
     setError("");
     try {
       debugLog("SecretaryPatientsList", "Fetching secretary patients");
-      const response = await patientService.getPatients();
+      // Request a large limit so we receive the full patient list for client-side searching
+      // Backend defaults to limit=10 when no pagination is provided.
+      const response = await api.get("/patients?limit=1000&page=1");
       console.log("FULL RESPONSE:", response);
       console.log("FULL PATIENTS RESPONSE:", response?.data);
       const patientsList = Array.isArray(response?.data?.data)
