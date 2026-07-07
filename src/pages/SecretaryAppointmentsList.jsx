@@ -148,7 +148,10 @@ export const SecretaryAppointmentsList = () => {
     setError("");
     try {
       debugLog("SecretaryAppointmentsList", "Fetching secretary appointments");
-      const response = await appointmentService.getAppointments();
+      const response = await appointmentService.getAppointments({
+        limit: 1000,
+        page: 1,
+      });
 
       const appointmentsList = response.data?.data || [];
       debugLog("SecretaryAppointmentsList", "Appointments fetched", {

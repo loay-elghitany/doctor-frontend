@@ -81,7 +81,10 @@ export const DoctorAppointmentsList = () => {
     setError("");
     try {
       debugLog("DoctorAppointmentsList", "Fetching doctor appointments");
-      const response = await appointmentService.getAppointments();
+      const response = await appointmentService.getAppointments({
+        limit: 1000,
+        page: 1,
+      });
 
       // Handle response format: data.data is array of appointments
       const appointmentsList = response.data?.data || [];

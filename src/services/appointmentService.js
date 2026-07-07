@@ -39,14 +39,14 @@ export const appointmentService = {
     api.patch(`/appointments/${appointmentId}/hide`, { hidden }),
 
   // Unified appointments endpoint for all roles
-  getAppointments: async () => {
-    const response = await api.get("/appointments");
+  getAppointments: async (params = {}) => {
+    const response = await api.get("/appointments", { params });
     return normalizeAppointmentResponse(response);
   },
 
   // Patient-specific alias retained for backward compatibility
-  getPatientAppointments: async () => {
-    const response = await api.get("/appointments");
+  getPatientAppointments: async (params = {}) => {
+    const response = await api.get("/appointments", { params });
     return normalizeAppointmentResponse(response);
   },
 
