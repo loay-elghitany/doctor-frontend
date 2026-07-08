@@ -111,7 +111,7 @@ export const DoctorPatientRecords = () => {
       setError("");
       try {
         debugLog("DoctorPatientRecords", "Fetching patients");
-        const response = await api.get("/doctors/patients");
+        const response = await api.get("/doctors/patients?limit=1000&page=1");
 
         const data = response.data?.data || [];
         debugLog("DoctorPatientRecords", "Patients retrieved", {
