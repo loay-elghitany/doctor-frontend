@@ -72,10 +72,31 @@ export const SecretaryPatientDetails = () => {
         patientId,
       });
 
-      // Fetch all patients
-      const patientsResponse = await patientService.getPatients();
-      const patientsList = patientsResponse.data?.data || [];
-      const foundPatient = patientsList.find((p) => p?._id === patientId);
+      let foundPatient = null;
+
+      if (typeof patientService.getPatientById === "function") {
+        try {
+          const patientResponse =
+            await patientService.getPatientById(patientId);
+          foundPatient =
+            patientResponse.data?.data || patientResponse.data || null;
+        } catch (err) {
+          if (err.response?.status !== 404) {
+            throw err;
+          }
+        }
+      }
+
+      if (!foundPatient) {
+        const patientsResponse = await patientService.getPatients({
+          limit: 1000,
+          page: 1,
+        });
+        const patientsList = patientsResponse.data?.data || [];
+        foundPatient = patientsList.find(
+          (p) => String(p?._id || p?.id) === String(patientId),
+        );
+      }
 
       if (!foundPatient) {
         setError("Patient not found");
@@ -88,7 +109,8 @@ export const SecretaryPatientDetails = () => {
       const appointmentsResponse = await appointmentService.getAppointments();
       const appointmentsList = appointmentsResponse.data?.data || [];
       const patientAppointments = appointmentsList.filter(
-        (app) => app?.patientId?._id === patientId,
+        (app) =>
+          String(app?.patientId?._id || app?.patientId) === String(patientId),
       );
 
       setAppointments(patientAppointments);

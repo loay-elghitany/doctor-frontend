@@ -241,7 +241,10 @@ export const DoctorDashboard = () => {
       setError("");
       try {
         debugLog("DoctorDashboard", "Fetching dashboard data");
-        const response = await appointmentService.getAppointments();
+        const response = await appointmentService.getAppointments({
+          limit: 1000,
+          page: 1,
+        });
 
         const appointments = response.data?.data || [];
         debugLog("DoctorDashboard", "Appointments retrieved", {
