@@ -34,35 +34,17 @@ const ProtectedRoute = ({
 
   // Block admin users from accessing normal user routes
   if (isAdmin) {
-    if (import.meta.env.DEV) {
-      console.log(
-        "ProtectedRoute: Admin detected. Blocking access to user route. Redirecting to /admin/dashboard.",
-      );
-      console.log("Role Debug:", { isAdmin, role, isAuthenticated });
-    }
     return <Navigate to="/admin/dashboard" replace />;
   }
 
   // Require user authentication
   if (!isAuthenticated) {
-    if (import.meta.env.DEV) {
-      console.log(
-        "ProtectedRoute: User not authenticated. Redirecting to /login.",
-      );
-      console.log("Role Debug:", { isAdmin, role, isAuthenticated });
-    }
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   // Require either requiredRole or requiredRoles to be specified
   const allowedRoles = requiredRoles || (requiredRole ? [requiredRole] : null);
   if (!allowedRoles) {
-    if (import.meta.env.DEV) {
-      console.log(
-        "ProtectedRoute: Missing requiredRole/requiredRoles configuration. Denying access.",
-      );
-      console.log("Role Debug:", { isAdmin, role, isAuthenticated });
-    }
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
@@ -74,13 +56,6 @@ const ProtectedRoute = ({
     typeof role === "string" ? role.toLowerCase() : role;
 
   if (!normalizedAllowedRoles.includes(normalizedUserRole)) {
-    if (import.meta.env.DEV) {
-      console.log(
-        `ProtectedRoute: User role '${role}' not in allowed roles [${allowedRoles.join(", ")}]. Redirecting to role dashboard.`,
-      );
-      console.log("Role Debug:", { isAdmin, role, isAuthenticated });
-    }
-
     const redirectPath =
       normalizedUserRole === "doctor"
         ? "/doctor/dashboard"

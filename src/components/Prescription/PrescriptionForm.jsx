@@ -167,7 +167,7 @@ export const PrescriptionForm = ({
       try {
         recognitionRef.current.stop();
       } catch (e) {
-        console.log("Mic already stopped");
+        // Recognition already stopped; safely ignore.
       }
 
       recognitionRef.current = null;

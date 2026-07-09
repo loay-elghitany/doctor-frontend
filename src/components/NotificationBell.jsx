@@ -94,16 +94,8 @@ export const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Debug: Log when notifications change
   useEffect(() => {
-    console.log(
-      "[NotificationBell] Notifications updated:",
-      notifications.length,
-      "items",
-    );
-    if (notifications.length > 0) {
-      console.log("[NotificationBell] Latest notification:", notifications[0]);
-    }
+    // Keep the effect for future state-driven behavior without logging payloads.
   }, [notifications]);
 
   // Close dropdown when clicking outside

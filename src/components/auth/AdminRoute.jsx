@@ -24,16 +24,7 @@ const AdminRoute = ({ children }) => {
   }
 
   if (!isAdminAuthenticated) {
-    if (import.meta.env.DEV) {
-      console.log(
-        "AdminRoute: Admin not authenticated. Redirecting to /admin/login.",
-      );
-    }
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
-  }
-
-  if (import.meta.env.DEV) {
-    console.log("AdminRoute: Admin authenticated. Granting access.");
   }
 
   return children;
