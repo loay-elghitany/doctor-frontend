@@ -53,34 +53,39 @@ export const SecretaryPatientsList = () => {
   const [createdCredentialsModal, setCreatedCredentialsModal] = useState(null);
   const [copiedCredentialsStatus, setCopiedCredentialsStatus] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const [filterType, setFilterType] = useState("all");
 
-  // Fetch secretary patients on mount
-  const fetchPatients = async () => {
+  const fetchPatients = async (pageNumber = 1, search = "") => {
     setLoading(true);
     setError("");
     try {
-      debugLog("SecretaryPatientsList", "Fetching secretary patients");
-      // Request a large limit so we receive the full patient list for client-side searching
-      // Backend defaults to limit=10 when no pagination is provided.
-      const response = await api.get("/patients?limit=1000&page=1");
-      console.log("FULL RESPONSE:", response);
-      console.log("FULL PATIENTS RESPONSE:", response?.data);
+      debugLog("SecretaryPatientsList", "Fetching secretary patients", {
+        page: pageNumber,
+        search,
+      });
+      const response = await api.get(
+        `/patients?page=${pageNumber}&limit=20&search=${encodeURIComponent(search)}`,
+      );
       const patientsList = Array.isArray(response?.data?.data)
         ? response.data.data
         : [];
-      console.log("EXTRACTED PATIENTS ARRAY:", patientsList);
+      const pagination = response?.data?.pagination || {};
       debugLog("SecretaryPatientsList", "Patients fetched", {
         count: patientsList.length,
+        pagination,
       });
       setPatients(patientsList);
+      setTotalPages(pagination.totalPages || 1);
+      setTotalItems(pagination.totalItems || 0);
     } catch (err) {
       console.error(err);
       const errorMsg =
         err.response?.data?.message ||
         err.message ||
         "Failed to fetch patients";
-      // Don't set error for 401s as they trigger logout automatically
       if (err.response?.status !== 401) {
         setError(errorMsg);
       }
@@ -91,8 +96,12 @@ export const SecretaryPatientsList = () => {
   };
 
   useEffect(() => {
-    fetchPatients();
-  }, []);
+    const timer = setTimeout(() => {
+      fetchPatients(page, searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, page]);
 
   // Clear success message after 3 seconds
   useEffect(() => {
@@ -248,7 +257,7 @@ export const SecretaryPatientsList = () => {
 
   // Calculate stats
   const stats = {
-    total: patients.length,
+    total: totalItems || patients.length,
     withPhone: patients.filter((p) => p.phoneNumber).length,
   };
 
@@ -279,36 +288,6 @@ export const SecretaryPatientsList = () => {
       onClick: () => navigate("/secretary/appointments"),
     },
   ];
-
-  const filteredPatients = patients.filter((patient) => {
-    const patientName = patient?.name || "";
-    const patientEmail = patient?.email || "";
-    const patientPhone = patient?.phoneNumber || "";
-
-    const matchesSearch =
-      patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patientPhone.includes(searchTerm);
-
-    if (!matchesSearch) return false;
-    if (filterType === "all") return true;
-
-    const now = new Date();
-    const hasUpcoming = patient.lastAppointmentDate
-      ? new Date(patient.lastAppointmentDate) >= now
-      : false;
-    const hasPast = patient.lastAppointmentDate
-      ? new Date(patient.lastAppointmentDate) < now
-      : false;
-    const hasCancelled =
-      patient.statusSummary && patient.statusSummary.includes("cancelled");
-
-    if (filterType === "upcoming") return hasUpcoming;
-    if (filterType === "past") return hasPast;
-    if (filterType === "cancelled") return hasCancelled;
-
-    return true;
-  });
 
   return (
     <MainLayout userType="secretary">
@@ -423,7 +402,10 @@ export const SecretaryPatientsList = () => {
             <div className="md:col-span-8">
               <PremiumSearch
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setPage(1);
+                }}
                 placeholder="ابحث عن مريض بالاسم، البريد الإلكتروني، أو رقم الهاتف..."
                 className="w-full"
               />
@@ -450,11 +432,11 @@ export const SecretaryPatientsList = () => {
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
             يتم عرض{" "}
             <span className="font-medium text-gray-900 dark:text-white">
-              {filteredPatients.length}
+              {patients.length}
             </span>{" "}
             من أصل{" "}
             <span className="font-medium text-gray-900 dark:text-white">
-              {patients.length}
+              {totalItems}
             </span>{" "}
             مرضى
           </p>
@@ -465,7 +447,7 @@ export const SecretaryPatientsList = () => {
           <div className="flex justify-center py-12">
             <LoadingSpinner size="lg" message={t("loading_patients")} />
           </div>
-        ) : filteredPatients.length === 0 ? (
+        ) : patients.length === 0 ? (
           <EmptyState
             icon={Users}
             title={t("no_patients")}
@@ -476,7 +458,7 @@ export const SecretaryPatientsList = () => {
         ) : (
           <div className="space-y-4">
             <AnimatePresence>
-              {filteredPatients.map((patient, index) => (
+              {patients.map((patient, index) => (
                 <motion.div
                   key={patient._id || patient.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -529,6 +511,28 @@ export const SecretaryPatientsList = () => {
                 </motion.div>
               ))}
             </AnimatePresence>
+          </div>
+        )}
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between mt-6">
+            <button
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              disabled={page === 1 || loading}
+              className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              السابق
+            </button>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              الصفحة {page} من {totalPages}
+            </p>
+            <button
+              onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))}
+              disabled={page === totalPages || loading}
+              className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              التالي
+            </button>
           </div>
         )}
 

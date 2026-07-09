@@ -50,6 +50,9 @@ export const DoctorPatientRecords = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [filterType, setFilterType] = useState("all");
   const [expandedPatientId, setExpandedPatientId] = useState(null);
   const [selectedPatientForTimeline, setSelectedPatientForTimeline] =
@@ -104,48 +107,88 @@ export const DoctorPatientRecords = () => {
     default: "bg-white",
   };
 
-  // Fetch all patients for this doctor
+  const fetchPatients = async (pageNumber = 1, search = "") => {
+    setLoading(true);
+    setError("");
+    try {
+      debugLog("DoctorPatientRecords", "Fetching patients", {
+        page: pageNumber,
+        search,
+      });
+      const response = await api.get(
+        `/patients?page=${pageNumber}&limit=20&search=${encodeURIComponent(search)}`,
+      );
+
+      const data = response.data?.data || [];
+      const pagination = response.data?.pagination || {};
+      debugLog("DoctorPatientRecords", "Patients retrieved", {
+        count: data.length,
+        pagination,
+      });
+
+      setPatients(data);
+      setTotalItems(pagination.totalItems || data.length || 0);
+      setTotalPages(pagination.totalPages || 1);
+    } catch (err) {
+      const errorMsg = handleApiError(err);
+      debugError("DoctorPatientRecords", "Failed to fetch patients", err);
+      setError(errorMsg || "Failed to load patient records");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchPatients = async () => {
-      setLoading(true);
-      setError("");
+    const timer = setTimeout(() => {
+      fetchPatients(page, searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, page]);
+
+  useEffect(() => {
+    const resolvePatientForRoute = async () => {
+      if (!patientId) return;
+
+      const targetPatient = patients.find(
+        (patient) => String(patient?._id || patient?.id) === String(patientId),
+      );
+
+      if (targetPatient) {
+        const targetId = targetPatient._id || targetPatient.id;
+        await handleExpandPatient(targetId, { autoOpenInput: true });
+        return;
+      }
+
       try {
-        debugLog("DoctorPatientRecords", "Fetching patients");
-        const response = await api.get("/doctors/patients?limit=1000&page=1");
+        const response = await api.get(
+          `/patients?search=${patientId}&limit=10`,
+        );
+        const searchResults = response.data?.data || [];
+        const found =
+          searchResults.find(
+            (patient) =>
+              String(patient?._id || patient?.id) === String(patientId),
+          ) || searchResults[0];
 
-        const data = response.data?.data || [];
-        debugLog("DoctorPatientRecords", "Patients retrieved", {
-          count: data.length,
-        });
-
-        setPatients(data);
+        if (found) {
+          const foundId = found._id || found.id;
+          setPatients((prevPatients) => {
+            const exists = prevPatients.some(
+              (patient) =>
+                String(patient?._id || patient?.id) === String(foundId),
+            );
+            return exists ? prevPatients : [found, ...prevPatients];
+          });
+          await handleExpandPatient(foundId, { autoOpenInput: true });
+        }
       } catch (err) {
-        const errorMsg = handleApiError(err);
-        debugError("DoctorPatientRecords", "Failed to fetch patients", err);
-        setError(errorMsg || "Failed to load patient records");
-      } finally {
-        setLoading(false);
+        debugError("DoctorPatientRecords", "Deep link fetch failed", err);
       }
     };
 
-    fetchPatients();
-  }, []);
-
-  useEffect(() => {
-    if (!patientId || !patients.length) return;
-
-    const targetPatient = patients.find(
-      (patient) =>
-        patient?._id === patientId ||
-        patient?.id === patientId ||
-        patient?.patientId === patientId,
-    );
-
-    if (targetPatient) {
-      const targetPatientId = targetPatient._id || targetPatient.id;
-      handleExpandPatient(targetPatientId, { autoOpenInput: true });
-    }
-  }, [patientId, patients]);
+    resolvePatientForRoute();
+  }, [patientId, patients.length]);
 
   // Fetch appointments for a specific patient
   const fetchPatientAppointments = async (patientId) => {
@@ -217,11 +260,12 @@ export const DoctorPatientRecords = () => {
   // Handle patient expansion
   const handleExpandPatient = async (patientId, options = {}) => {
     const { autoOpenInput = false } = options;
+    const resolvedPatientId = String(patientId);
 
-    if (expandedPatientId === patientId) {
+    if (expandedPatientId === resolvedPatientId) {
       if (autoOpenInput) {
-        setShowAddNoteForm((prev) => ({ ...prev, [patientId]: true }));
-        setShowAddFileForm((prev) => ({ ...prev, [patientId]: true }));
+        setShowAddNoteForm((prev) => ({ ...prev, [resolvedPatientId]: true }));
+        setShowAddFileForm((prev) => ({ ...prev, [resolvedPatientId]: true }));
         setTimeout(() => {
           addNoteTextareaRef.current?.focus();
         }, 120);
@@ -230,15 +274,15 @@ export const DoctorPatientRecords = () => {
     }
 
     await Promise.all([
-      fetchPatientAppointments(patientId),
-      fetchPrivateNotes(patientId),
-      fetchPrivateFiles(patientId),
+      fetchPatientAppointments(resolvedPatientId),
+      fetchPrivateNotes(resolvedPatientId),
+      fetchPrivateFiles(resolvedPatientId),
     ]);
-    setExpandedPatientId(patientId);
+    setExpandedPatientId(resolvedPatientId);
 
     if (autoOpenInput) {
-      setShowAddNoteForm((prev) => ({ ...prev, [patientId]: true }));
-      setShowAddFileForm((prev) => ({ ...prev, [patientId]: true }));
+      setShowAddNoteForm((prev) => ({ ...prev, [resolvedPatientId]: true }));
+      setShowAddFileForm((prev) => ({ ...prev, [resolvedPatientId]: true }));
       setTimeout(() => {
         addNoteTextareaRef.current?.focus();
       }, 180);
@@ -538,39 +582,8 @@ export const DoctorPatientRecords = () => {
     recognition.start();
   };
 
-  // Filter and search patients
-  const filteredPatients = patients.filter((patient) => {
-    // Search filter
-    const matchesSearch =
-      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (patient.phone && patient.phone.includes(searchTerm));
-
-    if (!matchesSearch) return false;
-
-    // Status filter
-    if (filterType === "all") return true;
-
-    const now = new Date();
-    const hasUpcoming = patient.lastAppointmentDate
-      ? new Date(patient.lastAppointmentDate) >= now
-      : false;
-    const hasPast = patient.lastAppointmentDate
-      ? new Date(patient.lastAppointmentDate) < now
-      : false;
-    const hasCancelled =
-      patient.statusSummary && patient.statusSummary.includes("cancelled");
-
-    if (filterType === "upcoming") return hasUpcoming;
-    if (filterType === "past") return hasPast;
-    if (filterType === "cancelled") return hasCancelled;
-
-    return true;
-  });
-
-  // Calculate stats
   const stats = {
-    total: patients.length,
+    total: totalItems || patients.length,
     withUpcoming: patients.filter(
       (p) =>
         p.lastAppointmentDate && new Date(p.lastAppointmentDate) >= new Date(),
@@ -712,7 +725,10 @@ export const DoctorPatientRecords = () => {
                 <div className="md:col-span-8">
                   <PremiumSearch
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setPage(1);
+                    }}
                     placeholder={t(
                       "pages_DoctorPatientRecords.attr_placeholder_search_by_name_email_or_phone",
                     )}
@@ -762,11 +778,11 @@ export const DoctorPatientRecords = () => {
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
                 {t("pages_DoctorPatientRecords.text_showing")}{" "}
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {filteredPatients.length}
+                  {patients.length}
                 </span>{" "}
                 {t("pages_DoctorPatientRecords.text_of")}{" "}
                 <span className="font-medium text-gray-900 dark:text-white">
-                  {patients.length}
+                  {totalItems}
                 </span>{" "}
                 {t("pages_DoctorPatientRecords.text_patients")}
               </p>
@@ -777,7 +793,7 @@ export const DoctorPatientRecords = () => {
               <div className="flex justify-center py-12">
                 <LoadingSpinner size="lg" message="Loading patients..." />
               </div>
-            ) : filteredPatients.length === 0 ? (
+            ) : patients.length === 0 ? (
               <EmptyState
                 icon={Users}
                 title={
@@ -794,9 +810,9 @@ export const DoctorPatientRecords = () => {
             ) : (
               <div className="space-y-4">
                 <AnimatePresence>
-                  {filteredPatients.map((patient, index) => (
+                  {patients.map((patient, index) => (
                     <motion.div
-                      key={patient.id}
+                      key={patient._id || patient.id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
@@ -805,7 +821,9 @@ export const DoctorPatientRecords = () => {
                       <GlassCard className="overflow-hidden">
                         {/* Patient Header - Clickable to expand */}
                         <div
-                          onClick={() => handleExpandPatient(patient.id)}
+                          onClick={() =>
+                            handleExpandPatient(patient._id || patient.id)
+                          }
                           className="cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-800/50 p-5 transition-colors"
                         >
                           <div className="flex justify-between items-start">
@@ -858,7 +876,10 @@ export const DoctorPatientRecords = () => {
                               <motion.div
                                 animate={{
                                   rotate:
-                                    expandedPatientId === patient.id ? 180 : 0,
+                                    expandedPatientId ===
+                                    (patient._id || patient.id)
+                                      ? 180
+                                      : 0,
                                 }}
                                 transition={{ duration: 0.2 }}
                                 className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
@@ -887,7 +908,8 @@ export const DoctorPatientRecords = () => {
 
                         {/* Appointment History - Expandable */}
                         <AnimatePresence>
-                          {expandedPatientId === patient.id && (
+                          {expandedPatientId ===
+                            (patient._id || patient.id) && (
                             <motion.div
                               initial={{ height: 0, opacity: 0 }}
                               animate={{ height: "auto", opacity: 1 }}
@@ -916,12 +938,15 @@ export const DoctorPatientRecords = () => {
                                     تاريخ المواعيد
                                   </h4>
 
-                                  {appointmentLoading[patient.id] ? (
+                                  {appointmentLoading[
+                                    patient._id || patient.id
+                                  ] ? (
                                     <div className="flex justify-center py-4">
                                       <LoadingSpinner size="sm" />
                                     </div>
-                                  ) : patientAppointments[patient.id]
-                                      ?.length === 0 ? (
+                                  ) : patientAppointments[
+                                      patient._id || patient.id
+                                    ]?.length === 0 ? (
                                     <EmptyState
                                       icon={Calendar}
                                       title={t(
@@ -932,58 +957,60 @@ export const DoctorPatientRecords = () => {
                                     />
                                   ) : (
                                     <div className="space-y-3">
-                                      {patientAppointments[patient.id]?.map(
-                                        (apt, idx) => (
-                                          <motion.div
-                                            key={idx}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl"
-                                          >
-                                            <div className="flex-1">
-                                              <div className="flex items-center gap-2">
-                                                <p className="font-medium text-gray-900 dark:text-white">
-                                                  {apt.date
-                                                    ? new Date(
-                                                        apt.date,
-                                                      ).toLocaleDateString(
-                                                        "ar-EG",
-                                                        {
-                                                          calendar: "gregory",
-                                                          year: "numeric",
-                                                          month: "short",
-                                                          day: "numeric",
-                                                        },
-                                                      )
-                                                    : "-"}
-                                                </p>
-                                                <span className="text-gray-400">
-                                                  •
-                                                </span>
-                                                <p className="text-gray-600 dark:text-gray-300">
-                                                  {apt.timeSlot}
-                                                </p>
-                                              </div>
-                                              {apt.notes && (
-                                                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                                  {apt.notes}
-                                                </p>
-                                              )}
+                                      {patientAppointments[
+                                        patient._id || patient.id
+                                      ]?.map((apt, idx) => (
+                                        <motion.div
+                                          key={idx}
+                                          initial={{ opacity: 0, x: -20 }}
+                                          animate={{ opacity: 1, x: 0 }}
+                                          transition={{ delay: idx * 0.05 }}
+                                          className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl"
+                                        >
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                              <p className="font-medium text-gray-900 dark:text-white">
+                                                {apt.date
+                                                  ? new Date(
+                                                      apt.date,
+                                                    ).toLocaleDateString(
+                                                      "ar-EG",
+                                                      {
+                                                        calendar: "gregory",
+                                                        year: "numeric",
+                                                        month: "short",
+                                                        day: "numeric",
+                                                      },
+                                                    )
+                                                  : "-"}
+                                              </p>
+                                              <span className="text-gray-400">
+                                                •
+                                              </span>
+                                              <p className="text-gray-600 dark:text-gray-300">
+                                                {apt.timeSlot}
+                                              </p>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                              <WhatsAppButtonForDoctor
-                                                patientId={patient.id}
-                                              />
+                                            {apt.notes && (
+                                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                                {apt.notes}
+                                              </p>
+                                            )}
+                                          </div>
+                                          <div className="flex items-center gap-3">
+                                            <WhatsAppButtonForDoctor
+                                              patientId={
+                                                patient._id || patient.id
+                                              }
+                                            />
 
-                                              <StatusBadge
-                                                status={apt.status}
-                                                size="sm"
-                                              />
-                                            </div>
-                                          </motion.div>
-                                        ),
-                                      )}
+                                            <StatusBadge
+                                              status={apt.status}
+                                              size="sm"
+                                            />
+                                          </div>
+                                        </motion.div>
+                                      ))}
                                     </div>
                                   )}
                                 </div>
@@ -1000,7 +1027,8 @@ export const DoctorPatientRecords = () => {
                                     onClick={() =>
                                       setShowAddNoteForm((prev) => ({
                                         ...prev,
-                                        [patient.id]: !prev[patient.id],
+                                        [patient._id || patient.id]:
+                                          !prev[patient._id || patient.id],
                                       }))
                                     }
                                     whileHover={{ scale: 1.02 }}
@@ -1013,7 +1041,9 @@ export const DoctorPatientRecords = () => {
 
                                   {/* Add Note Form */}
                                   <AnimatePresence>
-                                    {showAddNoteForm[patient.id] && (
+                                    {showAddNoteForm[
+                                      patient._id || patient.id
+                                    ] && (
                                       <motion.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: "auto" }}
@@ -1089,7 +1119,9 @@ export const DoctorPatientRecords = () => {
                                         <div className="flex gap-2 mt-3">
                                           <motion.button
                                             onClick={() =>
-                                              handleCreateNote(patient.id)
+                                              handleCreateNote(
+                                                patient._id || patient.id,
+                                              )
                                             }
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
@@ -1101,7 +1133,8 @@ export const DoctorPatientRecords = () => {
                                             onClick={() =>
                                               setShowAddNoteForm((prev) => ({
                                                 ...prev,
-                                                [patient.id]: false,
+                                                [patient._id || patient.id]:
+                                                  false,
                                               }))
                                             }
                                             whileHover={{ scale: 1.02 }}
@@ -1116,11 +1149,12 @@ export const DoctorPatientRecords = () => {
                                   </AnimatePresence>
 
                                   {/* Notes List */}
-                                  {notesLoading[patient.id] ? (
+                                  {notesLoading[patient._id || patient.id] ? (
                                     <div className="flex justify-center py-4">
                                       <LoadingSpinner size="sm" />
                                     </div>
-                                  ) : privateNotes[patient.id]?.length === 0 ? (
+                                  ) : privateNotes[patient._id || patient.id]
+                                      ?.length === 0 ? (
                                     <EmptyState
                                       icon={Lock}
                                       title="لا توجد ملاحظات خاصة"
@@ -1129,85 +1163,84 @@ export const DoctorPatientRecords = () => {
                                     />
                                   ) : (
                                     <div className="space-y-3">
-                                      {privateNotes[patient.id]?.map(
-                                        (note, idx) => (
-                                          <motion.div
-                                            key={note._id}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            className={`p-4 rounded-xl border-2 relative group ${
-                                              note.isPinned
-                                                ? "border-yellow-400 shadow-lg"
-                                                : "border-gray-200 dark:border-gray-700"
-                                            } ${
-                                              cardColors[note.color] ||
-                                              cardColors.default
-                                            }`}
+                                      {privateNotes[
+                                        patient._id || patient.id
+                                      ]?.map((note, idx) => (
+                                        <motion.div
+                                          key={note._id}
+                                          initial={{ opacity: 0, y: 10 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          transition={{ delay: idx * 0.05 }}
+                                          className={`p-4 rounded-xl border-2 relative group ${
+                                            note.isPinned
+                                              ? "border-yellow-400 shadow-lg"
+                                              : "border-gray-200 dark:border-gray-700"
+                                          } ${
+                                            cardColors[note.color] ||
+                                            cardColors.default
+                                          }`}
+                                        >
+                                          {note.isPinned && (
+                                            <Pin className="w-4 h-4 text-yellow-500 absolute top-2 right-2" />
+                                          )}
+                                          <p
+                                            className="text-gray-800 dark:text-gray-200 blur-sm cursor-pointer transition-all duration-300 group-hover:blur-none"
+                                            onClick={() => {
+                                              // Optional: toggle blur on click
+                                            }}
                                           >
-                                            {note.isPinned && (
-                                              <Pin className="w-4 h-4 text-yellow-500 absolute top-2 right-2" />
-                                            )}
-                                            <p
-                                              className="text-gray-800 dark:text-gray-200 blur-sm cursor-pointer transition-all duration-300 group-hover:blur-none"
-                                              onClick={() => {
-                                                // Optional: toggle blur on click
-                                              }}
-                                            >
-                                              {note.content}
-                                            </p>
-                                            <div className="flex justify-between items-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                              <span className="text-xs text-gray-500">
-                                                {note.createdAt
-                                                  ? new Date(
-                                                      note.createdAt,
-                                                    ).toLocaleDateString(
-                                                      "ar-EG",
-                                                      {
-                                                        calendar: "gregory",
-                                                        year: "numeric",
-                                                        month: "short",
-                                                        day: "numeric",
-                                                      },
-                                                    )
-                                                  : "-"}
-                                              </span>
-                                              <div className="flex gap-1">
-                                                <motion.button
-                                                  whileHover={{ scale: 1.1 }}
-                                                  whileTap={{ scale: 0.9 }}
-                                                  onClick={() =>
-                                                    handleUpdateNote(
-                                                      patient.id,
-                                                      note._id,
-                                                      {
-                                                        isPinned:
-                                                          !note.isPinned,
-                                                      },
-                                                    )
-                                                  }
-                                                  className="p-1 text-gray-500 hover:text-yellow-500"
-                                                >
-                                                  <Pin className="w-3 h-3" />
-                                                </motion.button>
-                                                <motion.button
-                                                  whileHover={{ scale: 1.1 }}
-                                                  whileTap={{ scale: 0.9 }}
-                                                  onClick={() =>
-                                                    handleDeleteNote(
-                                                      patient.id,
-                                                      note._id,
-                                                    )
-                                                  }
-                                                  className="p-1 text-gray-500 hover:text-red-500"
-                                                >
-                                                  <Trash2 className="w-3 h-3" />
-                                                </motion.button>
-                                              </div>
+                                            {note.content}
+                                          </p>
+                                          <div className="flex justify-between items-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <span className="text-xs text-gray-500">
+                                              {note.createdAt
+                                                ? new Date(
+                                                    note.createdAt,
+                                                  ).toLocaleDateString(
+                                                    "ar-EG",
+                                                    {
+                                                      calendar: "gregory",
+                                                      year: "numeric",
+                                                      month: "short",
+                                                      day: "numeric",
+                                                    },
+                                                  )
+                                                : "-"}
+                                            </span>
+                                            <div className="flex gap-1">
+                                              <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() =>
+                                                  handleUpdateNote(
+                                                    patient._id || patient.id,
+                                                    note._id,
+                                                    {
+                                                      isPinned: !note.isPinned,
+                                                    },
+                                                  )
+                                                }
+                                                className="p-1 text-gray-500 hover:text-yellow-500"
+                                              >
+                                                <Pin className="w-3 h-3" />
+                                              </motion.button>
+                                              <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() =>
+                                                  handleDeleteNote(
+                                                    patient._id || patient.id,
+                                                    note._id,
+                                                  )
+                                                }
+                                                className="p-1 text-gray-500 hover:text-red-500"
+                                              >
+                                                <Trash2 className="w-3 h-3" />
+                                              </motion.button>
                                             </div>
-                                          </motion.div>
-                                        ),
-                                      )}
+                                          </div>
+                                        </motion.div>
+                                      ))}
                                     </div>
                                   )}
                                 </div>
@@ -1224,7 +1257,8 @@ export const DoctorPatientRecords = () => {
                                     onClick={() =>
                                       setShowAddFileForm((prev) => ({
                                         ...prev,
-                                        [patient.id]: !prev[patient.id],
+                                        [patient._id || patient.id]:
+                                          !prev[patient._id || patient.id],
                                       }))
                                     }
                                     whileHover={{ scale: 1.02 }}
@@ -1237,7 +1271,9 @@ export const DoctorPatientRecords = () => {
 
                                   {/* Add File Form */}
                                   <AnimatePresence>
-                                    {showAddFileForm[patient.id] && (
+                                    {showAddFileForm[
+                                      patient._id || patient.id
+                                    ] && (
                                       <motion.div
                                         initial={{ opacity: 0, height: 0 }}
                                         animate={{ opacity: 1, height: "auto" }}
@@ -1309,7 +1345,7 @@ export const DoctorPatientRecords = () => {
                                         {/* File Input and Upload Buttons */}
                                         <input
                                           type="file"
-                                          id={`file-input-${patient.id}`}
+                                          id={`file-input-${patient._id || patient.id}`}
                                           onChange={handleSelectUploadFile}
                                           className="hidden"
                                           accept={
@@ -1325,7 +1361,7 @@ export const DoctorPatientRecords = () => {
 
                                         <div className="flex flex-wrap gap-3 mb-4">
                                           <motion.label
-                                            htmlFor={`file-input-${patient.id}`}
+                                            htmlFor={`file-input-${patient._id || patient.id}`}
                                             whileHover={{
                                               scale: 1.05,
                                               backgroundColor:
@@ -1384,7 +1420,9 @@ export const DoctorPatientRecords = () => {
                                         <div className="flex flex-wrap gap-3">
                                           <motion.button
                                             onClick={() =>
-                                              handleCreateFile(patient.id)
+                                              handleCreateFile(
+                                                patient._id || patient.id,
+                                              )
                                             }
                                             whileHover={{
                                               scale: 1.02,
@@ -1393,12 +1431,15 @@ export const DoctorPatientRecords = () => {
                                             }}
                                             whileTap={{ scale: 0.95 }}
                                             disabled={
-                                              isUploadingFile[patient.id] ||
-                                              !selectedUploadFile
+                                              isUploadingFile[
+                                                patient._id || patient.id
+                                              ] || !selectedUploadFile
                                             }
                                             className="flex-1 min-w-[120px] px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                                           >
-                                            {isUploadingFile[patient.id]
+                                            {isUploadingFile[
+                                              patient._id || patient.id
+                                            ]
                                               ? "جاري الرفع..."
                                               : "🚀 رفع الملف"}
                                           </motion.button>
@@ -1407,7 +1448,8 @@ export const DoctorPatientRecords = () => {
                                             onClick={() =>
                                               setShowAddFileForm((prev) => ({
                                                 ...prev,
-                                                [patient.id]: false,
+                                                [patient._id || patient.id]:
+                                                  false,
                                               }))
                                             }
                                             whileHover={{ scale: 1.05 }}
@@ -1423,11 +1465,12 @@ export const DoctorPatientRecords = () => {
                                   </AnimatePresence>
 
                                   {/* Files List */}
-                                  {filesLoading[patient.id] ? (
+                                  {filesLoading[patient._id || patient.id] ? (
                                     <div className="flex justify-center py-4">
                                       <LoadingSpinner size="sm" />
                                     </div>
-                                  ) : privateFiles[patient.id]?.length === 0 ? (
+                                  ) : privateFiles[patient._id || patient.id]
+                                      ?.length === 0 ? (
                                     <EmptyState
                                       icon={FileText}
                                       title="لا توجد ملفات طبية"
@@ -1436,109 +1479,109 @@ export const DoctorPatientRecords = () => {
                                     />
                                   ) : (
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                      {privateFiles[patient.id]?.map(
-                                        (file, idx) => (
-                                          <motion.div
-                                            key={file._id}
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: idx * 0.05 }}
-                                            className="relative group p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition-all"
-                                          >
-                                            {file.fileType === "image" && (
-                                              <motion.div
-                                                whileHover={{ scale: 1.05 }}
-                                                onClick={() =>
-                                                  setFilePreviewModal({
-                                                    isOpen: true,
-                                                    file,
-                                                  })
-                                                }
-                                                className="mb-3 w-full h-40 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 cursor-pointer"
+                                      {privateFiles[
+                                        patient._id || patient.id
+                                      ]?.map((file, idx) => (
+                                        <motion.div
+                                          key={file._id}
+                                          initial={{ opacity: 0, y: 10 }}
+                                          animate={{ opacity: 1, y: 0 }}
+                                          transition={{ delay: idx * 0.05 }}
+                                          className="relative group p-4 rounded-xl border-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-lg transition-all"
+                                        >
+                                          {file.fileType === "image" && (
+                                            <motion.div
+                                              whileHover={{ scale: 1.05 }}
+                                              onClick={() =>
+                                                setFilePreviewModal({
+                                                  isOpen: true,
+                                                  file,
+                                                })
+                                              }
+                                              className="mb-3 w-full h-40 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 cursor-pointer"
+                                            >
+                                              <img
+                                                src={file.fileUrl}
+                                                alt={file.title}
+                                                className="w-full h-full object-cover"
+                                              />
+                                            </motion.div>
+                                          )}
+
+                                          {file.fileType === "audio" && (
+                                            <div className="mb-3">
+                                              <audio
+                                                controls
+                                                className="w-full"
                                               >
-                                                <img
-                                                  src={file.fileUrl}
-                                                  alt={file.title}
-                                                  className="w-full h-full object-cover"
-                                                />
-                                              </motion.div>
-                                            )}
-
-                                            {file.fileType === "audio" && (
-                                              <div className="mb-3">
-                                                <audio
-                                                  controls
-                                                  className="w-full"
-                                                >
-                                                  <source src={file.fileUrl} />
-                                                  {t(
-                                                    "pages_DoctorPatientRecords.text_your_browser_does_not_support_the_audio_",
-                                                  )}
-                                                </audio>
-                                              </div>
-                                            )}
-
-                                            {file.fileType === "pdf" && (
-                                              <div className="mb-3 flex items-center justify-center h-32 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                                                <div className="text-center">
-                                                  <FileText className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                                                  <a
-                                                    href={file.fileUrl}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-sm text-red-600 hover:text-red-700 font-medium"
-                                                  >
-                                                    {t(
-                                                      "pages_DoctorPatientRecords.text_pdf_1",
-                                                    )}
-                                                  </a>
-                                                </div>
-                                              </div>
-                                            )}
-
-                                            <div className="flex justify-between items-start">
-                                              <div className="flex-1">
-                                                <p className="font-medium text-gray-900 dark:text-white text-sm">
-                                                  {file.title}
-                                                </p>
-                                                {file.notes && (
-                                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    {file.notes}
-                                                  </p>
+                                                <source src={file.fileUrl} />
+                                                {t(
+                                                  "pages_DoctorPatientRecords.text_your_browser_does_not_support_the_audio_",
                                                 )}
-                                                <p className="text-xs text-gray-400 mt-2">
-                                                  {file.createdAt
-                                                    ? new Date(
-                                                        file.createdAt,
-                                                      ).toLocaleDateString(
-                                                        "ar-EG",
-                                                        {
-                                                          calendar: "gregory",
-                                                          year: "numeric",
-                                                          month: "short",
-                                                          day: "numeric",
-                                                        },
-                                                      )
-                                                    : "-"}
-                                                </p>
-                                              </div>
-                                              <motion.button
-                                                whileHover={{ scale: 1.1 }}
-                                                whileTap={{ scale: 0.9 }}
-                                                onClick={() =>
-                                                  handleDeleteFile(
-                                                    patient.id,
-                                                    file._id,
-                                                  )
-                                                }
-                                                className="p-1 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                              >
-                                                <Trash2 className="w-4 h-4" />
-                                              </motion.button>
+                                              </audio>
                                             </div>
-                                          </motion.div>
-                                        ),
-                                      )}
+                                          )}
+
+                                          {file.fileType === "pdf" && (
+                                            <div className="mb-3 flex items-center justify-center h-32 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                              <div className="text-center">
+                                                <FileText className="w-8 h-8 text-red-500 mx-auto mb-2" />
+                                                <a
+                                                  href={file.fileUrl}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                                >
+                                                  {t(
+                                                    "pages_DoctorPatientRecords.text_pdf_1",
+                                                  )}
+                                                </a>
+                                              </div>
+                                            </div>
+                                          )}
+
+                                          <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                              <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                                {file.title}
+                                              </p>
+                                              {file.notes && (
+                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                  {file.notes}
+                                                </p>
+                                              )}
+                                              <p className="text-xs text-gray-400 mt-2">
+                                                {file.createdAt
+                                                  ? new Date(
+                                                      file.createdAt,
+                                                    ).toLocaleDateString(
+                                                      "ar-EG",
+                                                      {
+                                                        calendar: "gregory",
+                                                        year: "numeric",
+                                                        month: "short",
+                                                        day: "numeric",
+                                                      },
+                                                    )
+                                                  : "-"}
+                                              </p>
+                                            </div>
+                                            <motion.button
+                                              whileHover={{ scale: 1.1 }}
+                                              whileTap={{ scale: 0.9 }}
+                                              onClick={() =>
+                                                handleDeleteFile(
+                                                  patient._id || patient.id,
+                                                  file._id,
+                                                )
+                                              }
+                                              className="p-1 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                              <Trash2 className="w-4 h-4" />
+                                            </motion.button>
+                                          </div>
+                                        </motion.div>
+                                      ))}
                                     </div>
                                   )}
                                 </div>
@@ -1550,6 +1593,30 @@ export const DoctorPatientRecords = () => {
                     </motion.div>
                   ))}
                 </AnimatePresence>
+              </div>
+            )}
+
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <button
+                  onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+                  disabled={page === 1 || loading}
+                  className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  السابق
+                </button>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  الصفحة {page} من {totalPages}
+                </p>
+                <button
+                  onClick={() =>
+                    setPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={page === totalPages || loading}
+                  className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  التالي
+                </button>
               </div>
             )}
           </>
