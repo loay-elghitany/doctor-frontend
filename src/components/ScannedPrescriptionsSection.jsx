@@ -1,5 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   FileText,
@@ -22,8 +24,9 @@ import { formatDate } from "../utils/helpers";
  * Displays scanned prescriptions for a specific patient
  * Allows viewing, downloading, and managing prescriptions
  */
-const ScannedPrescriptionsSection = ({ patientId }) => {
+const ScannedPrescriptionsSection = ({ patientId: patientIdProp }) => {
   const { t } = useTranslation();
+  const { patientId: patientIdParam } = useParams();
   const [prescriptions, setPrescriptions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -42,12 +45,24 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
   const containerRef = useRef(null);
 
   const activeUrl = prescriptions[selectedPrescriptionIndex]?.fileUrl || "";
+  const resolvedPatientId = patientIdProp || patientIdParam;
+  const validPatientId =
+    resolvedPatientId && resolvedPatientId !== "undefined"
+      ? resolvedPatientId
+      : null;
 
   const fetchPrescriptions = useCallback(async () => {
+    if (!validPatientId) {
+      setPrescriptions([]);
+      setTotalPages(1);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
-      const response = await getPatientScannedPrescriptions(patientId, {
+      const response = await getPatientScannedPrescriptions(validPatientId, {
         page,
         limit: 12,
       });
@@ -64,7 +79,7 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
     } finally {
       setLoading(false);
     }
-  }, [patientId, page]);
+  }, [validPatientId, page]);
 
   useEffect(() => {
     fetchPrescriptions();
@@ -363,139 +378,149 @@ const ScannedPrescriptionsSection = ({ patientId }) => {
       )}
 
       {/* Image Preview Modal */}
-      {isModalOpen && selectedPrescriptionIndex !== null && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-hidden"
-          onClick={handleModalClose}
-        >
+      {isModalOpen &&
+        selectedPrescriptionIndex !== null &&
+        createPortal(
           <div
-            className="relative w-full max-w-4xl h-[85vh] flex flex-col bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-hidden"
+            onClick={handleModalClose}
           >
-            <div className="h-14 bg-slate-800 text-white flex items-center justify-between px-6 border-b border-slate-700 z-10 font-medium">
-              <span>معاينة الروشتة الورقية</span>
-              <button
-                type="button"
-                onClick={handleModalClose}
-                className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-slate-700 text-white transition hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500"
-                aria-label="Close preview"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
             <div
-              ref={containerRef}
-              className={`flex-1 w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden relative select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
-              onMouseDown={handleImagePanMouseDown}
-              onMouseMove={handleImagePanMouseMove}
-              onMouseUp={handleImagePanMouseUp}
-              onMouseLeave={handleImagePanMouseLeave}
+              className="relative w-full max-w-4xl h-[85vh] flex flex-col bg-slate-900 rounded-2xl overflow-hidden shadow-2xl border border-slate-700/50"
+              onClick={(e) => e.stopPropagation()}
             >
-              {prescriptions.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleNavigateImage(
-                        (selectedPrescriptionIndex - 1 + prescriptions.length) %
-                          prescriptions.length,
-                      )
-                    }
-                    className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-800/80 p-2.5 text-white shadow-lg hover:bg-slate-700"
-                    aria-label="Previous prescription"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleNavigateImage(
-                        (selectedPrescriptionIndex + 1) % prescriptions.length,
-                      )
-                    }
-                    className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-800/80 p-2.5 text-white shadow-lg hover:bg-slate-700"
-                    aria-label="Next prescription"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </>
-              )}
+              <div className="h-14 bg-slate-800 text-white flex items-center justify-between px-6 border-b border-slate-700 z-10 font-medium">
+                <span>معاينة الروشتة الورقية</span>
+                <button
+                  type="button"
+                  onClick={handleModalClose}
+                  className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-slate-700 text-white transition hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                  aria-label="Close preview"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-              <img
-                src={activeUrl}
-                alt={t(
-                  "components_ScannedPrescriptionsSection.attr_alt_prescription",
+              <div
+                ref={containerRef}
+                className={`flex-1 w-full h-full bg-slate-950 flex items-center justify-center overflow-hidden relative select-none ${isDragging ? "cursor-grabbing" : "cursor-grab"}`}
+                onMouseDown={handleImagePanMouseDown}
+                onMouseMove={handleImagePanMouseMove}
+                onMouseUp={handleImagePanMouseUp}
+                onMouseLeave={handleImagePanMouseLeave}
+              >
+                {prescriptions.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleNavigateImage(
+                          (selectedPrescriptionIndex -
+                            1 +
+                            prescriptions.length) %
+                            prescriptions.length,
+                        )
+                      }
+                      className="absolute left-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-800/80 p-2.5 text-white shadow-lg hover:bg-slate-700"
+                      aria-label="Previous prescription"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleNavigateImage(
+                          (selectedPrescriptionIndex + 1) %
+                            prescriptions.length,
+                        )
+                      }
+                      className="absolute right-4 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-800/80 p-2.5 text-white shadow-lg hover:bg-slate-700"
+                      aria-label="Next prescription"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </>
                 )}
-                className="max-w-full max-h-full rounded-lg shadow-xl"
-                style={{
-                  transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${imageZoom}) rotate(${imageRotation}deg)`,
-                  transition: isDragging ? "none" : "transform 0.15s ease-out",
-                  maxHeight: "80vh",
-                  maxWidth: "100%",
-                  objectContain: "contain",
-                  userSelect: "none",
-                  pointerEvents: "auto",
-                }}
-              />
 
-              <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-slate-900/95 px-3 py-2 shadow-2xl border border-slate-700/60">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setImageZoom((prev) => Math.max(0.5, prev - 0.25))
-                  }
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
-                  aria-label="Zoom out"
-                >
-                  <ZoomOut className="w-5 h-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setImageZoom((prev) => Math.min(3, prev + 0.25))
-                  }
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
-                  aria-label="Zoom in"
-                >
-                  <ZoomIn className="w-5 h-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setImageRotation((prev) => (prev + 90) % 360)}
-                  className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
-                  aria-label="Rotate"
-                >
-                  <RotateCw className="w-5 h-5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDownload(activeUrl)}
-                  className="inline-flex h-10 items-center justify-center rounded-full bg-blue-600 text-white px-3 transition hover:bg-blue-500"
-                  aria-label="Download"
-                >
-                  <Download className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="relative bg-slate-900 border-t border-slate-700/60 px-6 py-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm text-slate-300">
-                  {prescriptions[selectedPrescriptionIndex]?.notes || ""}
-                </div>
-                <div className="flex items-center gap-3 flex-wrap justify-end">
-                  {prescriptions.length > 1 && (
-                    <div className="text-sm text-slate-400">
-                      {selectedPrescriptionIndex + 1} / {prescriptions.length}
-                    </div>
+                <img
+                  src={activeUrl}
+                  alt={t(
+                    "components_ScannedPrescriptionsSection.attr_alt_prescription",
                   )}
+                  className="max-w-full max-h-full rounded-lg shadow-xl"
+                  style={{
+                    transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${imageZoom}) rotate(${imageRotation}deg)`,
+                    transition: isDragging
+                      ? "none"
+                      : "transform 0.15s ease-out",
+                    maxHeight: "80vh",
+                    maxWidth: "100%",
+                    objectContain: "contain",
+                    userSelect: "none",
+                    pointerEvents: "auto",
+                  }}
+                />
+
+                <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2 rounded-full bg-slate-900/95 px-3 py-2 shadow-2xl border border-slate-700/60">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setImageZoom((prev) => Math.max(0.5, prev - 0.25))
+                    }
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
+                    aria-label="Zoom out"
+                  >
+                    <ZoomOut className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setImageZoom((prev) => Math.min(3, prev + 0.25))
+                    }
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
+                    aria-label="Zoom in"
+                  >
+                    <ZoomIn className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setImageRotation((prev) => (prev + 90) % 360)
+                    }
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-800 text-white transition hover:bg-slate-700"
+                    aria-label="Rotate"
+                  >
+                    <RotateCw className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDownload(activeUrl)}
+                    className="inline-flex h-10 items-center justify-center rounded-full bg-blue-600 text-white px-3 transition hover:bg-blue-500"
+                    aria-label="Download"
+                  >
+                    <Download className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative bg-slate-900 border-t border-slate-700/60 px-6 py-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="text-sm text-slate-300">
+                    {prescriptions[selectedPrescriptionIndex]?.notes || ""}
+                  </div>
+                  <div className="flex items-center gap-3 flex-wrap justify-end">
+                    {prescriptions.length > 1 && (
+                      <div className="text-sm text-slate-400">
+                        {selectedPrescriptionIndex + 1} / {prescriptions.length}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };

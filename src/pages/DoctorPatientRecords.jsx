@@ -139,11 +139,11 @@ export const DoctorPatientRecords = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const delayDebounceFn = setTimeout(() => {
       fetchPatients(page, searchTerm);
-    }, 300);
+    }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, page]);
 
   useEffect(() => {

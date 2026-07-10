@@ -23,29 +23,42 @@ import {
   AlertCircle,
 } from "lucide-react";
 
-const FinancialManager = ({ patientId }) => {
+const FinancialManager = ({
+  patientId: patientIdProp,
+  currentPatient,
+  ...props
+}) => {
   const { t } = useTranslation();
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { role } = useCurrentRole(); // 'doctor' or 'secretary'
+  const patientId = patientIdProp || props.patientId || currentPatient?._id;
+  const validatedPatientId = patientId;
 
   const fetchPlans = async () => {
+    if (!validatedPatientId || validatedPatientId === "undefined") {
+      setPlans([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const res = await financialService.getPatientSummary(patientId);
+      const res = await financialService.getPatientSummary(validatedPatientId);
       const plansData = res.data?.data?.plans || [];
       setPlans(Array.isArray(plansData) ? plansData : []);
     } catch (error) {
       console.error("Error fetching patient financials", error);
+      setPlans([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (patientId) fetchPlans();
-  }, [patientId]);
+    fetchPlans();
+  }, [validatedPatientId]);
 
   const handleAddPayment = async (planId) => {
     const amount = prompt("أدخل المبلغ المدفوع:");
@@ -56,7 +69,7 @@ const FinancialManager = ({ patientId }) => {
 
     const payload = {
       planId,
-      patientId,
+      patientId: validatedPatientId,
       amountPaid: Number(amount),
       paymentMethod: "cash",
     };
@@ -370,7 +383,7 @@ const FinancialManager = ({ patientId }) => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={handleCreatePlan}
-        patientId={patientId}
+        patientId={validatedPatientId}
       />
     </div>
   );

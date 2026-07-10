@@ -96,11 +96,11 @@ export const SecretaryPatientsList = () => {
   };
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const delayDebounceFn = setTimeout(() => {
       fetchPatients(page, searchTerm);
-    }, 300);
+    }, 1000);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, page]);
 
   // Clear success message after 3 seconds
