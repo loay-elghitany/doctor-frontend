@@ -712,7 +712,9 @@ export const DoctorPatientRecords = () => {
               العودة إلى قائمة المرضى
             </motion.button>
             <DoctorPatientTimeline
-              patientId={selectedPatientForTimeline.id}
+              patientId={
+                selectedPatientForTimeline._id || selectedPatientForTimeline.id
+              }
               patientName={selectedPatientForTimeline.name}
             />
           </GlassCard>

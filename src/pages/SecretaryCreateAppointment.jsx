@@ -44,6 +44,29 @@ export const SecretaryCreateAppointment = () => {
     date: "",
     notes: "",
   });
+
+  // Compute the local active shift date string (YYYY-MM-DD) where hours < 5
+  // belong to the previous day. This mirrors backend 5:00 AM shift logic.
+  const getActiveShiftDateString = (now = new Date()) => {
+    const local = new Date(now);
+    // If local hours are less than 5, shift to previous day
+    if (local.getHours() < 5) {
+      local.setDate(local.getDate() - 1);
+    }
+    const y = local.getFullYear();
+    const m = String(local.getMonth() + 1).padStart(2, "0");
+    const d = String(local.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  };
+
+  useEffect(() => {
+    // Default date to active shift date for secretary walk-ins
+    setAppointmentData((prev) => ({
+      ...prev,
+      date: prev.date || getActiveShiftDateString(),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   // دالة المايك الذكية لتحويل الصوت لنص لحظياً
   const [listeningField, setListeningField] = useState(null);
 
@@ -170,8 +193,20 @@ export const SecretaryCreateAppointment = () => {
     setError("");
     setSuccess("");
 
-    if (!appointmentData.patientId || !appointmentData.date) {
-      setError("Patient and date are required");
+    if (!appointmentData.patientId) {
+      setError("Patient is required");
+      setLoading(false);
+      return;
+    }
+
+    // Validate date string (YYYY-MM-DD) and ensure it's a valid date
+    const dateStr = appointmentData.date;
+    if (
+      !dateStr ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(dateStr) ||
+      isNaN(new Date(dateStr).getTime())
+    ) {
+      setError("Invalid or missing date. Please use YYYY-MM-DD.");
       setLoading(false);
       return;
     }
@@ -179,6 +214,9 @@ export const SecretaryCreateAppointment = () => {
     try {
       const appointmentPayload = {
         ...appointmentData,
+        // If date is empty we intentionally omit it so backend will
+        // resolve the active shift date for secretary walk-ins.
+        ...(appointmentData.date ? { date: appointmentData.date } : {}),
         intakeForm: buildIntakeFormPayload(),
       };
 
@@ -380,7 +418,7 @@ export const SecretaryCreateAppointment = () => {
                         date: e.target.value,
                       })
                     }
-                    min={new Date().toISOString().split("T")[0]}
+                    min={getActiveShiftDateString()}
                     required
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />

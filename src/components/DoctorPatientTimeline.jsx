@@ -19,7 +19,12 @@ import { FileText, BarChart3, History, Pill } from "lucide-react";
 export const DoctorPatientTimeline = (props) => {
   const { patientId, patientName } = props;
   const { t } = useTranslation();
-  const validatedPatientId = patientId || props.patientId;
+  const resolvedPatientId =
+    props.patientId || props.patient?._id || props.patient?.id || patientId;
+  const validatedPatientId =
+    resolvedPatientId && resolvedPatientId !== "undefined"
+      ? resolvedPatientId
+      : null;
   const [timeline, setTimeline] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
