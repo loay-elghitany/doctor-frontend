@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -38,6 +38,7 @@ const ScannedPrescriptionsSection = ({ patientId: patientIdProp }) => {
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [retryKey, setRetryKey] = useState(0);
   const [viewType, setViewType] = useState("grid"); // grid or list
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -51,39 +52,59 @@ const ScannedPrescriptionsSection = ({ patientId: patientIdProp }) => {
       ? resolvedPatientId
       : null;
 
-  const fetchPrescriptions = useCallback(async () => {
+  useEffect(() => {
+    let isMounted = true;
+
     if (!validPatientId) {
       setPrescriptions([]);
       setTotalPages(1);
       setLoading(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
       setError(null);
-      const response = await getPatientScannedPrescriptions(validPatientId, {
-        page,
-        limit: 12,
-      });
-
-      const responseData = response.data;
-      if (responseData?.success) {
-        setPrescriptions(responseData.data || []);
-        const pagination = responseData.pagination || {};
-        setTotalPages(Math.ceil(pagination.total / pagination.limit) || 1);
-      }
-    } catch (err) {
-      console.error("Error fetching prescriptions:", err);
-      setError(err.message || "فشل في تحميل الروشتات");
-    } finally {
-      setLoading(false);
+      return () => {
+        isMounted = false;
+      };
     }
-  }, [validPatientId, page]);
 
-  useEffect(() => {
-    fetchPrescriptions();
-  }, [fetchPrescriptions]);
+    const loadPrescriptions = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await getPatientScannedPrescriptions(validPatientId, {
+          page: 1,
+          limit: 12,
+        });
+
+        if (!isMounted) return;
+
+        const responseData = response?.data;
+        const items = Array.isArray(responseData?.data)
+          ? responseData.data
+          : [];
+        const pagination = responseData?.pagination || {};
+
+        setPrescriptions(items);
+        setTotalPages(
+          Math.ceil((pagination.total || 0) / (pagination.limit || 12)) || 1,
+        );
+      } catch (err) {
+        if (!isMounted) return;
+        console.error("Error fetching prescriptions:", err);
+        setPrescriptions([]);
+        setTotalPages(1);
+        setError(err?.message || "فشل في تحميل الروشتات");
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadPrescriptions();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [validPatientId, retryKey]);
 
   useEffect(() => {
     if (imageZoom <= 1) {
@@ -165,10 +186,19 @@ const ScannedPrescriptionsSection = ({ patientId: patientIdProp }) => {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-start gap-3"
+        className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex flex-col items-start gap-3"
       >
-        <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-        <p className="text-red-700 dark:text-red-300">{error}</p>
+        <div className="flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+          <p className="text-red-700 dark:text-red-300">{error}</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setRetryKey((prev) => prev + 1)}
+          className="rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-700 dark:bg-red-950/40 dark:text-red-300"
+        >
+          إعادة المحاولة
+        </button>
       </motion.div>
     );
   }
@@ -178,7 +208,7 @@ const ScannedPrescriptionsSection = ({ patientId: patientIdProp }) => {
       <div className="text-center py-12">
         <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
         <p className="text-gray-600 dark:text-gray-400 text-lg">
-          لا توجد روشتات ورقية
+          لا توجد روشتات ورقية مرفوعة
         </p>
         <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
           سيتم عرض الروشتات الورقية هنا عند تحميلها

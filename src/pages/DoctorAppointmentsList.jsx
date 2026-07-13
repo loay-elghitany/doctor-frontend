@@ -43,18 +43,32 @@ import {
 } from "lucide-react";
 
 const hasIntakeFormData = (intakeForm) => {
-  if (!intakeForm) return false;
-  return !!(
-    intakeForm.chiefComplaint ||
-    intakeForm.vitals?.bloodPressure ||
-    intakeForm.vitals?.diabetes ||
-    intakeForm.medicalHistory?.smoking ||
-    intakeForm.medicalHistory?.heartSurgeries ||
-    intakeForm.medicalHistory?.familyHeartHistory ||
-    intakeForm.medicalHistory?.chestProblems ||
-    intakeForm.allergies ||
-    intakeForm.pregnancyOrLactation
-  );
+  if (!intakeForm || typeof intakeForm !== "object") return false;
+
+  const walk = (value) => {
+    if (!value || typeof value !== "object") {
+      return typeof value === "boolean"
+        ? value
+        : typeof value === "string"
+          ? value.trim() !== ""
+          : !!value;
+    }
+
+    if (value instanceof Map) {
+      return value.size > 0;
+    }
+
+    if (Array.isArray(value)) {
+      return value.some((item) => walk(item));
+    }
+
+    return Object.entries(value).some(([key, nestedValue]) => {
+      if (key === "customAnswers") return false;
+      return walk(nestedValue);
+    });
+  };
+
+  return walk(intakeForm);
 };
 /**
  * DoctorAppointmentsList - Display and manage appointments for authenticated doctor
@@ -664,7 +678,20 @@ export const DoctorAppointmentsList = () => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() =>
-                                  setIntakeViewAppointment(appointment)
+                                  setIntakeViewAppointment({
+                                    ...appointment,
+                                    doctorId: appointment?.doctorId
+                                      ?.customIntakeQuestions
+                                      ? appointment.doctorId
+                                      : appointment?.doctor
+                                            ?.customIntakeQuestions
+                                        ? appointment.doctor
+                                        : appointment.doctorId,
+                                    doctor: appointment?.doctor
+                                      ?.customIntakeQuestions
+                                      ? appointment.doctor
+                                      : appointment.doctor,
+                                  })
                                 }
                                 className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition flex items-center gap-1"
                               >

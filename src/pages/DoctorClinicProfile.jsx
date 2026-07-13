@@ -28,6 +28,10 @@ import {
   MessageSquare,
   CheckCircle,
   AlertCircle,
+  HelpCircle,
+  GripVertical,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 
 // Tab configuration
@@ -46,6 +50,11 @@ const TABS = [
     id: "details",
     labelKey: "pages_DoctorClinicProfile.text_details",
     icon: Settings,
+  },
+  {
+    id: "intake",
+    labelKey: "أسئلة الفحص الأولي",
+    icon: HelpCircle,
   },
 ];
 
@@ -241,6 +250,7 @@ export const DoctorClinicProfile = () => {
       themeColor: "#2563eb",
       welcomeMessage: "",
     },
+    customIntakeQuestions: [],
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -272,6 +282,7 @@ export const DoctorClinicProfile = () => {
             themeColor: data.landingPageSettings?.themeColor || "#2563eb",
             welcomeMessage: data.landingPageSettings?.welcomeMessage || "",
           },
+          customIntakeQuestions: data.customIntakeQuestions || [],
         }));
       } catch (err) {
         setError(
@@ -300,6 +311,46 @@ export const DoctorClinicProfile = () => {
       ...prev,
       landingPageSettings: { ...prev.landingPageSettings, [field]: value },
     }));
+  };
+
+  const addCustomQuestion = () => {
+    const tempId = `question-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setForm((prev) => ({
+      ...prev,
+      customIntakeQuestions: [
+        ...prev.customIntakeQuestions,
+        { id: tempId, questionText: "", type: "text", required: false },
+      ],
+    }));
+  };
+
+  const updateCustomQuestion = (id, field, value) => {
+    setForm((prev) => ({
+      ...prev,
+      customIntakeQuestions: prev.customIntakeQuestions.map((question) =>
+        question.id === id ? { ...question, [field]: value } : question,
+      ),
+    }));
+  };
+
+  const removeCustomQuestion = (id) => {
+    setForm((prev) => ({
+      ...prev,
+      customIntakeQuestions: prev.customIntakeQuestions.filter(
+        (question) => question.id !== id,
+      ),
+    }));
+  };
+
+  const moveCustomQuestion = (index, direction) => {
+    setForm((prev) => {
+      const questions = [...prev.customIntakeQuestions];
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= questions.length) return prev;
+      const [moved] = questions.splice(index, 1);
+      questions.splice(targetIndex, 0, moved);
+      return { ...prev, customIntakeQuestions: questions };
+    });
   };
 
   // Image upload handlers
@@ -719,6 +770,160 @@ export const DoctorClinicProfile = () => {
                         </motion.button>
                       }
                     />
+                  )}
+                </GlassCard>
+              </motion.div>
+            )}
+
+            {activeTab === "intake" && (
+              <motion.div
+                key="intake"
+                variants={tabVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="space-y-6"
+              >
+                <GlassCard className="p-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <HelpCircle className="w-5 h-5 text-blue-600" />
+                        أسئلة الفحص الأولي
+                      </h2>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        أضف الأسئلة التي يرغب الطبيب في جمعها من المريض خلال
+                        تسجيل الفحص.
+                      </p>
+                    </div>
+                    <motion.button
+                      type="button"
+                      onClick={addCustomQuestion}
+                      className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <Plus className="w-4 h-4" />
+                      إضافة سؤال
+                    </motion.button>
+                  </div>
+
+                  {form.customIntakeQuestions.length === 0 ? (
+                    <EmptyState
+                      icon={HelpCircle}
+                      title="لا توجد أسئلة بعد"
+                      description="ابدأ بإضافة أسئلة مثل: الشكوى الرئيسية،هل يعاني من حساسية،أو هل لديه تاريخ عائلي؟"
+                      action={
+                        <motion.button
+                          type="button"
+                          onClick={addCustomQuestion}
+                          className="btn-primary"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          إنشاء أول سؤال
+                        </motion.button>
+                      }
+                    />
+                  ) : (
+                    <div className="space-y-4">
+                      {form.customIntakeQuestions.map((question, index) => (
+                        <motion.div
+                          key={question.id}
+                          layout
+                          className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 dark:border-slate-700 dark:bg-slate-800/60"
+                        >
+                          <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+                            <div className="flex items-center gap-2 lg:flex-col">
+                              <button
+                                type="button"
+                                onClick={() => moveCustomQuestion(index, -1)}
+                                className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-600 dark:hover:bg-slate-700"
+                                aria-label="Move up"
+                              >
+                                <ArrowUp className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => moveCustomQuestion(index, 1)}
+                                className="rounded-lg border border-slate-200 p-2 text-slate-500 hover:bg-white dark:border-slate-600 dark:hover:bg-slate-700"
+                                aria-label="Move down"
+                              >
+                                <ArrowDown className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  removeCustomQuestion(question.id)
+                                }
+                                className="rounded-lg border border-red-200 p-2 text-red-500 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/30"
+                                aria-label="Delete question"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+
+                            <div className="flex-1 space-y-3">
+                              <div>
+                                <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                  السؤال
+                                </label>
+                                <input
+                                  value={question.questionText}
+                                  onChange={(e) =>
+                                    updateCustomQuestion(
+                                      question.id,
+                                      "questionText",
+                                      e.target.value,
+                                    )
+                                  }
+                                  placeholder="مثال: هل يعاني المريض من حساسية للدواء؟"
+                                  className="input-base"
+                                />
+                              </div>
+
+                              <div className="grid gap-4 md:grid-cols-[1fr,auto]">
+                                <div>
+                                  <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    نوع الإجابة
+                                  </label>
+                                  <select
+                                    value={question.type}
+                                    onChange={(e) =>
+                                      updateCustomQuestion(
+                                        question.id,
+                                        "type",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="input-base"
+                                  >
+                                    <option value="text">نص قصير</option>
+                                    <option value="textarea">نص طويل</option>
+                                    <option value="boolean">نعم/لا</option>
+                                  </select>
+                                </div>
+                                <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200">
+                                  <input
+                                    type="checkbox"
+                                    checked={question.required}
+                                    onChange={(e) =>
+                                      updateCustomQuestion(
+                                        question.id,
+                                        "required",
+                                        e.target.checked,
+                                      )
+                                    }
+                                    className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                                  />
+                                  مطلوب
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
                   )}
                 </GlassCard>
               </motion.div>

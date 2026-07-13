@@ -13,6 +13,7 @@ import { Button, Alert, Input } from "../components/ui";
 import { patientService } from "../services/patientService";
 import { debugLog, debugError } from "../utils/debug";
 import { appointmentService } from "../services/appointmentService";
+import doctorService from "../services/doctorService";
 import { handleApiError } from "../utils/helpers";
 import {
   Calendar,
@@ -140,6 +141,8 @@ export const SecretaryCreateAppointment = () => {
 
   // Intake form state
   const [showIntakeForm, setShowIntakeForm] = useState(false);
+  const [customIntakeQuestions, setCustomIntakeQuestions] = useState([]);
+  const [customIntakeLoading, setCustomIntakeLoading] = useState(false);
   const [intakeForm, setIntakeForm] = useState({
     chiefComplaint: "",
     vitals: {
@@ -154,7 +157,16 @@ export const SecretaryCreateAppointment = () => {
     },
     allergies: "",
     pregnancyOrLactation: "",
+    customAnswers: {},
   });
+
+  const buildInitialCustomAnswers = (questions = []) =>
+    (Array.isArray(questions) ? questions : []).reduce((acc, question) => {
+      const questionKey = question?.id || question?.questionText || "";
+      if (!questionKey) return acc;
+      acc[questionKey] = question?.type === "boolean" ? false : "";
+      return acc;
+    }, {});
 
   // Fetch patients on mount
   const fetchPatients = async () => {
@@ -166,26 +178,62 @@ export const SecretaryCreateAppointment = () => {
     }
   };
 
+  const fetchDoctorIntakeQuestions = async () => {
+    try {
+      setCustomIntakeLoading(true);
+      const response = await doctorService.getDoctorProfile();
+      const questions = response?.data?.data?.customIntakeQuestions || [];
+      setCustomIntakeQuestions(Array.isArray(questions) ? questions : []);
+      setIntakeForm((prev) => ({
+        ...prev,
+        customAnswers: buildInitialCustomAnswers(questions),
+      }));
+    } catch (err) {
+      debugError(
+        "SecretaryCreateAppointment",
+        "Failed to fetch doctor intake questions",
+        err,
+      );
+      setCustomIntakeQuestions([]);
+    } finally {
+      setCustomIntakeLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchPatients();
+    fetchDoctorIntakeQuestions();
   }, []);
 
   // Handle form submission
-  const buildIntakeFormPayload = () => ({
-    chiefComplaint: intakeForm.chiefComplaint.trim(),
-    vitals: {
-      bloodPressure: intakeForm.vitals.bloodPressure.trim(),
-      diabetes: intakeForm.vitals.diabetes.trim(),
-    },
-    medicalHistory: {
-      smoking: intakeForm.medicalHistory.smoking,
-      heartSurgeries: intakeForm.medicalHistory.heartSurgeries.trim(),
-      familyHeartHistory: intakeForm.medicalHistory.familyHeartHistory.trim(),
-      chestProblems: intakeForm.medicalHistory.chestProblems.trim(),
-    },
-    allergies: intakeForm.allergies.trim(),
-    pregnancyOrLactation: intakeForm.pregnancyOrLactation.trim(),
-  });
+  const buildIntakeFormPayload = () => {
+    if (customIntakeQuestions.length > 0) {
+      return customIntakeQuestions.reduce((payload, question) => {
+        const questionKey = question?.id || question?.questionText || "";
+        if (!questionKey) return payload;
+        payload[questionKey] =
+          intakeForm.customAnswers?.[questionKey] ??
+          (question?.type === "boolean" ? false : "");
+        return payload;
+      }, {});
+    }
+
+    return {
+      chiefComplaint: intakeForm.chiefComplaint.trim(),
+      vitals: {
+        bloodPressure: intakeForm.vitals.bloodPressure.trim(),
+        diabetes: intakeForm.vitals.diabetes.trim(),
+      },
+      medicalHistory: {
+        smoking: intakeForm.medicalHistory.smoking,
+        heartSurgeries: intakeForm.medicalHistory.heartSurgeries.trim(),
+        familyHeartHistory: intakeForm.medicalHistory.familyHeartHistory.trim(),
+        chestProblems: intakeForm.medicalHistory.chestProblems.trim(),
+      },
+      allergies: intakeForm.allergies.trim(),
+      pregnancyOrLactation: intakeForm.pregnancyOrLactation.trim(),
+    };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -480,313 +528,396 @@ export const SecretaryCreateAppointment = () => {
                       exit={{ opacity: 0, height: 0 }}
                       className="mt-4 p-4 space-y-6 rounded-xl bg-gray-50 dark:bg-gray-800/30 border border-purple-100 dark:border-purple-800"
                     >
-                      {/* Chief Complaint */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            الشكوى الرئيسية الحالية
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => startVoiceInput("chiefComplaint")}
-                            className={`p-1.5 rounded-lg flex items-center gap-1 text-xs transition ${listeningField === "chiefComplaint" ? "bg-red-500 text-white animate-pulse" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}
-                          >
-                            {listeningField === "chiefComplaint"
-                              ? "🔴 يسجل..."
-                              : "🎙️ إملاء صوتي"}
-                          </button>
+                      {customIntakeLoading ? (
+                        <div className="flex items-center justify-center py-6 text-sm text-gray-500 dark:text-gray-400">
+                          <LoadingSpinner size="sm" />
+                          <span className="mr-2">جارٍ تحميل الأسئلة...</span>
                         </div>
-                        <textarea
-                          value={intakeForm.chiefComplaint}
-                          onChange={(e) =>
-                            setIntakeForm({
-                              ...intakeForm,
-                              chiefComplaint: e.target.value,
-                            })
-                          }
-                          rows={3}
-                          placeholder="ما هي الأعراض الرئيسية للمريض؟"
-                          className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                        />
-                      </div>
+                      ) : customIntakeQuestions.length > 0 ? (
+                        <div className="space-y-4">
+                          {customIntakeQuestions.map((question) => {
+                            const questionKey =
+                              question?.id || question?.questionText || "";
+                            const value =
+                              intakeForm.customAnswers?.[questionKey] ??
+                              (question?.type === "boolean" ? false : "");
 
-                      {/* Vitals Grid */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              ضغط الدم
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                startVoiceInput("bloodPressure", true, "vitals")
+                            const updateCustomAnswer = (nextValue) => {
+                              setIntakeForm((prev) => ({
+                                ...prev,
+                                customAnswers: {
+                                  ...prev.customAnswers,
+                                  [questionKey]: nextValue,
+                                },
+                              }));
+                            };
+
+                            return (
+                              <div
+                                key={questionKey}
+                                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700/70 p-4"
+                              >
+                                <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  {question?.questionText || "سؤال مخصص"}
+                                </label>
+                                {question?.type === "boolean" ? (
+                                  <label className="flex items-center gap-3 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={Boolean(value)}
+                                      onChange={(e) =>
+                                        updateCustomAnswer(e.target.checked)
+                                      }
+                                      className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                                    />
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                                      نعم / لا
+                                    </span>
+                                  </label>
+                                ) : question?.type === "textarea" ? (
+                                  <textarea
+                                    value={value}
+                                    onChange={(e) =>
+                                      updateCustomAnswer(e.target.value)
+                                    }
+                                    rows={3}
+                                    placeholder="أدخل الإجابة..."
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                                  />
+                                ) : (
+                                  <input
+                                    type="text"
+                                    value={value}
+                                    onChange={(e) =>
+                                      updateCustomAnswer(e.target.value)
+                                    }
+                                    placeholder="أدخل الإجابة..."
+                                    className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                  />
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <>
+                          {/* Chief Complaint */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                الشكوى الرئيسية الحالية
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  startVoiceInput("chiefComplaint")
+                                }
+                                className={`p-1.5 rounded-lg flex items-center gap-1 text-xs transition ${listeningField === "chiefComplaint" ? "bg-red-500 text-white animate-pulse" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}
+                              >
+                                {listeningField === "chiefComplaint"
+                                  ? "🔴 يسجل..."
+                                  : "🎙️ إملاء صوتي"}
+                              </button>
+                            </div>
+                            <textarea
+                              value={intakeForm.chiefComplaint}
+                              onChange={(e) =>
+                                setIntakeForm({
+                                  ...intakeForm,
+                                  chiefComplaint: e.target.value,
+                                })
                               }
-                              className={`p-1 rounded-lg text-xs ${listeningField === "bloodPressure" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
-                            >
-                              {listeningField === "bloodPressure"
-                                ? "🔴"
-                                : "🎙️ إملاء"}
-                            </button>
+                              rows={3}
+                              placeholder="ما هي الأعراض الرئيسية للمريض؟"
+                              className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                            />
                           </div>
-                          <input
-                            type="text"
-                            value={intakeForm.vitals.bloodPressure}
-                            onChange={(e) =>
-                              setIntakeForm({
-                                ...intakeForm,
-                                vitals: {
-                                  ...intakeForm.vitals,
-                                  bloodPressure: e.target.value,
-                                },
-                              })
-                            }
-                            placeholder="120/80"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              السكري
+
+                          {/* Vitals Grid */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  ضغط الدم
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    startVoiceInput(
+                                      "bloodPressure",
+                                      true,
+                                      "vitals",
+                                    )
+                                  }
+                                  className={`p-1 rounded-lg text-xs ${listeningField === "bloodPressure" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
+                                >
+                                  {listeningField === "bloodPressure"
+                                    ? "🔴"
+                                    : "🎙️ إملاء"}
+                                </button>
+                              </div>
+                              <input
+                                type="text"
+                                value={intakeForm.vitals.bloodPressure}
+                                onChange={(e) =>
+                                  setIntakeForm({
+                                    ...intakeForm,
+                                    vitals: {
+                                      ...intakeForm.vitals,
+                                      bloodPressure: e.target.value,
+                                    },
+                                  })
+                                }
+                                placeholder="120/80"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              />
+                            </div>
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  السكري
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    startVoiceInput("diabetes", true, "vitals")
+                                  }
+                                  className={`p-1 rounded-lg text-xs ${listeningField === "diabetes" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
+                                >
+                                  {listeningField === "diabetes"
+                                    ? "🔴"
+                                    : "🎙️ إملاء"}
+                                </button>
+                              </div>
+                              <input
+                                type="text"
+                                value={intakeForm.vitals.diabetes}
+                                onChange={(e) =>
+                                  setIntakeForm({
+                                    ...intakeForm,
+                                    vitals: {
+                                      ...intakeForm.vitals,
+                                      diabetes: e.target.value,
+                                    },
+                                  })
+                                }
+                                placeholder="مثال: منخفض / مرتفع"
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Medical History Section */}
+                          <div className="space-y-4 p-3 rounded-lg bg-white/50 dark:bg-gray-700/50">
+                            <p className="font-semibold text-gray-900 dark:text-white text-sm">
+                              التاريخ الطبي
+                            </p>
+
+                            {/* Smoking */}
+                            <label className="flex items-center gap-3 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={intakeForm.medicalHistory.smoking}
+                                onChange={(e) =>
+                                  setIntakeForm({
+                                    ...intakeForm,
+                                    medicalHistory: {
+                                      ...intakeForm.medicalHistory,
+                                      smoking: e.target.checked,
+                                    },
+                                  })
+                                }
+                                className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                              />
+
+                              <span className="text-sm text-gray-700 dark:text-gray-300">
+                                هل المريض يدخن؟
+                              </span>
                             </label>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                startVoiceInput("diabetes", true, "vitals")
-                              }
-                              className={`p-1 rounded-lg text-xs ${listeningField === "diabetes" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
-                            >
-                              {listeningField === "diabetes"
-                                ? "🔴"
-                                : "🎙️ إملاء"}
-                            </button>
+
+                            {/* Heart Surgeries */}
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  عمليات القلب (إن وجدت)
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    startVoiceInput(
+                                      "heartSurgeries",
+                                      true,
+                                      "medicalHistory",
+                                    )
+                                  }
+                                  className={`p-1 rounded-lg text-xs ${listeningField === "heartSurgeries" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
+                                >
+                                  {listeningField === "heartSurgeries"
+                                    ? "🔴"
+                                    : "🎙️ إملاء"}
+                                </button>
+                              </div>
+                              <input
+                                type="text"
+                                value={intakeForm.medicalHistory.heartSurgeries}
+                                onChange={(e) =>
+                                  setIntakeForm({
+                                    ...intakeForm,
+                                    medicalHistory: {
+                                      ...intakeForm.medicalHistory,
+                                      heartSurgeries: e.target.value,
+                                    },
+                                  })
+                                }
+                                placeholder="وصف العملية والسنة..."
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              />
+                            </div>
+
+                            {/* Family Heart History */}
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  تاريخ عائلي بأمراض القلب
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    startVoiceInput(
+                                      "familyHeartHistory",
+                                      true,
+                                      "medicalHistory",
+                                    )
+                                  }
+                                  className={`p-1 rounded-lg text-xs ${listeningField === "familyHeartHistory" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
+                                >
+                                  {listeningField === "familyHeartHistory"
+                                    ? "🔴"
+                                    : "🎙️ إملاء"}
+                                </button>
+                              </div>
+                              <input
+                                type="text"
+                                value={
+                                  intakeForm.medicalHistory.familyHeartHistory
+                                }
+                                onChange={(e) =>
+                                  setIntakeForm({
+                                    ...intakeForm,
+                                    medicalHistory: {
+                                      ...intakeForm.medicalHistory,
+                                      familyHeartHistory: e.target.value,
+                                    },
+                                  })
+                                }
+                                placeholder="الأقارب المصابون والعلاقة..."
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              />
+                            </div>
+
+                            {/* Chest Problems */}
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                  مشاكل في الصدر (إن وجدت)
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    startVoiceInput(
+                                      "chestProblems",
+                                      true,
+                                      "medicalHistory",
+                                    )
+                                  }
+                                  className={`p-1 rounded-lg text-xs ${listeningField === "chestProblems" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
+                                >
+                                  {listeningField === "chestProblems"
+                                    ? "🔴"
+                                    : "🎙️ إملاء"}
+                                </button>
+                              </div>
+                              <input
+                                type="text"
+                                value={intakeForm.medicalHistory.chestProblems}
+                                onChange={(e) =>
+                                  setIntakeForm({
+                                    ...intakeForm,
+                                    medicalHistory: {
+                                      ...intakeForm.medicalHistory,
+                                      chestProblems: e.target.value,
+                                    },
+                                  })
+                                }
+                                placeholder="الأعراض أو المشاكل..."
+                                className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                              />
+                            </div>
                           </div>
-                          <input
-                            type="text"
-                            value={intakeForm.vitals.diabetes}
-                            onChange={(e) =>
-                              setIntakeForm({
-                                ...intakeForm,
-                                vitals: {
-                                  ...intakeForm.vitals,
-                                  diabetes: e.target.value,
-                                },
-                              })
-                            }
-                            placeholder="مثال: منخفض / مرتفع"
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
-                      </div>
 
-                      {/* Medical History Section */}
-                      <div className="space-y-4 p-3 rounded-lg bg-white/50 dark:bg-gray-700/50">
-                        <p className="font-semibold text-gray-900 dark:text-white text-sm">
-                          التاريخ الطبي
-                        </p>
-
-                        {/* Smoking */}
-                        <label className="flex items-center gap-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={intakeForm.medicalHistory.smoking}
-                            onChange={(e) =>
-                              setIntakeForm({
-                                ...intakeForm,
-                                medicalHistory: {
-                                  ...intakeForm.medicalHistory,
-                                  smoking: e.target.checked,
-                                },
-                              })
-                            }
-                            className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                          />
-
-                          <span className="text-sm text-gray-700 dark:text-gray-300">
-                            هل المريض يدخن؟
-                          </span>
-                        </label>
-
-                        {/* Heart Surgeries */}
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              عمليات القلب (إن وجدت)
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                startVoiceInput(
-                                  "heartSurgeries",
-                                  true,
-                                  "medicalHistory",
-                                )
+                          {/* Allergies */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                الحساسيات الدوائية
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => startVoiceInput("allergies")}
+                                className={`p-1.5 rounded-lg flex items-center gap-1 text-xs transition ${listeningField === "allergies" ? "bg-red-500 text-white animate-pulse" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}
+                              >
+                                {listeningField === "allergies"
+                                  ? "🔴 يسجل..."
+                                  : "🎙️ إملاء صوتي"}
+                              </button>
+                            </div>
+                            <textarea
+                              value={intakeForm.allergies}
+                              onChange={(e) =>
+                                setIntakeForm({
+                                  ...intakeForm,
+                                  allergies: e.target.value,
+                                })
                               }
-                              className={`p-1 rounded-lg text-xs ${listeningField === "heartSurgeries" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
-                            >
-                              {listeningField === "heartSurgeries"
-                                ? "🔴"
-                                : "🎙️ إملاء"}
-                            </button>
+                              rows={2}
+                              placeholder="اذكر أي حساسيات من الأدوية أو المواد..."
+                              className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+                            />
                           </div>
-                          <input
-                            type="text"
-                            value={intakeForm.medicalHistory.heartSurgeries}
-                            onChange={(e) =>
-                              setIntakeForm({
-                                ...intakeForm,
-                                medicalHistory: {
-                                  ...intakeForm.medicalHistory,
-                                  heartSurgeries: e.target.value,
-                                },
-                              })
-                            }
-                            placeholder="وصف العملية والسنة..."
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
 
-                        {/* Family Heart History */}
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              تاريخ عائلي بأمراض القلب
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                startVoiceInput(
-                                  "familyHeartHistory",
-                                  true,
-                                  "medicalHistory",
-                                )
+                          {/* Pregnancy/Lactation */}
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                الحمل أو الرضاعة (للمريضات)
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  startVoiceInput("pregnancyOrLactation")
+                                }
+                                className={`p-1.5 rounded-lg flex items-center gap-1 text-xs transition ${listeningField === "pregnancyOrLactation" ? "bg-red-500 text-white animate-pulse" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}
+                              >
+                                {listeningField === "pregnancyOrLactation"
+                                  ? "🔴 يسجل..."
+                                  : "🎙️ إملاء صوتي"}
+                              </button>
+                            </div>
+                            <input
+                              type="text"
+                              value={intakeForm.pregnancyOrLactation}
+                              onChange={(e) =>
+                                setIntakeForm({
+                                  ...intakeForm,
+                                  pregnancyOrLactation: e.target.value,
+                                })
                               }
-                              className={`p-1 rounded-lg text-xs ${listeningField === "familyHeartHistory" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
-                            >
-                              {listeningField === "familyHeartHistory"
-                                ? "🔴"
-                                : "🎙️ إملاء"}
-                            </button>
+                              placeholder="مثال: حامل في الشهر الثالث، مرضعة، لا"
+                              className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            />
                           </div>
-                          <input
-                            type="text"
-                            value={intakeForm.medicalHistory.familyHeartHistory}
-                            onChange={(e) =>
-                              setIntakeForm({
-                                ...intakeForm,
-                                medicalHistory: {
-                                  ...intakeForm.medicalHistory,
-                                  familyHeartHistory: e.target.value,
-                                },
-                              })
-                            }
-                            placeholder="الأقارب المصابون والعلاقة..."
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
-
-                        {/* Chest Problems */}
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                              مشاكل في الصدر (إن وجدت)
-                            </label>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                startVoiceInput(
-                                  "chestProblems",
-                                  true,
-                                  "medicalHistory",
-                                )
-                              }
-                              className={`p-1 rounded-lg text-xs ${listeningField === "chestProblems" ? "bg-red-500 text-white animate-pulse" : "bg-purple-50 text-purple-600"}`}
-                            >
-                              {listeningField === "chestProblems"
-                                ? "🔴"
-                                : "🎙️ إملاء"}
-                            </button>
-                          </div>
-                          <input
-                            type="text"
-                            value={intakeForm.medicalHistory.chestProblems}
-                            onChange={(e) =>
-                              setIntakeForm({
-                                ...intakeForm,
-                                medicalHistory: {
-                                  ...intakeForm.medicalHistory,
-                                  chestProblems: e.target.value,
-                                },
-                              })
-                            }
-                            placeholder="الأعراض أو المشاكل..."
-                            className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Allergies */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            الحساسيات الدوائية
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() => startVoiceInput("allergies")}
-                            className={`p-1.5 rounded-lg flex items-center gap-1 text-xs transition ${listeningField === "allergies" ? "bg-red-500 text-white animate-pulse" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}
-                          >
-                            {listeningField === "allergies"
-                              ? "🔴 يسجل..."
-                              : "🎙️ إملاء صوتي"}
-                          </button>
-                        </div>
-                        <textarea
-                          value={intakeForm.allergies}
-                          onChange={(e) =>
-                            setIntakeForm({
-                              ...intakeForm,
-                              allergies: e.target.value,
-                            })
-                          }
-                          rows={2}
-                          placeholder="اذكر أي حساسيات من الأدوية أو المواد..."
-                          className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
-                        />
-                      </div>
-
-                      {/* Pregnancy/Lactation */}
-                      <div>
-                        <div className="flex items-center justify-between mb-2">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            الحمل أو الرضاعة (للمريضات)
-                          </label>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              startVoiceInput("pregnancyOrLactation")
-                            }
-                            className={`p-1.5 rounded-lg flex items-center gap-1 text-xs transition ${listeningField === "pregnancyOrLactation" ? "bg-red-500 text-white animate-pulse" : "bg-purple-100 text-purple-700 hover:bg-purple-200"}`}
-                          >
-                            {listeningField === "pregnancyOrLactation"
-                              ? "🔴 يسجل..."
-                              : "🎙️ إملاء صوتي"}
-                          </button>
-                        </div>
-                        <input
-                          type="text"
-                          value={intakeForm.pregnancyOrLactation}
-                          onChange={(e) =>
-                            setIntakeForm({
-                              ...intakeForm,
-                              pregnancyOrLactation: e.target.value,
-                            })
-                          }
-                          placeholder="مثال: حامل في الشهر الثالث، مرضعة، لا"
-                          className="w-full px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        />
-                      </div>
+                        </>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>

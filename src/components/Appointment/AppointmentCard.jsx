@@ -6,18 +6,72 @@ import { getStatusLabel } from "../../utils/helpers";
 import { getAppointmentPermissions } from "../../utils/appointmentPermissions.js";
 
 const hasIntakeFormData = (intakeForm) => {
-  if (!intakeForm) return false;
-  return !!(
-    intakeForm.chiefComplaint ||
-    intakeForm.vitals?.bloodPressure ||
-    intakeForm.vitals?.diabetes ||
-    intakeForm.medicalHistory?.smoking ||
-    intakeForm.medicalHistory?.heartSurgeries ||
-    intakeForm.medicalHistory?.familyHeartHistory ||
-    intakeForm.medicalHistory?.chestProblems ||
-    intakeForm.allergies ||
-    intakeForm.pregnancyOrLactation
-  );
+  if (!intakeForm || typeof intakeForm !== "object") return false;
+
+  const walk = (value) => {
+    if (!value || typeof value !== "object") {
+      return typeof value === "boolean"
+        ? value
+        : typeof value === "string"
+          ? value.trim() !== ""
+          : !!value;
+    }
+
+    if (value instanceof Map) {
+      return value.size > 0;
+    }
+
+    if (Array.isArray(value)) {
+      return value.some((item) => walk(item));
+    }
+
+    return Object.entries(value).some(([key, nestedValue]) => {
+      if (key === "customAnswers") return false;
+      return walk(nestedValue);
+    });
+  };
+
+  return walk(intakeForm);
+};
+
+const getIntakeSummaryEntries = (intakeForm) => {
+  if (!intakeForm || typeof intakeForm !== "object") return [];
+
+  const entries = [];
+  const visit = (value, parentKey = "") => {
+    if (!value || typeof value !== "object") {
+      if (typeof value === "boolean") {
+        entries.push({ key: parentKey, value });
+      } else if (typeof value === "string" && value.trim()) {
+        entries.push({ key: parentKey, value });
+      }
+      return;
+    }
+
+    if (value instanceof Map) {
+      value.forEach((nestedValue, nestedKey) => {
+        visit(nestedValue, nestedKey);
+      });
+      return;
+    }
+
+    if (Array.isArray(value)) {
+      value.forEach((item) => visit(item, parentKey));
+      return;
+    }
+
+    Object.entries(value).forEach(([key, nestedValue]) => {
+      if (key === "customAnswers") return;
+      if (key === "vitals" || key === "medicalHistory") {
+        visit(nestedValue, key);
+        return;
+      }
+      visit(nestedValue, key);
+    });
+  };
+
+  visit(intakeForm);
+  return entries.slice(0, 3);
 };
 
 // Appointment card component
@@ -56,6 +110,8 @@ export const AppointmentCard = ({
       : appointment.patientId?._id
         ? String(appointment.patientId._id)
         : "Patient");
+
+  const intakeSummaryEntries = getIntakeSummaryEntries(appointment.intakeForm);
 
   return (
     <motion.div
@@ -111,14 +167,42 @@ export const AppointmentCard = ({
             <span className="text-gray-600">{appointment.notes}</span>
           </p>
         )}
-        {appointment.intakeForm?.chiefComplaint && (
+        {intakeSummaryEntries.length > 0 ? (
+          intakeSummaryEntries.map((entry, index) => {
+            const label =
+              entry.key === "chiefComplaint"
+                ? "الشكوى الرئيسية"
+                : entry.key === "bloodPressure"
+                  ? "ضغط الدم"
+                  : entry.key === "diabetes"
+                    ? "السكري"
+                    : entry.key === "allergies"
+                      ? "الحساسيات"
+                      : entry.key === "pregnancyOrLactation"
+                        ? "الحمل أو الرضاعة"
+                        : entry.key;
+            const value =
+              typeof entry.value === "boolean"
+                ? entry.value
+                  ? "نعم"
+                  : "لا"
+                : String(entry.value);
+
+            return (
+              <p key={`${entry.key}-${index}`}>
+                <span className="font-medium text-gray-700">{label}:</span>{" "}
+                <span className="text-gray-600">{value}</span>
+              </p>
+            );
+          })
+        ) : appointment.intakeForm?.chiefComplaint ? (
           <p>
             <span className="font-medium text-gray-700">الشكوى الرئيسية:</span>{" "}
             <span className="text-gray-600">
               {appointment.intakeForm.chiefComplaint}
             </span>
           </p>
-        )}
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -128,15 +212,17 @@ export const AppointmentCard = ({
         >
           عرض التفاصيل
         </button>
-        {appointment.intakeForm && onViewIntake && hasIntakeFormData(appointment.intakeForm) && (
-          <button
-            onClick={() => onViewIntake(appointment)}
-            className="btn-secondary text-sm flex items-center gap-1"
-          >
-            <FileText className="w-4 h-4" />
-            استمارة الفحص
-          </button>
-        )}
+        {appointment.intakeForm &&
+          onViewIntake &&
+          hasIntakeFormData(appointment.intakeForm) && (
+            <button
+              onClick={() => onViewIntake(appointment)}
+              className="btn-secondary text-sm flex items-center gap-1"
+            >
+              <FileText className="w-4 h-4" />
+              استمارة الفحص
+            </button>
+          )}
         {appointment.status === "reschedule_proposed" && (
           <button
             onClick={() => onAction?.(appointment)}

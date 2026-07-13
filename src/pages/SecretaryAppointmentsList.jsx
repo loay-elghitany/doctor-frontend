@@ -13,6 +13,7 @@ import {
 } from "../components/ui";
 import { Button, Badge, Alert, Modal, Spinner } from "../components/ui";
 import { appointmentService } from "../services/appointmentService";
+import doctorService from "../services/doctorService";
 import { getStatusLabel, handleApiError } from "../utils/helpers";
 import {
   normalizeStatus,
@@ -70,25 +71,58 @@ export const SecretaryAppointmentsList = () => {
     return ["pending", "scheduled", "confirmed"].includes(normalized);
   };
 
-  const toIntakeFormState = (existing) => ({
-    chiefComplaint: existing?.chiefComplaint || "",
-    vitals: {
-      bloodPressure: existing?.vitals?.bloodPressure || "",
-      diabetes: existing?.vitals?.diabetes || "",
-    },
-    medicalHistory: {
-      smoking: Boolean(existing?.medicalHistory?.smoking),
-      heartSurgeries: existing?.medicalHistory?.heartSurgeries || "",
-      familyHeartHistory: existing?.medicalHistory?.familyHeartHistory || "",
-      chestProblems: existing?.medicalHistory?.chestProblems || "",
-    },
-    allergies: existing?.allergies || "",
-    pregnancyOrLactation: existing?.pregnancyOrLactation || "",
-  });
+  const getIntakeValue = (source, key) => {
+    if (!source) return undefined;
+    if (source instanceof Map) return source.get(key);
+    return source[key];
+  };
 
-  const openIntakeEdit = (appointment) => {
-    setIntakeEditAppointment(appointment);
-    setIntakeEditForm(toIntakeFormState(appointment?.intakeForm));
+  const toIntakeFormState = (existing, customQuestions = []) => {
+    const state = {
+      chiefComplaint: existing?.chiefComplaint || "",
+      vitals: {
+        bloodPressure: existing?.vitals?.bloodPressure || "",
+        diabetes: existing?.vitals?.diabetes || "",
+      },
+      medicalHistory: {
+        smoking: Boolean(existing?.medicalHistory?.smoking),
+        heartSurgeries: existing?.medicalHistory?.heartSurgeries || "",
+        familyHeartHistory: existing?.medicalHistory?.familyHeartHistory || "",
+        chestProblems: existing?.medicalHistory?.chestProblems || "",
+      },
+      allergies: existing?.allergies || "",
+      pregnancyOrLactation: existing?.pregnancyOrLactation || "",
+      customAnswers: {},
+      customQuestionList: customQuestions,
+    };
+
+    customQuestions.forEach((question) => {
+      const storedValue = getIntakeValue(existing, question.id);
+      state.customAnswers[question.id] =
+        question.type === "boolean"
+          ? Boolean(storedValue)
+          : (storedValue ?? "");
+    });
+
+    return state;
+  };
+
+  const openIntakeEdit = async (appointment) => {
+    try {
+      setIntakeEditLoading(true);
+      setIntakeEditAppointment(appointment);
+      const questionsResponse = await doctorService.getDoctorProfile();
+      const customQuestions =
+        questionsResponse?.data?.data?.customIntakeQuestions || [];
+      setIntakeEditForm(
+        toIntakeFormState(appointment?.intakeForm, customQuestions),
+      );
+    } catch (err) {
+      setIntakeEditForm(toIntakeFormState(appointment?.intakeForm));
+      handleActionError(err, "Failed to load intake questions.");
+    } finally {
+      setIntakeEditLoading(false);
+    }
   };
 
   const handleSaveIntakeForm = async () => {
@@ -98,27 +132,34 @@ export const SecretaryAppointmentsList = () => {
     setError("");
     setSuccess("");
 
-    const payload = {
-      chiefComplaint: intakeEditForm.chiefComplaint.trim(),
-      vitals: {
-        bloodPressure: intakeEditForm.vitals.bloodPressure.trim(),
-        diabetes: intakeEditForm.vitals.diabetes.trim(),
-      },
-      medicalHistory: {
-        smoking: intakeEditForm.medicalHistory.smoking,
-        heartSurgeries: intakeEditForm.medicalHistory.heartSurgeries.trim(),
-        familyHeartHistory:
-          intakeEditForm.medicalHistory.familyHeartHistory.trim(),
-        chestProblems: intakeEditForm.medicalHistory.chestProblems.trim(),
-      },
-      allergies: intakeEditForm.allergies.trim(),
-      pregnancyOrLactation: intakeEditForm.pregnancyOrLactation.trim(),
-    };
+    const hasDynamicQuestions =
+      Array.isArray(intakeEditForm?.customQuestionList) &&
+      intakeEditForm.customQuestionList.length > 0;
+
+    const intakeFormPayload = hasDynamicQuestions
+      ? { ...(intakeEditForm.customAnswers || {}) }
+      : {
+          chiefComplaint: intakeEditForm.chiefComplaint.trim(),
+          vitals: {
+            bloodPressure: intakeEditForm.vitals.bloodPressure.trim(),
+            diabetes: intakeEditForm.vitals.diabetes.trim(),
+          },
+          medicalHistory: {
+            smoking: intakeEditForm.medicalHistory.smoking,
+            heartSurgeries: intakeEditForm.medicalHistory.heartSurgeries.trim(),
+            familyHeartHistory:
+              intakeEditForm.medicalHistory.familyHeartHistory.trim(),
+            chestProblems: intakeEditForm.medicalHistory.chestProblems.trim(),
+          },
+          allergies: intakeEditForm.allergies.trim(),
+          pregnancyOrLactation: intakeEditForm.pregnancyOrLactation.trim(),
+          ...(intakeEditForm.customAnswers || {}),
+        };
 
     try {
       const response = await appointmentService.updateIntakeForm(
         intakeEditAppointment._id,
-        payload,
+        intakeFormPayload,
       );
       const updatedAppointment = response.data?.data;
       if (updatedAppointment) {
@@ -849,7 +890,20 @@ export const SecretaryAppointmentsList = () => {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() =>
-                                  setIntakeViewAppointment(appointment)
+                                  setIntakeViewAppointment({
+                                    ...appointment,
+                                    doctorId: appointment?.doctorId
+                                      ?.customIntakeQuestions
+                                      ? appointment.doctorId
+                                      : appointment?.doctor
+                                            ?.customIntakeQuestions
+                                        ? appointment.doctor
+                                        : appointment.doctorId,
+                                    doctor: appointment?.doctor
+                                      ?.customIntakeQuestions
+                                      ? appointment.doctor
+                                      : appointment.doctor,
+                                  })
                                 }
                                 className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-sm font-medium hover:bg-blue-100 dark:hover:bg-blue-900/30 transition flex items-center gap-1"
                               >
@@ -1123,10 +1177,10 @@ export const SecretaryAppointmentsList = () => {
           title={
             intakeEditAppointment?.intakeForm
               ? t("pages_SecretaryAppointmentsList.text_update_intake", {
-                  defaultValue: "تحديث استمارة الفحص",
+                  defaultValue: "تحديث استمارة الفحص الطبي",
                 })
               : t("pages_SecretaryAppointmentsList.text_record_intake", {
-                  defaultValue: "تسجيل استمارة الفحص",
+                  defaultValue: "تسجيل استمارة الفحص الطبي",
                 })
           }
           size="lg"
@@ -1162,175 +1216,269 @@ export const SecretaryAppointmentsList = () => {
         >
           {intakeEditForm && (
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  الشكوى الرئيسية
-                </label>
-                <textarea
-                  value={intakeEditForm.chiefComplaint}
-                  onChange={(e) =>
-                    setIntakeEditForm({
-                      ...intakeEditForm,
-                      chiefComplaint: e.target.value,
-                    })
-                  }
-                  rows={3}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    ضغط الدم
-                  </label>
-                  <input
-                    type="text"
-                    value={intakeEditForm.vitals.bloodPressure}
-                    onChange={(e) =>
-                      setIntakeEditForm({
-                        ...intakeEditForm,
-                        vitals: {
-                          ...intakeEditForm.vitals,
-                          bloodPressure: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    السكري
-                  </label>
-                  <input
-                    type="text"
-                    value={intakeEditForm.vitals.diabetes}
-                    onChange={(e) =>
-                      setIntakeEditForm({
-                        ...intakeEditForm,
-                        vitals: {
-                          ...intakeEditForm.vitals,
-                          diabetes: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  الحساسيات الدوائية
-                </label>
-                <textarea
-                  value={intakeEditForm.allergies}
-                  onChange={(e) =>
-                    setIntakeEditForm({
-                      ...intakeEditForm,
-                      allergies: e.target.value,
-                    })
-                  }
-                  rows={2}
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+              {Array.isArray(intakeEditForm.customQuestionList) &&
+              intakeEditForm.customQuestionList.length > 0 ? (
+                <div className="space-y-4 rounded-xl border border-purple-100 bg-purple-50/60 p-3">
+                  <p className="font-semibold text-gray-900 text-sm">
+                    أسئلة المريض المخصصة
+                  </p>
+                  {intakeEditForm.customQuestionList.map((question) => {
+                    const questionId = question?.id;
+                    const label =
+                      question?.questionText || questionId || "سؤال";
+                    const type = question?.type || "text";
+                    const value =
+                      intakeEditForm.customAnswers?.[questionId] ??
+                      (type === "boolean" ? false : "");
 
-              <div className="space-y-4 p-3 rounded-lg bg-gray-50 border border-purple-100">
-                <p className="font-semibold text-gray-900 text-sm">
-                  التاريخ الطبي
-                </p>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={intakeEditForm.medicalHistory.smoking}
-                    onChange={(e) =>
-                      setIntakeEditForm({
-                        ...intakeEditForm,
-                        medicalHistory: {
-                          ...intakeEditForm.medicalHistory,
-                          smoking: e.target.checked,
-                        },
-                      })
-                    }
-                    className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-                  />
-                  <span className="text-sm text-gray-700">هل المريض يدخن؟</span>
-                </label>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    عمليات القلب (إن وجدت)
-                  </label>
-                  <input
-                    type="text"
-                    value={intakeEditForm.medicalHistory.heartSurgeries}
-                    onChange={(e) =>
-                      setIntakeEditForm({
-                        ...intakeEditForm,
-                        medicalHistory: {
-                          ...intakeEditForm.medicalHistory,
-                          heartSurgeries: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
+                    return (
+                      <div key={questionId}>
+                        <label className="mb-1 block text-sm font-medium text-gray-700">
+                          {label}
+                        </label>
+                        {type === "textarea" ? (
+                          <textarea
+                            value={value || ""}
+                            onChange={(e) =>
+                              setIntakeEditForm({
+                                ...intakeEditForm,
+                                customAnswers: {
+                                  ...(intakeEditForm.customAnswers || {}),
+                                  [questionId]: e.target.value,
+                                },
+                              })
+                            }
+                            rows={3}
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          />
+                        ) : type === "boolean" ? (
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setIntakeEditForm({
+                                  ...intakeEditForm,
+                                  customAnswers: {
+                                    ...(intakeEditForm.customAnswers || {}),
+                                    [questionId]: true,
+                                  },
+                                })
+                              }
+                              className={`rounded-lg px-3 py-2 text-sm font-medium ${value ? "bg-purple-600 text-white" : "bg-white text-gray-700 border border-gray-200"}`}
+                            >
+                              نعم
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setIntakeEditForm({
+                                  ...intakeEditForm,
+                                  customAnswers: {
+                                    ...(intakeEditForm.customAnswers || {}),
+                                    [questionId]: false,
+                                  },
+                                })
+                              }
+                              className={`rounded-lg px-3 py-2 text-sm font-medium ${value === false ? "bg-purple-600 text-white" : "bg-white text-gray-700 border border-gray-200"}`}
+                            >
+                              لا
+                            </button>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            value={value || ""}
+                            onChange={(e) =>
+                              setIntakeEditForm({
+                                ...intakeEditForm,
+                                customAnswers: {
+                                  ...(intakeEditForm.customAnswers || {}),
+                                  [questionId]: e.target.value,
+                                },
+                              })
+                            }
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    تاريخ عائلي بأمراض القلب
-                  </label>
-                  <input
-                    type="text"
-                    value={intakeEditForm.medicalHistory.familyHeartHistory}
-                    onChange={(e) =>
-                      setIntakeEditForm({
-                        ...intakeEditForm,
-                        medicalHistory: {
-                          ...intakeEditForm.medicalHistory,
-                          familyHeartHistory: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    مشاكل في الصدر (إن وجدت)
-                  </label>
-                  <input
-                    type="text"
-                    value={intakeEditForm.medicalHistory.chestProblems}
-                    onChange={(e) =>
-                      setIntakeEditForm({
-                        ...intakeEditForm,
-                        medicalHistory: {
-                          ...intakeEditForm.medicalHistory,
-                          chestProblems: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  />
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      الشكوى الرئيسية
+                    </label>
+                    <textarea
+                      value={intakeEditForm.chiefComplaint}
+                      onChange={(e) =>
+                        setIntakeEditForm({
+                          ...intakeEditForm,
+                          chiefComplaint: e.target.value,
+                        })
+                      }
+                      rows={3}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        ضغط الدم
+                      </label>
+                      <input
+                        type="text"
+                        value={intakeEditForm.vitals.bloodPressure}
+                        onChange={(e) =>
+                          setIntakeEditForm({
+                            ...intakeEditForm,
+                            vitals: {
+                              ...intakeEditForm.vitals,
+                              bloodPressure: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        السكري
+                      </label>
+                      <input
+                        type="text"
+                        value={intakeEditForm.vitals.diabetes}
+                        onChange={(e) =>
+                          setIntakeEditForm({
+                            ...intakeEditForm,
+                            vitals: {
+                              ...intakeEditForm.vitals,
+                              diabetes: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      الحساسيات الدوائية
+                    </label>
+                    <textarea
+                      value={intakeEditForm.allergies}
+                      onChange={(e) =>
+                        setIntakeEditForm({
+                          ...intakeEditForm,
+                          allergies: e.target.value,
+                        })
+                      }
+                      rows={2}
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  الحمل أو الرضاعة (للمريضات)
-                </label>
-                <input
-                  type="text"
-                  value={intakeEditForm.pregnancyOrLactation}
-                  onChange={(e) =>
-                    setIntakeEditForm({
-                      ...intakeEditForm,
-                      pregnancyOrLactation: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
+                  <div className="space-y-4 p-3 rounded-lg bg-gray-50 border border-purple-100">
+                    <p className="font-semibold text-gray-900 text-sm">
+                      التاريخ الطبي
+                    </p>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={intakeEditForm.medicalHistory.smoking}
+                        onChange={(e) =>
+                          setIntakeEditForm({
+                            ...intakeEditForm,
+                            medicalHistory: {
+                              ...intakeEditForm.medicalHistory,
+                              smoking: e.target.checked,
+                            },
+                          })
+                        }
+                        className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <span className="text-sm text-gray-700">
+                        هل المريض يدخن؟
+                      </span>
+                    </label>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        عمليات القلب (إن وجدت)
+                      </label>
+                      <input
+                        type="text"
+                        value={intakeEditForm.medicalHistory.heartSurgeries}
+                        onChange={(e) =>
+                          setIntakeEditForm({
+                            ...intakeEditForm,
+                            medicalHistory: {
+                              ...intakeEditForm.medicalHistory,
+                              heartSurgeries: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        تاريخ عائلي بأمراض القلب
+                      </label>
+                      <input
+                        type="text"
+                        value={intakeEditForm.medicalHistory.familyHeartHistory}
+                        onChange={(e) =>
+                          setIntakeEditForm({
+                            ...intakeEditForm,
+                            medicalHistory: {
+                              ...intakeEditForm.medicalHistory,
+                              familyHeartHistory: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        مشاكل في الصدر (إن وجدت)
+                      </label>
+                      <input
+                        type="text"
+                        value={intakeEditForm.medicalHistory.chestProblems}
+                        onChange={(e) =>
+                          setIntakeEditForm({
+                            ...intakeEditForm,
+                            medicalHistory: {
+                              ...intakeEditForm.medicalHistory,
+                              chestProblems: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      الحمل أو الرضاعة (للمريضات)
+                    </label>
+                    <input
+                      type="text"
+                      value={intakeEditForm.pregnancyOrLactation}
+                      onChange={(e) =>
+                        setIntakeEditForm({
+                          ...intakeEditForm,
+                          pregnancyOrLactation: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                </>
+              )}
             </div>
           )}
         </Modal>

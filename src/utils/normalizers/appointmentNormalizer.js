@@ -10,6 +10,7 @@ const normalizePerson = (person) => {
   }
 
   return {
+    ...person,
     _id: String(person._id ?? person.id ?? "") || "",
     name: String(person.name ?? person.fullName ?? "") || "",
     email: String(person.email ?? person.emailAddress ?? "") || "",
