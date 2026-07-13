@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -38,8 +38,10 @@ export const SecretaryCreateAppointment = () => {
   const [patientSearchQuery, setPatientSearchQuery] = useState("");
   const [patientDropdownOpen, setPatientDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isLoadingPatients, setIsLoadingPatients] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const debounceTimerRef = useRef(null);
   const [appointmentData, setAppointmentData] = useState({
     patientId: "",
     date: "",
@@ -127,18 +129,6 @@ export const SecretaryCreateAppointment = () => {
     ? `${selectedPatient.name} (${selectedPatient.email || selectedPatient.phone || selectedPatient.phoneNumber || ""})`
     : "";
 
-  const filteredPatients = patients.filter((patient) => {
-    const query = patientSearchQuery.trim().toLowerCase();
-    if (!query) return true;
-    return (
-      (patient.name || "").toLowerCase().includes(query) ||
-      (patient.phone || patient.phoneNumber || "")
-        .toLowerCase()
-        .includes(query) ||
-      (patient.email || "").toLowerCase().includes(query)
-    );
-  });
-
   // Intake form state
   const [showIntakeForm, setShowIntakeForm] = useState(false);
   const [customIntakeQuestions, setCustomIntakeQuestions] = useState([]);
@@ -169,12 +159,18 @@ export const SecretaryCreateAppointment = () => {
     }, {});
 
   // Fetch patients on mount
-  const fetchPatients = async () => {
+  const fetchPatients = async (searchQuery = "") => {
     try {
-      const response = await patientService.getPatients();
+      setIsLoadingPatients(true);
+      const params = searchQuery?.trim() ? { search: searchQuery.trim() } : {};
+
+      const response = await patientService.getPatients(params);
       setPatients(response.data?.data || []);
     } catch (err) {
       debugError("SecretaryCreateAppointment", "Failed to fetch patients", err);
+      setPatients([]);
+    } finally {
+      setIsLoadingPatients(false);
     }
   };
 
@@ -201,9 +197,41 @@ export const SecretaryCreateAppointment = () => {
   };
 
   useEffect(() => {
+    // Initial load: fetch default patients on mount
     fetchPatients();
     fetchDoctorIntakeQuestions();
   }, []);
+
+  // Debounced patient search effect - triggers when search query changes
+  useEffect(() => {
+    // Clear any existing timeout
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Only search if dropdown is open and user has typed something
+    if (!patientDropdownOpen && patientSearchQuery === "") {
+      return;
+    }
+
+    // Set new debounce timer for 300ms
+    debounceTimerRef.current = setTimeout(() => {
+      if (patientSearchQuery.trim() === "") {
+        // If search is empty, fetch the default list of recent patients
+        fetchPatients("");
+      } else {
+        // Perform server-side search with the query
+        fetchPatients(patientSearchQuery);
+      }
+    }, 300);
+
+    // Cleanup on unmount
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [patientSearchQuery, patientDropdownOpen]);
 
   // Handle form submission
   const buildIntakeFormPayload = () => {
@@ -384,7 +412,13 @@ export const SecretaryCreateAppointment = () => {
                       setPatientSearchQuery(e.target.value);
                       setPatientDropdownOpen(true);
                     }}
-                    onFocus={() => setPatientDropdownOpen(true)}
+                    onFocus={() => {
+                      setPatientDropdownOpen(true);
+                      // If a patient is already selected, clear search to show all
+                      if (appointmentData.patientId) {
+                        setPatientSearchQuery("");
+                      }
+                    }}
                     placeholder="ابحث باسم المريض، رقم الهاتف، أو البريد الإلكتروني..."
                     className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                     autoComplete="off"
@@ -414,12 +448,19 @@ export const SecretaryCreateAppointment = () => {
                         exit={{ opacity: 0, y: -8 }}
                         className="absolute z-30 mt-2 w-full max-h-72 overflow-auto rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-xl"
                       >
-                        {filteredPatients.length === 0 ? (
+                        {isLoadingPatients ? (
+                          <div className="px-4 py-4 flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                            <LoadingSpinner size="sm" />
+                            <span>جارٍ البحث عن المرضى...</span>
+                          </div>
+                        ) : patients.length === 0 ? (
                           <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
-                            لا يوجد مرضى مطابقين
+                            {patientSearchQuery.trim() === ""
+                              ? "لا يوجد مرضى متاحين"
+                              : "لا يوجد مرضى مطابقين للبحث"}
                           </div>
                         ) : (
-                          filteredPatients.map((patient) => (
+                          patients.map((patient) => (
                             <button
                               key={patient._id}
                               type="button"
@@ -431,13 +472,16 @@ export const SecretaryCreateAppointment = () => {
                                 setPatientSearchQuery("");
                                 setPatientDropdownOpen(false);
                               }}
-                              className="w-full text-left px-4 py-3 hover:bg-amber-50 dark:hover:bg-gray-800 border-b last:border-b-0 border-gray-100 dark:border-gray-800"
+                              className="w-full text-left px-4 py-3 hover:bg-amber-50 dark:hover:bg-gray-800 border-b last:border-b-0 border-gray-100 dark:border-gray-800 transition"
                             >
                               <div className="font-medium text-gray-900 dark:text-white">
                                 {patient.name}
                               </div>
                               <div className="text-sm text-gray-500 dark:text-gray-400">
-                                {patient.email || patient.phone || "-"}
+                                {patient.email ||
+                                  patient.phone ||
+                                  patient.phoneNumber ||
+                                  "-"}
                               </div>
                             </button>
                           ))
