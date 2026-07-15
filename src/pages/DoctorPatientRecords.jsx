@@ -41,6 +41,7 @@ import {
   Pin,
   X,
   Trash2,
+  Pencil,
 } from "lucide-react";
 
 export const DoctorPatientRecords = () => {
@@ -65,6 +66,8 @@ export const DoctorPatientRecords = () => {
   const [newNoteContent, setNewNoteContent] = useState("");
   const [newNoteColor, setNewNoteColor] = useState("yellow");
   const [newNotePinned, setNewNotePinned] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState(null);
+  const [editingNoteContent, setEditingNoteContent] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [privateFiles, setPrivateFiles] = useState({});
   const [filesLoading, setFilesLoading] = useState({});
@@ -338,6 +341,25 @@ export const DoctorPatientRecords = () => {
     } catch (err) {
       debugError("DoctorPatientRecords", "Failed to update note", err);
     }
+  };
+
+  const handleStartEditingNote = (note) => {
+    setEditingNoteId(note._id);
+    setEditingNoteContent(note.content || "");
+  };
+
+  const handleSaveEditedNote = async (patientId, note) => {
+    const nextContent = editingNoteContent.trim();
+    if (!nextContent) return;
+
+    await handleUpdateNote(patientId, note._id, { content: nextContent });
+    setEditingNoteId(null);
+    setEditingNoteContent("");
+  };
+
+  const handleCancelEditingNote = () => {
+    setEditingNoteId(null);
+    setEditingNoteContent("");
   };
 
   // Handle deleting a note
@@ -1185,15 +1207,61 @@ export const DoctorPatientRecords = () => {
                                           {note.isPinned && (
                                             <Pin className="w-4 h-4 text-yellow-500 absolute top-2 right-2" />
                                           )}
-                                          <p
-                                            className="text-gray-800 dark:text-gray-200 blur-sm cursor-pointer transition-all duration-300 group-hover:blur-none"
-                                            onClick={() => {
-                                              // Optional: toggle blur on click
-                                            }}
-                                          >
-                                            {note.content}
-                                          </p>
-                                          <div className="flex justify-between items-center mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                          {editingNoteId === note._id ? (
+                                            <AnimatePresence mode="wait">
+                                              <motion.div
+                                                initial={{ opacity: 0, y: 6 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -6 }}
+                                                className="space-y-2"
+                                              >
+                                                <textarea
+                                                  value={editingNoteContent}
+                                                  onChange={(e) =>
+                                                    setEditingNoteContent(
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  rows={4}
+                                                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:border-blue-500 focus:outline-none"
+                                                />
+                                                <div className="flex justify-end gap-2">
+                                                  <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                      handleSaveEditedNote(
+                                                        patient._id ||
+                                                          patient.id,
+                                                        note,
+                                                      )
+                                                    }
+                                                    className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white"
+                                                  >
+                                                    حفظ
+                                                  </button>
+                                                  <button
+                                                    type="button"
+                                                    onClick={
+                                                      handleCancelEditingNote
+                                                    }
+                                                    className="rounded-lg bg-gray-500 px-3 py-2 text-sm font-medium text-white"
+                                                  >
+                                                    إلغاء
+                                                  </button>
+                                                </div>
+                                              </motion.div>
+                                            </AnimatePresence>
+                                          ) : (
+                                            <p
+                                              className="text-gray-800 dark:text-gray-200 blur-sm cursor-pointer transition-all duration-300 group-hover:blur-none"
+                                              onClick={() => {
+                                                // Optional: toggle blur on click
+                                              }}
+                                            >
+                                              {note.content}
+                                            </p>
+                                          )}
+                                          <div className="flex justify-between items-center mt-3">
                                             <span className="text-xs text-gray-500">
                                               {note.createdAt
                                                 ? new Date(
@@ -1210,6 +1278,16 @@ export const DoctorPatientRecords = () => {
                                                 : "-"}
                                             </span>
                                             <div className="flex gap-1">
+                                              <motion.button
+                                                whileHover={{ scale: 1.1 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                onClick={() =>
+                                                  handleStartEditingNote(note)
+                                                }
+                                                className="p-1 text-gray-500 hover:text-blue-500"
+                                              >
+                                                <Pencil className="w-3 h-3" />
+                                              </motion.button>
                                               <motion.button
                                                 whileHover={{ scale: 1.1 }}
                                                 whileTap={{ scale: 0.9 }}

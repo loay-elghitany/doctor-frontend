@@ -40,3 +40,22 @@ export const addDoctorNote = async (
     throw error;
   }
 };
+
+/**
+ * Update a doctor's timeline note event
+ */
+export const updateDoctorTimelineNote = async (eventId, noteContent) => {
+  const trimmedNote = String(noteContent || "").trim();
+  if (!eventId || !trimmedNote) {
+    throw new Error("Missing eventId or noteContent before API call");
+  }
+
+  try {
+    const response = await api.put(`/doctors/timeline/notes/${eventId}`, {
+      noteContent: trimmedNote,
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

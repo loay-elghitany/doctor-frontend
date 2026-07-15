@@ -1,14 +1,16 @@
 import { useTranslation } from "react-i18next";
 import { useState, useEffect, useCallback } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Spinner } from "./ui";
 import {
   getDoctorPatientTimeline,
   addDoctorNote,
+  updateDoctorTimelineNote,
 } from "../services/doctorTimelineService";
 import { formatDate } from "../utils/helpers";
 import FinancialManager from "./FinancialManager";
 import ScannedPrescriptionsSection from "./ScannedPrescriptionsSection";
-import { FileText, BarChart3, History, Pill } from "lucide-react";
+import { FileText, BarChart3, History, Pill, Pencil } from "lucide-react";
 
 /**
  * Doctor Patient Timeline Component
@@ -31,7 +33,10 @@ export const DoctorPatientTimeline = (props) => {
   const [successMessage, setSuccessMessage] = useState(null);
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [noteContent, setNoteContent] = useState("");
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [editingNoteContent, setEditingNoteContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [savingEventId, setSavingEventId] = useState(null);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState(null);
   const [activeTab, setActiveTab] = useState("timeline");
 
@@ -87,6 +92,43 @@ export const DoctorPatientTimeline = (props) => {
       setError(err.message || "فشل في إضافة الملاحظة");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleStartEditingNote = (event) => {
+    setEditingEventId(event._id);
+    setEditingNoteContent(
+      event.eventDescription || event.metadata?.noteContent || "",
+    );
+    setError(null);
+  };
+
+  const handleCancelEditingNote = () => {
+    setEditingEventId(null);
+    setEditingNoteContent("");
+  };
+
+  const handleSaveEditedNote = async (event) => {
+    const nextContent = editingNoteContent.trim();
+    if (!nextContent) {
+      setError("رجاءً إدخال محتوى الملاحظة قبل الحفظ");
+      return;
+    }
+
+    try {
+      setSavingEventId(event._id);
+      setError(null);
+      await updateDoctorTimelineNote(event._id, nextContent);
+      setSuccessMessage("✓ تم تعديل الملاحظة بنجاح");
+      setEditingEventId(null);
+      setEditingNoteContent("");
+      setTimeout(() => setSuccessMessage(null), 3000);
+      await fetchTimeline();
+    } catch (err) {
+      console.error("Error updating note:", err);
+      setError(err.message || "فشل في تعديل الملاحظة");
+    } finally {
+      setSavingEventId(null);
     }
   };
 
@@ -314,7 +356,7 @@ export const DoctorPatientTimeline = (props) => {
 
                       {/* Event card */}
                       <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition">
-                        <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-start justify-between mb-2 gap-3">
                           <div>
                             <h4 className="font-semibold text-gray-900">
                               {event.eventTitle}
@@ -323,19 +365,75 @@ export const DoctorPatientTimeline = (props) => {
                               {formatDate(event.createdAt)}
                             </p>
                           </div>
-                          <span
-                            className={`inline-block px-2 py-1 text-xs font-medium rounded ${getEventColor(
-                              event.eventType,
-                            )}`}
-                          >
-                            {formatEventType(event.eventType)}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            {event.eventType === "doctor_note_added" && (
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditingNote(event)}
+                                className="rounded-lg border border-indigo-200 p-2 text-indigo-600 transition hover:bg-indigo-50"
+                                aria-label="تعديل الملاحظة"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </button>
+                            )}
+                            <span
+                              className={`inline-block px-2 py-1 text-xs font-medium rounded ${getEventColor(
+                                event.eventType,
+                              )}`}
+                            >
+                              {formatEventType(event.eventType)}
+                            </span>
+                          </div>
                         </div>
 
                         {/* Event description/content */}
                         {event.eventDescription && (
-                          <div className="bg-gray-50 p-3 rounded mt-3 text-sm text-gray-700 whitespace-pre-wrap">
-                            {event.eventDescription}
+                          <div className="mt-3">
+                            {editingEventId === event._id &&
+                            event.eventType === "doctor_note_added" ? (
+                              <AnimatePresence mode="wait">
+                                <motion.div
+                                  initial={{ opacity: 0, y: 6 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -6 }}
+                                  className="space-y-2"
+                                >
+                                  <textarea
+                                    value={editingNoteContent}
+                                    onChange={(e) =>
+                                      setEditingNoteContent(e.target.value)
+                                    }
+                                    rows={4}
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none"
+                                  />
+                                  <div className="flex justify-end gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleSaveEditedNote(event)
+                                      }
+                                      disabled={savingEventId === event._id}
+                                      className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+                                    >
+                                      {savingEventId === event._id
+                                        ? "جارٍ الحفظ..."
+                                        : "حفظ"}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={handleCancelEditingNote}
+                                      className="rounded-lg bg-gray-500 px-3 py-2 text-sm font-medium text-white"
+                                    >
+                                      إلغاء
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              </AnimatePresence>
+                            ) : (
+                              <div className="bg-gray-50 p-3 rounded text-sm text-gray-700 whitespace-pre-wrap">
+                                {event.eventDescription}
+                              </div>
+                            )}
                           </div>
                         )}
 
