@@ -13,6 +13,7 @@ import {
 import { patientService } from "../services/patientService";
 import { appointmentService } from "../services/appointmentService";
 import scannedPrescriptionService from "../services/scannedPrescriptionService";
+import EditPatientModal from "../components/EditPatientModal";
 import { getStatusLabel } from "../utils/helpers";
 import { formatDateSafe } from "../utils/date/formatDateSafe";
 import { debugLog, debugError } from "../utils/debug";
@@ -53,6 +54,7 @@ export const SecretaryPatientDetails = () => {
   const [uploadError, setUploadError] = useState("");
   const [uploadSuccess, setUploadSuccess] = useState("");
   const [isDragOver, setIsDragOver] = useState(false);
+  const [editingPatient, setEditingPatient] = useState(null);
   const [previewModal, setPreviewModal] = useState(null);
   const [imageZoom, setImageZoom] = useState(1);
   const [imageRotation, setImageRotation] = useState(0);
@@ -171,6 +173,20 @@ export const SecretaryPatientDetails = () => {
       ? `Pt@${patient.phoneNumber}`
       : "—"
     : "كلمة مرور خاصة بالمريض (مسجل ذاتياً)";
+
+  const handlePatientUpdated = (updatedPatient) => {
+    if (!updatedPatient) return;
+
+    setPatient((prevPatient) => {
+      if (!prevPatient) return prevPatient;
+      const currentId = prevPatient._id || prevPatient.id;
+      const updatedId = updatedPatient._id || updatedPatient.id;
+
+      return String(currentId) === String(updatedId)
+        ? { ...prevPatient, ...updatedPatient }
+        : prevPatient;
+    });
+  };
 
   // Print function for scanned prescriptions
   const handlePrint = () => {
@@ -443,10 +459,18 @@ export const SecretaryPatientDetails = () => {
 
         {/* Patient Info Card */}
         <Card className="mb-6">
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-3">
             <h3 className="text-lg font-medium text-gray-900 dark:text-white">
               {t("patient_info")}
             </h3>
+            <button
+              type="button"
+              onClick={() => setEditingPatient(patient)}
+              className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 transition hover:bg-blue-100"
+            >
+              <span>✏️</span>
+              <span>تعديل البيانات</span>
+            </button>
           </div>
           <div className="px-6 py-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -485,6 +509,13 @@ export const SecretaryPatientDetails = () => {
             </div>
           </div>
         </Card>
+
+        <EditPatientModal
+          isOpen={Boolean(editingPatient)}
+          onClose={() => setEditingPatient(null)}
+          patient={editingPatient}
+          onUpdated={handlePatientUpdated}
+        />
 
         {/* Patient credentials card */}
         <Card className="mb-6">

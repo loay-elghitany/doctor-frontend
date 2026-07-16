@@ -14,9 +14,11 @@ import {
   PremiumSearch,
 } from "../components/ui";
 import { DoctorPatientTimeline } from "../components/DoctorPatientTimeline";
+import EditPatientModal from "../components/EditPatientModal";
 import { handleApiError } from "../utils/helpers";
 import { debugLog, debugError } from "../utils/debug";
 import api from "../services/api";
+import { patientService } from "../services/patientService";
 import {
   getPrivateFiles,
   createPrivateFile,
@@ -84,6 +86,7 @@ export const DoctorPatientRecords = () => {
   const audioChunksRef = useRef([]);
   const audioStreamRef = useRef(null);
   const [isUploadingFile, setIsUploadingFile] = useState({});
+  const [editingPatient, setEditingPatient] = useState(null);
   const [filePreviewModal, setFilePreviewModal] = useState({
     isOpen: false,
     file: null,
@@ -91,6 +94,36 @@ export const DoctorPatientRecords = () => {
 
   const closeFilePreviewModal = () => {
     setFilePreviewModal({ isOpen: false, file: null });
+  };
+
+  const handlePatientUpdated = (updatedPatient) => {
+    if (!updatedPatient) return;
+
+    const normalizedId = updatedPatient._id || updatedPatient.id;
+
+    setPatients((prevPatients) =>
+      prevPatients.map((patient) => {
+        const currentId = patient._id || patient.id;
+        if (String(currentId) !== String(normalizedId)) {
+          return patient;
+        }
+
+        return {
+          ...patient,
+          ...updatedPatient,
+          _id: patient._id || patient.id,
+          id: patient.id || patient._id,
+        };
+      }),
+    );
+
+    setSelectedPatientForTimeline((prevSelection) => {
+      if (!prevSelection) return prevSelection;
+      const currentId = prevSelection._id || prevSelection.id;
+      return String(currentId) === String(normalizedId)
+        ? { ...prevSelection, ...updatedPatient }
+        : prevSelection;
+    });
   };
 
   // Static color mappings to prevent Tailwind purging
@@ -856,9 +889,22 @@ export const DoctorPatientRecords = () => {
                                 {patient.name.charAt(0).toUpperCase()}
                               </div>
                               <div className="flex-1">
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                  {patient.name}
-                                </h3>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    {patient.name}
+                                  </h3>
+                                  <button
+                                    type="button"
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setEditingPatient(patient);
+                                    }}
+                                    className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition hover:bg-blue-100"
+                                  >
+                                    <Pencil className="w-3.5 h-3.5" />
+                                    تعديل
+                                  </button>
+                                </div>
                                 <div className="flex items-center gap-4 mt-1">
                                   <span className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400">
                                     <Mail className="w-4 h-4" />
@@ -1702,6 +1748,13 @@ export const DoctorPatientRecords = () => {
           </>
         )}
       </div>
+      <EditPatientModal
+        isOpen={Boolean(editingPatient)}
+        onClose={() => setEditingPatient(null)}
+        patient={editingPatient}
+        onUpdated={handlePatientUpdated}
+      />
+
       {/* Image Preview Modal */}
       <AnimatePresence>
         {filePreviewModal.isOpen && filePreviewModal.file && (
