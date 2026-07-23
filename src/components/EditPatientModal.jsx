@@ -8,6 +8,7 @@ const EditPatientModal = ({ isOpen, onClose, patient, onUpdated }) => {
     name: "",
     phoneNumber: "",
     email: "",
+    age: "",
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -19,6 +20,10 @@ const EditPatientModal = ({ isOpen, onClose, patient, onUpdated }) => {
         name: patient.name || "",
         phoneNumber: patient.phoneNumber || patient.phone || "",
         email: patient.email || "",
+        age:
+          patient.age !== undefined && patient.age !== null
+            ? String(patient.age)
+            : "",
       });
       setErrors({});
       setSubmitError("");
@@ -77,6 +82,12 @@ const EditPatientModal = ({ isOpen, onClose, patient, onUpdated }) => {
         name: formData.name.trim(),
         phoneNumber: formData.phoneNumber.trim(),
         email: formData.email.trim().toLowerCase(),
+        age:
+          formData.age !== undefined &&
+          formData.age !== null &&
+          String(formData.age).trim() !== ""
+            ? Number(formData.age)
+            : undefined,
       };
 
       const response = await patientService.updatePatient(
@@ -125,6 +136,17 @@ const EditPatientModal = ({ isOpen, onClose, patient, onUpdated }) => {
           onChange={handleChange("phoneNumber")}
           error={errors.phoneNumber}
           required
+        />
+
+        <Input
+          label="السن (اختياري)"
+          type="number"
+          placeholder="أدخل سن المريض..."
+          value={formData.age}
+          onChange={handleChange("age")}
+          error={errors.age}
+          min={0}
+          max={120}
         />
 
         <Input

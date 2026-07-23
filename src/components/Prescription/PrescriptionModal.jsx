@@ -4,6 +4,7 @@ import {
   PrescriptionForm,
   DoctorPrescriptionView,
   PatientPrescriptionView,
+  PrintablePrescription,
 } from "./PrescriptionForm";
 import * as prescriptionService from "../../services/prescriptionService";
 
@@ -22,6 +23,7 @@ export const PrescriptionModal = ({
   const [successMessage, setSuccessMessage] = useState(null);
   const [selectedPrescription, setSelectedPrescription] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [printPrescriptionData, setPrintPrescriptionData] = useState(null);
 
   // Load prescriptions on mount
   useEffect(() => {
@@ -52,6 +54,11 @@ export const PrescriptionModal = ({
       setSuccessMessage(null);
       const createdPrescription =
         await prescriptionService.createPrescription(prescriptionData);
+      setPrintPrescriptionData({
+        ...prescriptionData,
+        ...createdPrescription,
+        prescriptionDate: new Date().toLocaleDateString("ar-EG"),
+      });
       setSuccessMessage("تم إنشاء الروشتة الطبية بنجاح!");
       window.requestAnimationFrame(() => {
         setShowForm(false);
@@ -169,7 +176,10 @@ export const PrescriptionModal = ({
                 <div
                   key={prescription._id}
                   className="bg-gray-50 p-3 rounded-md border border-gray-200 cursor-pointer hover:bg-gray-100 transition"
-                  onClick={() => setSelectedPrescription(prescription)}
+                  onClick={() => {
+                    setSelectedPrescription(prescription);
+                    setPrintPrescriptionData(prescription);
+                  }}
                 >
                   <div className="flex justify-between items-start">
                     <div>
@@ -220,6 +230,10 @@ export const PrescriptionModal = ({
       {selectedPrescription && userRole === "patient" && (
         <PatientPrescriptionView prescription={selectedPrescription} />
       )}
+
+      <PrintablePrescription
+        prescriptionData={printPrescriptionData || selectedPrescription || null}
+      />
 
       {/* Footer Actions */}
       <div className="flex justify-end gap-3 pt-4 border-t mt-6">

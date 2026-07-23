@@ -233,6 +233,12 @@ export const Sidebar = ({
       icon: FolderOpen,
     },
     {
+      id: "reports",
+      path: "/doctor/reports",
+      label: "analytics",
+      icon: CalendarDays,
+    },
+    {
       id: "clinic-profile",
       path: "/doctor/clinic-profile",
       label: "clinic_profile",

@@ -40,6 +40,53 @@ export const getDrugAlternatives = async (name) => {
   }
 };
 
+export const getTemplates = async () => {
+  try {
+    const response = await api.get("/prescriptions/templates");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const saveTemplate = async (payload) => {
+  try {
+    const response = await api.post("/prescriptions/templates", payload);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteTemplate = async (templateId) => {
+  try {
+    const response = await api.delete(`/prescriptions/templates/${templateId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const searchDrugs = async (query) => {
+  try {
+    const response = await api.get("/prescriptions/drugs/search", {
+      params: { query },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const refreshDrugsCache = async () => {
+  try {
+    const response = await api.post("/prescriptions/drugs/refresh");
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Get all prescriptions created by a doctor (Doctor only)
 export const getDoctorPrescriptions = async () => {
   try {

@@ -164,9 +164,23 @@ export const SecretaryAppointmentsList = () => {
       const updatedAppointment = response.data?.data;
       if (updatedAppointment) {
         setAppointments((prev) =>
-          prev.map((item) =>
-            item?._id === updatedAppointment._id ? updatedAppointment : item,
-          ),
+          prev.map((item) => {
+            if (item?._id !== updatedAppointment._id) return item;
+            return {
+              ...item,
+              ...updatedAppointment,
+              patientId:
+                typeof updatedAppointment.patientId === "object" &&
+                updatedAppointment.patientId !== null
+                  ? updatedAppointment.patientId
+                  : item.patientId,
+              doctorId:
+                typeof updatedAppointment.doctorId === "object" &&
+                updatedAppointment.doctorId !== null
+                  ? updatedAppointment.doctorId
+                  : item.doctorId,
+            };
+          }),
         );
       }
       setSuccess(
@@ -412,35 +426,74 @@ export const SecretaryAppointmentsList = () => {
   const handlePrintPrescription = (appointment) => {
     if (!appointment) return;
     setPrintAppointmentId(appointment._id);
-    // give React a moment to render the print area, then trigger print
     setTimeout(() => {
       try {
         window.print();
       } finally {
-        // clear selection after a short delay
         setTimeout(() => setPrintAppointmentId(null), 500);
       }
     }, 300);
   };
 
   const handleWhatsApp = (appointment) => {
-    const phone =
+    let phone =
       appointment?.patientId?.phoneNumber ||
       appointment?.patientId?.phone ||
       "";
+
+    if (!phone) {
+      const matches = String(appointment?.patientId?.email || "").match(/\d+/);
+      if (matches) {
+        phone = matches[0];
+      }
+    }
+
     if (!phone) {
       setError("رقم هاتف المريض غير متوفر");
       return;
     }
-    const cleaned = String(phone).replace(/[^0-9+]/g, "");
-    const patientName = appointment?.patientId?.name || "";
-    const doctorName = appointment?.doctorId?.name || "العيادة";
+
+    const prescription = appointment?.prescription || null;
+    const patientName = appointment?.patientId?.name || "المريض";
+    const clinicName = appointment?.doctor?.clinicName || "العيادة الطبية";
     const dateLabel = formatDateSafe(appointment?.date);
-    const text = `مرحباً ${patientName}، تم إصدار روشتة طبية لزيارتك مع ${doctorName} بتاريخ ${dateLabel}. لمزيد من المعلومات تواصل معنا.`;
-    const url = `https://wa.me/${encodeURIComponent(cleaned)}?text=${encodeURIComponent(
-      text,
-    )}`;
-    window.open(url, "_blank");
+    const diagnosis = prescription?.diagnosis || "—";
+    const medications = Array.isArray(prescription?.medications)
+      ? prescription.medications
+      : [];
+
+    const medicationLines = medications
+      .map((med) => {
+        const name = med?.name || "";
+        const dosage = med?.dosage ? ` - ${med.dosage}` : "";
+        const frequency = med?.frequency ? ` (${med.frequency}` : "";
+        const duration = med?.duration ? ` - ${med.duration}` : "";
+        const instructions = med?.instructions ? ` - ${med.instructions}` : "";
+        const suffix = `${frequency || ""}${duration || ""}${instructions || ""}`;
+        return `• ${name}${dosage}${suffix ? `${suffix})` : ""}`.trim();
+      })
+      .filter(Boolean);
+
+    const text = [
+      `*${clinicName}*`,
+      `روشتة المريض: ${patientName}`,
+      `التاريخ: ${dateLabel}`,
+      `*التشخيص:* ${diagnosis}`,
+      `*العلاج والأدوية الموصوفة:*`,
+      ...(medicationLines.length
+        ? medicationLines
+        : ["• لا توجد أدوية موصوفة"]),
+    ].join("\n");
+
+    const cleaned = String(phone).replace(/\D/g, "");
+    if (!cleaned) {
+      setError("رقم هاتف المريض غير متوفر");
+      return;
+    }
+
+    setError("");
+    const url = `https://wa.me/${cleaned}?text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
   };
 
   const isRowLoading = (appointmentId, action) =>
@@ -1098,7 +1151,6 @@ export const SecretaryAppointmentsList = () => {
           }}
         />
 
-        {/* Hidden printable prescription areas */}
         <style>{`
           @media print {
             body * { visibility: hidden; }
@@ -1110,56 +1162,113 @@ export const SecretaryAppointmentsList = () => {
           }
         `}</style>
 
-        {appointments.map((apt) => (
-          <div
-            key={`print-${apt._id}`}
-            className="print-area"
-            data-active={String(printAppointmentId) === String(apt._id)}
-          >
-            {String(printAppointmentId) === String(apt._id) &&
-              apt.prescription && (
-                <div className="max-w-3xl mx-auto bg-white text-black">
-                  <h2 className="text-2xl font-bold mb-2">روشتة طبية</h2>
-                  <div className="mb-4">
-                    <div>المريض: {apt.patientId?.name || ""}</div>
-                    <div>التاريخ: {formatDateSafe(apt.date)}</div>
-                    <div>العيادة / الطبيب: {apt.doctorId?.name || ""}</div>
-                  </div>
-                  <div className="mb-4">
-                    <div className="font-semibold mb-1">التشخيص:</div>
-                    <div>{apt.prescription.diagnosis || "-"}</div>
-                  </div>
-                  <div>
-                    <div className="font-semibold mb-2">الأدوية:</div>
-                    <table className="w-full border-collapse text-sm">
-                      <thead>
-                        <tr>
-                          <th className="text-left border-b pb-1">الدواء</th>
-                          <th className="text-left border-b pb-1">الجرعة</th>
-                          <th className="text-left border-b pb-1">التكرار</th>
-                          <th className="text-left border-b pb-1">المدة</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {(apt.prescription.medications || []).map((m, i) => (
-                          <tr key={i}>
-                            <td className="py-2">{m.name}</td>
-                            <td className="py-2">{m.dosage || "-"}</td>
-                            <td className="py-2">{m.frequency || "-"}</td>
-                            <td className="py-2">{m.duration || "-"}</td>
-                          </tr>
+        {appointments.map((apt) => {
+          const isActive = String(printAppointmentId) === String(apt._id);
+          const prescription = apt?.prescription || null;
+          const medications = Array.isArray(prescription?.medications)
+            ? prescription.medications
+            : [];
+
+          return (
+            <div
+              key={`print-${apt._id}`}
+              className="print-area"
+              data-active={isActive}
+            >
+              {isActive && prescription && (
+                <div className="mx-auto max-w-3xl rounded-[22px] border border-slate-200 bg-white p-4 text-[11px] leading-5 text-slate-800 shadow-sm">
+                  <div className="rounded-[18px] border border-slate-100 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-4">
+                    <div className="mb-3 flex items-start justify-between border-b border-slate-200 pb-3">
+                      <div>
+                        <p className="text-[8px] uppercase tracking-[0.25em] text-slate-500">
+                          Medical Prescription
+                        </p>
+                        <h2 className="mt-1 text-[16px] font-semibold text-slate-900">
+                          {apt?.doctor?.clinicName || "العيادة الطبية"}
+                        </h2>
+                        <p className="text-[10px] text-slate-600">
+                          {apt?.doctorId?.name ||
+                            apt?.doctor?.name ||
+                            "الدكتور"}
+                        </p>
+                      </div>
+                      <div className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
+                        {formatDateSafe(apt?.date)}
+                      </div>
+                    </div>
+
+                    <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-2">
+                      <div>
+                        <p className="text-[7px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                          Patient Name
+                        </p>
+                        <p className="mt-1 text-[10px] font-semibold text-slate-900">
+                          {apt?.patientId?.name || "المريض"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[7px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                          Date
+                        </p>
+                        <p className="mt-1 text-[10px] font-semibold text-slate-900">
+                          {formatDateSafe(apt?.date)}
+                        </p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-[7px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                          Diagnosis
+                        </p>
+                        <p className="mt-1 text-[10px] font-semibold text-slate-900">
+                          {prescription.diagnosis || "—"}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
+                      <div className="bg-slate-100 px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-slate-600">
+                        Medications
+                      </div>
+                      <div className="divide-y divide-slate-100">
+                        {medications.map((med, idx) => (
+                          <div key={idx} className="px-2 py-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-[9px] font-semibold text-slate-900">
+                                  {med?.name || ""}
+                                </p>
+                                <p className="mt-0.5 text-[8px] text-slate-600">
+                                  {med?.dosage || ""}
+                                </p>
+                              </div>
+                              <div className="text-left text-[8px] text-slate-600">
+                                <div>{med?.frequency || ""}</div>
+                                <div className="mt-0.5 italic text-slate-500">
+                                  {med?.instructions || med?.duration || ""}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                  <div className="mt-8 text-right">
-                    <div>توقيع الطبيب:</div>
-                    <div className="mt-8">__________________________</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-3">
+                      <div className="text-[8px] text-slate-600">
+                        <p>📱 امسح الرمز لعرض الروشتة رقمياً</p>
+                      </div>
+                      <div className="w-24 rounded-lg border border-slate-200 bg-slate-50 p-2 text-center">
+                        <p className="text-[7px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                          Signature
+                        </p>
+                        <div className="mt-2 h-6 border-b border-slate-300" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
 
         <IntakeFormViewModal
           isOpen={!!intakeViewAppointment}

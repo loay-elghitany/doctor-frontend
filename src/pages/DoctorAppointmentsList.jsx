@@ -194,7 +194,22 @@ export const DoctorAppointmentsList = () => {
       setSuccess("تم تأكيد الموعد!");
       setAppointments((prev) =>
         prev.map((apt) =>
-          apt._id === appointment._id ? { ...apt, status: "scheduled" } : apt,
+          apt._id === appointment._id
+            ? {
+                ...apt,
+                status: "scheduled",
+                patientId:
+                  typeof appointment.patientId === "object" &&
+                  appointment.patientId !== null
+                    ? appointment.patientId
+                    : apt.patientId,
+                doctorId:
+                  typeof appointment.doctorId === "object" &&
+                  appointment.doctorId !== null
+                    ? appointment.doctorId
+                    : apt.doctorId,
+              }
+            : apt,
         ),
       );
       setTimeout(() => setSuccess(""), 3000);
@@ -215,7 +230,22 @@ export const DoctorAppointmentsList = () => {
       setSuccess("تم إلغاء الموعد!");
       setAppointments((prev) =>
         prev.map((apt) =>
-          apt._id === appointment._id ? { ...apt, status: "cancelled" } : apt,
+          apt._id === appointment._id
+            ? {
+                ...apt,
+                status: "cancelled",
+                patientId:
+                  typeof appointment.patientId === "object" &&
+                  appointment.patientId !== null
+                    ? appointment.patientId
+                    : apt.patientId,
+                doctorId:
+                  typeof appointment.doctorId === "object" &&
+                  appointment.doctorId !== null
+                    ? appointment.doctorId
+                    : apt.doctorId,
+              }
+            : apt,
         ),
       );
       setTimeout(() => setSuccess(""), 3000);
@@ -236,7 +266,22 @@ export const DoctorAppointmentsList = () => {
       setSuccess("تم وضع علامة على الموعد كمكتمل!");
       setAppointments((prev) =>
         prev.map((apt) =>
-          apt._id === appointment._id ? { ...apt, status: "completed" } : apt,
+          apt._id === appointment._id
+            ? {
+                ...apt,
+                status: "completed",
+                patientId:
+                  typeof appointment.patientId === "object" &&
+                  appointment.patientId !== null
+                    ? appointment.patientId
+                    : apt.patientId,
+                doctorId:
+                  typeof appointment.doctorId === "object" &&
+                  appointment.doctorId !== null
+                    ? appointment.doctorId
+                    : apt.doctorId,
+              }
+            : apt,
         ),
       );
       setTimeout(() => setSuccess(""), 3000);

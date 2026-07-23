@@ -1,8 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   processVoicePrescription,
   getDrugAlternatives,
+  getTemplates,
+  saveTemplate,
+  deleteTemplate,
+  searchDrugs,
+  refreshDrugsCache,
 } from "../../services/prescriptionService.js";
 
 // Doctor Prescription Form - for creating new prescriptions
@@ -32,6 +37,14 @@ export const PrescriptionForm = ({
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [successPrescriptionContext, setSuccessPrescriptionContext] =
     useState(null);
+  const [templates, setTemplates] = useState([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState("");
+  const [showTemplateSaveInput, setShowTemplateSaveInput] = useState(false);
+  const [templateNameInput, setTemplateNameInput] = useState("");
+  const [templateSaveError, setTemplateSaveError] = useState("");
+  const [drugSuggestions, setDrugSuggestions] = useState({});
+  const [isRefreshingCache, setIsRefreshingCache] = useState(false);
+  const medicationSearchTimeouts = useRef({});
 
   const formatPrescriptionDate = (value = new Date()) => {
     try {
@@ -85,6 +98,41 @@ export const PrescriptionForm = ({
   const recognitionRef = useRef(null);
   // 🌟 مرجع لتجميع النص تراكمياً بدون إرسال مبكر
   const accumulatedTranscriptRef = useRef("");
+
+  const loadTemplates = async () => {
+    try {
+      const response = await getTemplates();
+      const result = response?.data || response;
+      setTemplates(Array.isArray(result) ? result : []);
+    } catch (error) {
+      console.error("Failed to load prescription templates", error);
+    }
+  };
+
+  const handleDeleteTemplate = async () => {
+    if (!selectedTemplateId) return;
+
+    const confirmed = window.confirm("هل أنت متأكد من حذف هذا النموذج الجاهز؟");
+    if (!confirmed) return;
+
+    try {
+      await deleteTemplate(selectedTemplateId);
+      setSelectedTemplateId("");
+      await loadTemplates();
+    } catch (error) {
+      console.error("Template deletion failed", error);
+    }
+  };
+
+  useEffect(() => {
+    loadTemplates();
+
+    return () => {
+      Object.values(medicationSearchTimeouts.current).forEach((timer) => {
+        clearTimeout(timer);
+      });
+    };
+  }, []);
 
   const canUseSpeechRecognition =
     typeof window !== "undefined" &&
@@ -267,6 +315,128 @@ export const PrescriptionForm = ({
     }
   };
 
+  const applyTemplate = (templateId) => {
+    const selectedTemplate = templates.find(
+      (template) => template._id === templateId,
+    );
+
+    if (!selectedTemplate) {
+      return;
+    }
+
+    setSelectedTemplateId(templateId);
+    setDiagnosis(String(selectedTemplate.diagnosis || ""));
+    setNotes(String(selectedTemplate.notes || ""));
+    setMedications(
+      Array.isArray(selectedTemplate.medications) &&
+        selectedTemplate.medications.length > 0
+        ? selectedTemplate.medications.map((med) => ({
+            name: med?.name || "",
+            dosage: med?.dosage || "",
+            frequency: med?.frequency || "",
+            duration: med?.duration || "",
+            instructions: med?.instructions || "",
+          }))
+        : [
+            {
+              name: "",
+              dosage: "",
+              frequency: "",
+              duration: "",
+              instructions: "",
+            },
+          ],
+    );
+  };
+
+  const handleSaveTemplate = async () => {
+    const trimmedName = String(templateNameInput || "").trim();
+
+    if (!trimmedName) {
+      setTemplateSaveError("يرجى إدخال اسم النموذج أولاً.");
+      return;
+    }
+
+    try {
+      setTemplateSaveError("");
+      const payload = {
+        templateName: trimmedName,
+        diagnosis: diagnosis.trim(),
+        notes: notes.trim(),
+        medications: medications.filter(
+          (med) =>
+            med.name.trim() ||
+            med.dosage.trim() ||
+            med.frequency.trim() ||
+            med.duration.trim() ||
+            med.instructions.trim(),
+        ),
+      };
+
+      await saveTemplate(payload);
+      setShowTemplateSaveInput(false);
+      setTemplateNameInput("");
+      await loadTemplates();
+    } catch (error) {
+      console.error("Template save failed", error);
+      setTemplateSaveError("فشل حفظ النموذج. يرجى المحاولة مرة أخرى.");
+    }
+  };
+
+  const handleRefreshDrugsCache = async () => {
+    if (isRefreshingCache) return;
+
+    try {
+      setIsRefreshingCache(true);
+      const response = await refreshDrugsCache();
+      const message =
+        response?.message ||
+        "تم تحديث قاعدة بيانات الأدوية بالذكاء الاصطناعي بنجاح";
+      window.alert(message);
+    } catch (error) {
+      console.error("Drug cache refresh failed", error);
+      window.alert("فشل تحديث قاعدة بيانات الأدوية. يرجى المحاولة مرة أخرى.");
+    } finally {
+      setIsRefreshingCache(false);
+    }
+  };
+
+  const handleMedicationNameChange = (index, value) => {
+    updateMedication(index, "name", value);
+
+    if (medicationSearchTimeouts.current[index]) {
+      clearTimeout(medicationSearchTimeouts.current[index]);
+    }
+
+    const trimmedValue = String(value || "").trim();
+    if (!trimmedValue) {
+      setDrugSuggestions((prev) => ({ ...prev, [index]: [] }));
+      return;
+    }
+
+    medicationSearchTimeouts.current[index] = setTimeout(async () => {
+      try {
+        const response = await searchDrugs(trimmedValue);
+        const result = response?.data || response;
+        const suggestions = Array.isArray(result)
+          ? result
+          : Array.isArray(result?.data)
+            ? result.data
+            : [];
+
+        setDrugSuggestions((prev) => ({ ...prev, [index]: suggestions }));
+      } catch (error) {
+        console.error("Drug search failed", error);
+        setDrugSuggestions((prev) => ({ ...prev, [index]: [] }));
+      }
+    }, 250);
+  };
+
+  const selectDrugSuggestion = (index, suggestion) => {
+    updateMedication(index, "name", suggestion);
+    setDrugSuggestions((prev) => ({ ...prev, [index]: [] }));
+  };
+
   const handleFetchAlternatives = async (index) => {
     const medName = String(medications[index]?.name || "").trim();
     if (!medName) {
@@ -379,154 +549,76 @@ export const PrescriptionForm = ({
     }
   };
 
-  const PrintablePrescription = ({ prescriptionData }) => (
-    <div className="hidden print:block" dir="rtl">
-      <style>{`
-        @page { size: A4 portrait; margin: 10mm; }
-        @media print {
-          /* Force-hide interactive or duplicate UI during printing */
-          .no-print, [data-testid="doctor-view"], [data-testid="patient-view"] {
-            display: none !important;
-          }
-
-          /* Ensure only the printable prescription shell is visible and fits a single page */
-          body * { visibility: hidden !important; }
-          .printable-prescription-shell, .printable-prescription-shell * {
-            visibility: visible !important;
-            display: block !important;
-          }
-
-          .printable-prescription-shell {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 190mm !important;
-            max-width: 100% !important;
-            margin: 0 auto !important;
-            padding: 16mm !important;
-            background: white !important;
-            color: #111827 !important;
-            box-shadow: none !important;
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
-          }
-
-          /* Hide form controls inside printable shell */
-          .printable-prescription-shell button,
-          .printable-prescription-shell input,
-          .printable-prescription-shell textarea {
-            display: none !important;
-          }
-        }
-      `}</style>
-      <div className="printable-prescription-shell rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-        <div className="mb-6 border-b border-slate-200 pb-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                Medical Prescription
-              </p>
-              <h3 className="text-xl font-semibold text-slate-900">
-                {prescriptionData?.clinicName || clinicName || "العيادة الطبية"}
-              </h3>
-              <p className="text-sm text-slate-600">
-                {prescriptionData?.doctorSpecialization ||
-                  doctorSpecialization ||
-                  "التخصص الطبي"}
-              </p>
-            </div>
-            <div className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">
-              {prescriptionData?.prescriptionDate ||
-                formatPrescriptionDate(new Date())}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4 md:grid-cols-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Patient Name
-            </p>
-            <p className="mt-1 text-base font-semibold text-slate-900">
-              {prescriptionData?.patientName || patientName || "المريض"}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Date
-            </p>
-            <p className="mt-1 text-base font-semibold text-slate-900">
-              {prescriptionData?.prescriptionDate ||
-                formatPrescriptionDate(new Date())}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Diagnosis
-            </p>
-            <p className="mt-1 text-base font-semibold text-slate-900">
-              {prescriptionData?.diagnosis || diagnosis || "—"}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-6 overflow-hidden rounded-xl border border-slate-200">
-          <table className="min-w-full divide-y divide-slate-200 text-sm">
-            <thead className="bg-slate-100 text-slate-700">
-              <tr>
-                <th className="px-3 py-3 text-right font-semibold">
-                  Medication
-                </th>
-                <th className="px-3 py-3 text-right font-semibold">Dosage</th>
-                <th className="px-3 py-3 text-right font-semibold">
-                  Frequency
-                </th>
-                <th className="px-3 py-3 text-right font-semibold">
-                  Instructions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
-              {(prescriptionData?.medications || medications || []).map(
-                (med, idx) => (
-                  <tr key={idx}>
-                    <td className="px-3 py-3 font-medium text-slate-900">
-                      {med?.name || ""}
-                    </td>
-                    <td className="px-3 py-3 text-slate-700">
-                      {med?.dosage || ""}
-                    </td>
-                    <td className="px-3 py-3 text-slate-700">
-                      {med?.frequency || ""}
-                    </td>
-                    <td className="px-3 py-3 text-slate-700">
-                      {med?.instructions || med?.duration || ""}
-                    </td>
-                  </tr>
-                ),
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="mt-8 flex justify-end">
-          <div className="w-56 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
-              Doctor&apos;s Signature
-            </p>
-            <div className="mt-6 h-16 border-b border-slate-300" />
-            <p className="mt-2 text-sm font-semibold text-slate-800">
-              {prescriptionData?.doctorName || doctorName || "الدكتور"}
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <>
       <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            📋 اختيار من النماذج الجاهزة
+          </label>
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+            <select
+              value={selectedTemplateId}
+              onChange={(e) => applyTemplate(e.target.value)}
+              className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            >
+              <option value="">اختر نموذجًا محفوظًا...</option>
+              {templates.map((template) => (
+                <option key={template._id} value={template._id}>
+                  {template.templateName}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => setShowTemplateSaveInput((prev) => !prev)}
+              className="rounded-md border border-blue-300 bg-white px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50"
+            >
+              💾 حفظ كنموذج جاهز
+            </button>
+            {selectedTemplateId && (
+              <button
+                type="button"
+                onClick={handleDeleteTemplate}
+                className="rounded-md border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
+              >
+                🗑️ حذف النموذج
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleRefreshDrugsCache}
+              disabled={isRefreshingCache}
+              className="rounded-md border border-amber-300 bg-gradient-to-r from-amber-50 to-orange-50 px-3 py-2 text-sm font-medium text-amber-700 hover:from-amber-100 hover:to-orange-100 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {isRefreshingCache
+                ? "⏳ جاري التحديث..."
+                : "✨ تحديث الأدوية بالذكاء الاصطناعي"}
+            </button>
+          </div>
+          {showTemplateSaveInput && (
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <input
+                type="text"
+                value={templateNameInput}
+                onChange={(e) => setTemplateNameInput(e.target.value)}
+                placeholder="اسم النموذج"
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleSaveTemplate}
+                className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                حفظ النموذج
+              </button>
+            </div>
+          )}
+          {templateSaveError && (
+            <p className="mt-2 text-sm text-red-600">{templateSaveError}</p>
+          )}
+        </div>
+
         {/* Diagnosis */}
         <div>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -674,17 +766,48 @@ export const PrescriptionForm = ({
                     <label className="block text-xs font-medium text-gray-700 mb-1">
                       الاسم <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
-                      value={med.name}
-                      onChange={(e) =>
-                        updateMedication(index, "name", e.target.value)
-                      }
-                      placeholder={t(
-                        "components_Prescription_PrescriptionForm.attr_placeholder_e_g_amoxicillin",
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={med.name}
+                        onChange={(e) =>
+                          handleMedicationNameChange(index, e.target.value)
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            const suggestion = drugSuggestions[index]?.[0];
+                            if (suggestion) {
+                              selectDrugSuggestion(index, suggestion);
+                            }
+                          }
+                        }}
+                        placeholder={t(
+                          "components_Prescription_PrescriptionForm.attr_placeholder_e_g_amoxicillin",
+                        )}
+                        className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
+                      />
+
+                      {drugSuggestions[index]?.length > 0 && (
+                        <div className="absolute z-20 mt-1 max-h-48 w-full overflow-y-auto rounded-md border border-slate-200 bg-white shadow-lg">
+                          {drugSuggestions[index].map(
+                            (suggestion, suggestionIndex) => (
+                              <button
+                                key={`${suggestion}-${suggestionIndex}`}
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() =>
+                                  selectDrugSuggestion(index, suggestion)
+                                }
+                                className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100"
+                              >
+                                {suggestion}
+                              </button>
+                            ),
+                          )}
+                        </div>
                       )}
-                      className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none"
-                    />
+                    </div>
 
                     {errors[`med_${index}_name`] && (
                       <p className="mt-1 text-xs text-red-600">
@@ -829,8 +952,6 @@ export const PrescriptionForm = ({
           </button>
         </div>
       </form>
-
-      <PrintablePrescription prescriptionData={successPrescriptionContext} />
 
       {isSuccessModalOpen && successPrescriptionContext && (
         <div
@@ -1029,6 +1150,211 @@ export const PatientPrescriptionView = ({ prescription }) => {
           </p>
         </div>
       )}
+    </div>
+  );
+};
+
+export const PrintablePrescription = ({
+  prescriptionData = null,
+  clinicName = "العيادة الطبية",
+  doctorSpecialization = "التخصص الطبي",
+  patientName = "المريض",
+  doctorName = "الدكتور",
+  diagnosis = "",
+  medications = [],
+}) => {
+  const formatPrescriptionDate = (value = new Date()) => {
+    try {
+      return new Intl.DateTimeFormat("ar-EG", { dateStyle: "long" }).format(
+        value,
+      );
+    } catch {
+      return new Date(value).toLocaleDateString("ar-EG");
+    }
+  };
+
+  const safeAppointmentId =
+    prescriptionData?.appointmentId || prescriptionData?._id || "demo";
+
+  const qrUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/patient/appointments/${safeAppointmentId}`
+      : "";
+
+  const qrSrc = qrUrl
+    ? `https://chart.googleapis.com/chart?chs=120x120&cht=qr&chl=${encodeURIComponent(
+        qrUrl,
+      )}&choe=UTF-8`
+    : `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+        `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><rect width="120" height="120" fill="#f8fafc"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#334155" font-size="12" font-family="Arial, sans-serif">QR Unavailable</text></svg>`,
+      )}`;
+
+  const resolvedMedications = Array.isArray(prescriptionData?.medications)
+    ? prescriptionData.medications
+    : Array.isArray(medications)
+      ? medications
+      : [];
+
+  return (
+    <div className="hidden print:block" dir="rtl">
+      <style>{`
+        @page { size: portrait; margin: 5mm; }
+        @media print {
+          .no-print, [data-testid="doctor-view"], [data-testid="patient-view"] {
+            display: none !important;
+          }
+
+          body * { visibility: hidden !important; }
+          .printable-prescription-shell, .printable-prescription-shell * {
+            visibility: visible !important;
+            display: block !important;
+          }
+
+          .printable-prescription-shell {
+            position: static !important;
+            left: auto !important;
+            top: auto !important;
+            width: 100% !important;
+            max-width: 80mm !important;
+            min-width: 0 !important;
+            margin: 0 auto !important;
+            padding: 4mm !important;
+            background: white !important;
+            color: #111827 !important;
+            box-shadow: none !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            font-size: 10px !important;
+            line-height: 1.25 !important;
+            overflow-wrap: anywhere !important;
+          }
+
+          .printable-prescription-shell button,
+          .printable-prescription-shell input,
+          .printable-prescription-shell textarea {
+            display: none !important;
+          }
+
+          .printable-prescription-shell table,
+          .printable-prescription-shell th,
+          .printable-prescription-shell td {
+            font-size: 9px !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+          }
+        }
+      `}</style>
+      <div className="printable-prescription-shell rounded-[18px] border border-slate-200 bg-white p-3 text-[10px] leading-tight shadow-sm">
+        <div className="relative overflow-hidden rounded-[14px] border border-slate-100 bg-gradient-to-br from-slate-50 via-white to-slate-100 p-3">
+          <div className="absolute inset-0 flex items-center justify-center opacity-10">
+            <span className="text-[48px] font-black tracking-[0.4em] text-slate-400">
+              Rx
+            </span>
+          </div>
+          <div className="relative">
+            <div className="mb-2 flex items-start justify-between gap-2 border-b border-slate-200 pb-2">
+              <div className="min-w-0">
+                <p className="text-[8px] uppercase tracking-[0.25em] text-slate-500">
+                  Medical Prescription
+                </p>
+                <h3 className="text-[11px] font-semibold text-slate-900">
+                  {prescriptionData?.clinicName ||
+                    clinicName ||
+                    "العيادة الطبية"}
+                </h3>
+                <p className="text-[9px] text-slate-600">
+                  {prescriptionData?.doctorSpecialization ||
+                    doctorSpecialization ||
+                    "التخصص الطبي"}
+                </p>
+              </div>
+              <div className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[9px] font-semibold text-emerald-700">
+                {prescriptionData?.prescriptionDate ||
+                  formatPrescriptionDate(new Date())}
+              </div>
+            </div>
+
+            <div className="mb-2 grid grid-cols-2 gap-2 rounded-xl border border-slate-200 bg-white p-2 shadow-sm">
+              <div>
+                <p className="text-[7px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Patient Name
+                </p>
+                <p className="mt-1 text-[10px] font-semibold text-slate-900">
+                  {prescriptionData?.patientName || patientName || "المريض"}
+                </p>
+              </div>
+              <div>
+                <p className="text-[7px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Date
+                </p>
+                <p className="mt-1 text-[10px] font-semibold text-slate-900">
+                  {prescriptionData?.prescriptionDate ||
+                    formatPrescriptionDate(new Date())}
+                </p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-[7px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Diagnosis
+                </p>
+                <p className="mt-1 text-[10px] font-semibold text-slate-900">
+                  {prescriptionData?.diagnosis || diagnosis || "—"}
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-2 overflow-hidden rounded-xl border border-slate-200 bg-white">
+              <div className="bg-slate-100 px-2 py-1 text-[8px] font-semibold uppercase tracking-[0.2em] text-slate-600">
+                Medications
+              </div>
+              <div className="divide-y divide-slate-100">
+                {resolvedMedications.map((med, idx) => (
+                  <div key={idx} className="px-2 py-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-[9px] font-semibold text-slate-900">
+                          {med?.name || ""}
+                        </p>
+                        <p className="mt-0.5 text-[8px] text-slate-600">
+                          {med?.dosage || ""}
+                        </p>
+                      </div>
+                      <div className="text-left text-[8px] text-slate-600">
+                        <div>{med?.frequency || ""}</div>
+                        <div className="mt-0.5 italic text-slate-500">
+                          {med?.instructions || med?.duration || ""}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-3 flex items-center justify-between gap-2 border-t border-slate-200 pt-2">
+              <div className="flex items-center gap-2">
+                <img
+                  src={qrSrc}
+                  alt="QR Code"
+                  className="h-12 w-12 rounded-md border border-slate-200 bg-white p-1"
+                />
+                <p className="text-[8px] leading-4 text-slate-600">
+                  📱 امسح الـ QR لعرض الروشتة رقمياً وتفعيل تنبيهات الجرعات على
+                  موبايلك.
+                </p>
+              </div>
+              <div className="w-24 rounded-lg border border-slate-200 bg-slate-50 p-2 text-center">
+                <p className="text-[7px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                  Doctor&apos;s Signature
+                </p>
+                <div className="mt-2 h-6 border-b border-slate-300" />
+                <p className="mt-1 text-[8px] font-semibold text-slate-800">
+                  {prescriptionData?.doctorName || doctorName || "الدكتور"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

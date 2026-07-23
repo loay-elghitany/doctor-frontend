@@ -49,6 +49,7 @@ export const SecretaryPatientsList = () => {
   const [newPatient, setNewPatient] = useState({
     name: "",
     phoneNumber: "",
+    age: "",
   });
   const [createdCredentialsModal, setCreatedCredentialsModal] = useState(null);
   const [copiedCredentialsStatus, setCopiedCredentialsStatus] = useState("");
@@ -143,6 +144,10 @@ export const SecretaryPatientsList = () => {
       const response = await api.post("/secretaries/patients", {
         name: newPatient.name.trim(),
         phoneNumber: newPatient.phoneNumber.trim() || "",
+        age:
+          newPatient.age !== undefined && newPatient.age !== null
+            ? Number(newPatient.age)
+            : undefined,
       });
 
       console.log("Patient created successfully:", response.data);
@@ -566,6 +571,19 @@ export const SecretaryPatientsList = () => {
                 "pages_SecretaryPatientsList.attr_placeholder_enter_patient_s_phon",
               )}
               disabled={addingPatient}
+            />
+
+            <Input
+              label="السن (اختياري)"
+              type="number"
+              value={newPatient.age}
+              onChange={(e) =>
+                setNewPatient({ ...newPatient, age: e.target.value })
+              }
+              placeholder="أدخل سن المريض..."
+              disabled={addingPatient}
+              min={0}
+              max={120}
             />
 
             {error && <Alert type="error" message={error} />}

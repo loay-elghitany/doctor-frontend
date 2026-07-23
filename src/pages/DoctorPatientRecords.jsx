@@ -2,9 +2,8 @@ import { useTranslation } from "react-i18next";
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import Zoom from "react-medium-image-zoom";
-import "react-medium-image-zoom/dist/styles.css";
 import { MainLayout } from "../components/layout/Layout";
+import ImagePreviewModal from "../components/ImagePreviewModal";
 import {
   GlassCard,
   BentoGridItem,
@@ -1756,70 +1755,12 @@ export const DoctorPatientRecords = () => {
       />
 
       {/* Image Preview Modal */}
-      <AnimatePresence>
-        {filePreviewModal.isOpen && filePreviewModal.file && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={closeFilePreviewModal}
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm animate-fade-in"
-          >
-            <motion.div
-              initial={{ scale: 0.97, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.97, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()}
-              className="absolute inset-0 overflow-visible"
-            >
-              {/* Top Premium Navbar */}
-              <div className="flex items-center justify-between gap-4 px-6 py-4 bg-slate-950/95 border-b border-slate-800 text-white">
-                <div className="max-w-[85%]">
-                  <h3 className="text-base font-semibold">
-                    معاينة مستند الأشعة: {filePreviewModal.file.title}
-                  </h3>
-                  {filePreviewModal.file.notes && (
-                    <p className="text-sm text-slate-300 mt-1">
-                      {filePreviewModal.file.notes}
-                    </p>
-                  )}
-                </div>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFilePreviewModal({ isOpen: false, file: null });
-                  }}
-                  className="relative z-[99999] p-2.5 rounded-xl bg-slate-800 hover:bg-red-600 border border-slate-700/60 text-slate-200 hover:text-white transition-all cursor-pointer shadow-lg"
-                  aria-label={t(
-                    "pages_DoctorPatientRecords.attr_aria_label_close_preview",
-                  )}
-                >
-                  <X className="w-5 h-5 pointer-events-none" />
-                </button>
-              </div>
-
-              {/* Unlimited Fullscreen Canvas Workspace */}
-              <div className="absolute inset-0 flex items-center justify-center overflow-visible p-6">
-                <div className="relative max-h-full max-w-full overflow-visible">
-                  <Zoom>
-                    <img
-                      src={filePreviewModal.file.fileUrl}
-                      alt={filePreviewModal.file.title}
-                      className="w-full h-auto max-h-[calc(100vh-140px)] object-contain rounded-3xl shadow-2xl select-none"
-                    />
-                  </Zoom>
-                </div>
-              </div>
-
-              {/* Footer Tip Indicator */}
-              <div className="absolute bottom-6 left-6 z-20 rounded-2xl bg-slate-950/90 border border-slate-800 p-3 text-sm text-slate-200 shadow-lg">
-                💡 انقر على الصورة مباشرة للتكبير الاحترافي وحرك الماوس بحرية
-                تامة للتصفح
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <ImagePreviewModal
+        isOpen={filePreviewModal.isOpen}
+        onClose={closeFilePreviewModal}
+        imageUrl={filePreviewModal.file?.fileUrl}
+        title={filePreviewModal.file?.title}
+      />
     </MainLayout>
   );
 };

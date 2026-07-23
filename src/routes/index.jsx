@@ -41,6 +41,11 @@ const DoctorDashboard = React.lazy(() =>
     default: m.DoctorDashboard,
   })),
 );
+const DoctorReportsDashboard = React.lazy(() =>
+  import("../components/DoctorReportsDashboard.jsx").then((m) => ({
+    default: m.DoctorReportsDashboard,
+  })),
+);
 const DoctorAppointmentsList = React.lazy(() =>
   import("../pages/DoctorAppointmentsList.jsx").then((m) => ({
     default: m.DoctorAppointmentsList,
@@ -190,6 +195,14 @@ const AnimatedRoutes = () => {
             element={
               <ProtectedRoute requiredRole="doctor">
                 <DoctorAppointmentsList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/doctor/reports"
+            element={
+              <ProtectedRoute requiredRole="doctor">
+                <DoctorReportsDashboard />
               </ProtectedRoute>
             }
           />
