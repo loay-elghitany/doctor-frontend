@@ -84,6 +84,7 @@ export const DoctorPatientRecords = () => {
   const audioMediaRecorder = useRef(null);
   const audioChunksRef = useRef([]);
   const audioStreamRef = useRef(null);
+  const hasResolvedDeepLinkRef = useRef(null);
   const [isUploadingFile, setIsUploadingFile] = useState({});
   const [editingPatient, setEditingPatient] = useState(null);
   const [filePreviewModal, setFilePreviewModal] = useState({
@@ -161,7 +162,18 @@ export const DoctorPatientRecords = () => {
         pagination,
       });
 
-      setPatients(data);
+      setPatients((prevPatients) => {
+        if (!patientId) return data;
+        const routePatient = prevPatients.find(
+          (patient) =>
+            String(patient?._id || patient?.id) === String(patientId),
+        );
+        const inIncoming = data.some(
+          (patient) =>
+            String(patient?._id || patient?.id) === String(patientId),
+        );
+        return routePatient && !inIncoming ? [routePatient, ...data] : data;
+      });
       setTotalItems(pagination.totalItems || data.length || 0);
       setTotalPages(pagination.totalPages || 1);
     } catch (err) {
@@ -182,9 +194,15 @@ export const DoctorPatientRecords = () => {
   }, [searchTerm, page]);
 
   useEffect(() => {
-    const resolvePatientForRoute = async () => {
-      if (!patientId) return;
+    if (!patientId) {
+      hasResolvedDeepLinkRef.current = null;
+      return;
+    }
 
+    if (hasResolvedDeepLinkRef.current === patientId) return;
+    hasResolvedDeepLinkRef.current = patientId;
+
+    const resolvePatientForRoute = async () => {
       const targetPatient = patients.find(
         (patient) => String(patient?._id || patient?.id) === String(patientId),
       );
@@ -196,25 +214,18 @@ export const DoctorPatientRecords = () => {
       }
 
       try {
-        const response = await api.get(
-          `/patients?search=${patientId}&limit=10`,
-        );
-        const searchResults = response.data?.data || [];
-        const found =
-          searchResults.find(
-            (patient) =>
-              String(patient?._id || patient?.id) === String(patientId),
-          ) || searchResults[0];
+        const response = await patientService.getPatientById(patientId);
+        const found = response.data?.data || response.data;
 
         if (found) {
           const foundId = found._id || found.id;
-          setPatients((prevPatients) => {
-            const exists = prevPatients.some(
+          setPatients((prevPatients) => [
+            found,
+            ...prevPatients.filter(
               (patient) =>
-                String(patient?._id || patient?.id) === String(foundId),
-            );
-            return exists ? prevPatients : [found, ...prevPatients];
-          });
+                String(patient?._id || patient?.id) !== String(foundId),
+            ),
+          ]);
           await handleExpandPatient(foundId, { autoOpenInput: true });
         }
       } catch (err) {
@@ -224,6 +235,21 @@ export const DoctorPatientRecords = () => {
 
     resolvePatientForRoute();
   }, [patientId, patients.length]);
+
+  useEffect(() => {
+    if (!patientId || String(expandedPatientId) !== String(patientId)) {
+      return undefined;
+    }
+
+    const scrollTimeout = setTimeout(() => {
+      const element = document.getElementById(`patient-card-${patientId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 250);
+
+    return () => clearTimeout(scrollTimeout);
+  }, [expandedPatientId, patientId]);
 
   // Fetch appointments for a specific patient
   const fetchPatientAppointments = async (patientId) => {
@@ -869,6 +895,7 @@ export const DoctorPatientRecords = () => {
                   {patients.map((patient, index) => (
                     <motion.div
                       key={patient._id || patient.id}
+                      id={`patient-card-${patient._id || patient.id}`}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}

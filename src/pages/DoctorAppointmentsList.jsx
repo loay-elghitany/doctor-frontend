@@ -302,17 +302,15 @@ export const DoctorAppointmentsList = () => {
   };
 
   const handleOpenPatientRecord = (appointment) => {
-    const patientRecordId =
-      appointment?.patientId?._id ||
-      appointment?.patientId ||
-      appointment?.patient?.id ||
-      appointment?.patient?._id;
+    const patientRef = appointment?.patientId;
+    const rawId =
+      typeof patientRef === "object" && patientRef !== null
+        ? patientRef._id || patientRef.id
+        : patientRef || appointment?.patient?._id || appointment?.patient?.id;
 
-    if (!patientRecordId) return;
-
-    setActivePatientRecordId(patientRecordId);
-    setShowPatientRecordModal(true);
-    navigate(`/doctor/patient-records/${patientRecordId}`);
+    if (!rawId) return;
+    const cleanId = String(rawId).trim();
+    navigate(`/doctor/patient-records/${cleanId}`);
   };
 
   const isDeletable = (appointment) => {
