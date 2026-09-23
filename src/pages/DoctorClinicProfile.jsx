@@ -68,7 +68,7 @@ const tabVariants = {
 // Glassmorphism Card Component
 const GlassCard = ({ children, className = "", hover = true }) => (
   <motion.div
-    className={`backdrop-blur-xl bg-white/70 dark:bg-slate-800/50 border border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg ${hover ? "hover:shadow-xl hover:-translate-y-1" : ""} transition-all duration-300 ${className}`}
+    className={`rounded-2xl border border-slate-200 bg-white shadow-sm ${hover ? "transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md" : ""} ${className}`}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.4 }}
@@ -464,10 +464,10 @@ export const DoctorClinicProfile = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+          <h1 className="text-3xl font-bold text-slate-900">
             {t("pages_DoctorClinicProfile.text_clinic_profile_title")}
           </h1>
-          <p className="mt-2 text-slate-600 dark:text-slate-400">
+          <p className="mt-2 text-slate-600">
             {t("pages_DoctorClinicProfile.text_clinic_profile_subtitle")}
           </p>
           <div className="mt-6">

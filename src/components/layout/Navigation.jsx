@@ -105,19 +105,21 @@ export const Header = () => {
   // handleLogout is now provided by useUnifiedLogout hook
 
   return (
-    <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
-      <div className="container mx-auto px-6 py-4 flex items-center justify-between gap-4">
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
         <Link
           to="/"
-          className="inline-flex items-center gap-3 text-xl font-semibold text-slate-900"
+          className="inline-flex items-center gap-3 truncate text-lg font-semibold text-slate-900 sm:text-xl"
         >
           <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
             C
           </span>
-          {t("components_layout_Navigation.text_clinicsaas")}
+          <span className="truncate">
+            {t("components_layout_Navigation.text_clinicsaas")}
+          </span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-4 text-sm font-medium text-slate-600">
+        <nav className="hidden items-center gap-3 text-sm font-medium text-slate-600 md:flex">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -147,13 +149,13 @@ export const Header = () => {
 
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden inline-flex items-center justify-center rounded-2xl border border-slate-200 p-2 text-slate-600 hover:bg-slate-100"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-sm hover:bg-slate-50 md:hidden"
         >
-          <Menu className="h-6 w-6" />
+          <Menu className="h-5 w-5" />
         </button>
 
         {isOpen && (
-          <div className="absolute right-6 top-20 w-56 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl md:hidden">
+          <div className="absolute right-4 top-16 w-[88vw] max-w-xs rounded-3xl border border-slate-200 bg-white p-4 shadow-xl md:hidden">
             {navItems.map((item) => (
               <Link
                 key={item.path}
@@ -319,27 +321,27 @@ export const Sidebar = ({
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-16 w-72 h-screen bg-slate-950 text-white shadow-2xl transition-transform duration-300 md:relative md:top-0 md:translate-x-0 z-40 ${
+        className={`fixed left-0 top-16 z-40 h-screen w-72 border-r border-slate-200 bg-white text-slate-700 shadow-xl transition-transform duration-300 md:relative md:top-0 md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="px-6 py-6 border-b border-slate-800">
-          <div className="inline-flex items-center gap-3 rounded-3xl bg-slate-900 px-4 py-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500 text-white">
+        <div className="border-b border-slate-200 px-6 py-6">
+          <div className="inline-flex items-center gap-3 rounded-3xl bg-slate-50 px-4 py-3 ring-1 ring-slate-200">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
               <Home className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-sm text-slate-400">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-500">
                 {t("components_layout_Navigation.text_clinic_platform")}
               </p>
-              <p className="font-semibold">
+              <p className="font-semibold text-slate-900">
                 {t("components_layout_Navigation.text_saas_dashboard")}
               </p>
             </div>
           </div>
         </div>
 
-        <nav className="px-4 py-6 space-y-2">
+        <nav className="space-y-2 px-4 py-6">
           {links.map((link) => {
             const isActive = location.pathname === link.path;
             const Icon = link.icon;
@@ -351,10 +353,10 @@ export const Sidebar = ({
                 layout
                 whileHover={{ x: 3, scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 280, damping: 24 }}
-                className={`relative flex items-center gap-3 rounded-3xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
+                className={`relative flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition-all duration-200 ${
                   isActive
                     ? "bg-blue-600 text-white shadow-[0_0_30px_rgba(59,130,246,0.22)]"
-                    : "text-slate-300 hover:bg-slate-800 hover:text-white"
+                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                 }`}
               >
                 <span
@@ -371,7 +373,7 @@ export const Sidebar = ({
 
           <button
             onClick={handleLogout}
-            className="mt-4 flex w-full items-center gap-3 rounded-3xl bg-slate-800 px-4 py-3 text-left text-sm font-medium text-red-300 transition hover:bg-slate-700"
+            className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-red-50 px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-100"
           >
             <LogOut className="h-5 w-5" />
             {t("logout")}

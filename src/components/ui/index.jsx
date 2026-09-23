@@ -47,11 +47,11 @@ export const Button = ({
   className = "",
   ...props
 }) => {
-  const baseClass = "btn-base";
+  const baseClass = "btn-base min-h-[44px]";
   const variantClass = `btn-${variant}`;
   const sizeClass =
     size === "sm"
-      ? "px-2 py-1 text-sm"
+      ? "px-3 py-2 text-sm"
       : size === "lg"
         ? "px-6 py-3 text-lg"
         : "";
@@ -102,7 +102,7 @@ export const Input = ({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          className={`input-base ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
+          className={`input-base min-h-[44px] ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
           {...props}
         >
           {children}
@@ -126,7 +126,7 @@ export const Input = ({
         value={value}
         onChange={onChange}
         disabled={disabled}
-        className={`input-base ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
+        className={`input-base min-h-[44px] ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
         {...props}
       />
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
@@ -161,7 +161,7 @@ export const Textarea = ({
         onChange={onChange}
         disabled={disabled}
         rows={rows}
-        className={`input-base ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
+        className={`input-base min-h-[44px] ${error ? "border-red-500 focus:ring-red-500 animate-shake" : ""} ${className}`}
         {...props}
       />
       {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
@@ -215,37 +215,41 @@ export const Modal = ({
   size = "md",
 }) => {
   const sizeClass =
-    size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-2xl" : "max-w-md";
+    size === "sm" ? "max-w-sm" : size === "lg" ? "max-w-2xl" : "max-w-lg";
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-3 backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.25, ease: "easeInOut" }}
         >
           <motion.div
-            className={`${sizeClass} bg-white rounded-lg shadow-lg max-h-screen overflow-y-auto`}
+            className={`w-[95vw] ${sizeClass} overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl max-h-[85vh]`}
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.25, ease: "easeInOut" }}
           >
-            <div className="flex justify-between items-center border-b border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4 sm:px-6">
+              <h2 className="text-lg font-bold text-slate-900 sm:text-xl">
+                {title}
+              </h2>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full text-2xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-600"
               >
                 ×
               </button>
             </div>
-            <div className="p-6">{children}</div>
+            <div className="max-h-[calc(85vh-132px)] overflow-y-auto p-4 sm:p-6">
+              {children}
+            </div>
             {footer && (
-              <div className="flex justify-end gap-3 p-6 border-t border-gray-200">
+              <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-4 py-4 sm:px-6">
                 {footer}
               </div>
             )}

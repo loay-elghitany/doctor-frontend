@@ -801,8 +801,8 @@ export const DoctorPatientRecords = () => {
         ) : (
           <>
             {/* Search and Filter Section */}
-            <GlassCard className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <GlassCard className="p-4 sm:p-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-12">
                 {/* Search */}
                 <div className="md:col-span-8">
                   <PremiumSearch
@@ -825,7 +825,7 @@ export const DoctorPatientRecords = () => {
                     <select
                       value={filterType}
                       onChange={(e) => setFilterType(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"
+                      className="min-h-[44px] w-full appearance-none cursor-pointer rounded-xl border border-slate-200 bg-white pl-10 pr-4 py-3 text-gray-900 focus:border-blue-500 focus:outline-none"
                     >
                       <option
                         value={t("pages_DoctorPatientRecords.attr_value_all")}
@@ -978,7 +978,7 @@ export const DoctorPatientRecords = () => {
                                       : 0,
                                 }}
                                 transition={{ duration: 0.2 }}
-                                className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
+                                className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100"
                               >
                                 <ChevronDown className="w-5 h-5 text-gray-500" />
                               </motion.div>

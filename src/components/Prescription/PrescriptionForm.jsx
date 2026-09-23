@@ -958,7 +958,7 @@ export const PrescriptionForm = ({
           className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/60 px-4 py-6 backdrop-blur-sm"
           dir="rtl"
         >
-          <div className="w-full max-w-lg rounded-3xl border border-emerald-100 bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-lg rounded-3xl border border-emerald-100 bg-white p-5 shadow-2xl sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold text-emerald-600">
@@ -997,7 +997,7 @@ export const PrescriptionForm = ({
               <button
                 type="button"
                 onClick={handlePrintPrescription}
-                className="flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                className="flex min-h-[44px] items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
               >
                 🖨️ طباعة الروشتة فوراً
               </button>
@@ -1088,7 +1088,7 @@ export const DoctorPrescriptionView = ({
               onDelete(prescription._id);
             }
           }}
-          className="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+          className="min-h-[44px] rounded-xl bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
         >
           {isLoading ? "جاري الحذف..." : "حذف الروشتة الطبية"}
         </button>
@@ -1102,7 +1102,7 @@ export const PatientPrescriptionView = ({ prescription }) => {
   return (
     <div
       data-testid="patient-view"
-      className="space-y-4 bg-blue-50/50 p-4 rounded-md border border-blue-100 text-right no-print"
+      className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/50 p-4 text-right no-print"
       dir="rtl"
     >
       <div>

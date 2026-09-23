@@ -450,8 +450,11 @@ export const DoctorAppointmentsList = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <GlassCard className="relative overflow-hidden" gradient>
-            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-400/20 to-cyan-300/20 rounded-full blur-3xl" />
+          <GlassCard
+            className="relative overflow-hidden border border-slate-200 bg-gradient-to-br from-blue-50 via-white to-cyan-50"
+            hover={false}
+          >
+            <div className="absolute right-0 top-0 h-40 w-40 rounded-full bg-blue-200/40 blur-3xl" />
             <div className="relative z-10">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -459,7 +462,7 @@ export const DoctorAppointmentsList = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-sm uppercase tracking-[0.32em] text-blue-600 dark:text-blue-400 mb-3 font-semibold"
+                    className="mb-3 text-sm font-semibold uppercase tracking-[0.32em] text-blue-600"
                   >
                     إدارة المواعيد
                   </motion.p>
@@ -467,7 +470,7 @@ export const DoctorAppointmentsList = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white"
+                    className="text-3xl font-bold text-slate-900 sm:text-4xl md:text-5xl"
                   >
                     المواعيد
                   </motion.h1>
@@ -475,7 +478,7 @@ export const DoctorAppointmentsList = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4 }}
-                    className="mt-3 text-lg text-gray-600 dark:text-gray-300"
+                    className="mt-3 max-w-2xl text-base text-slate-600"
                   >
                     إدارة مواعيدك، تتبع الحالات، وتواصل مع مرضاك بسهولة من لوحة
                     تحكم واحدة.
@@ -487,7 +490,7 @@ export const DoctorAppointmentsList = () => {
         </motion.div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
           {statCards.map((card, index) => {
             const Icon = card.icon;
             return (

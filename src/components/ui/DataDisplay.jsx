@@ -12,25 +12,25 @@ export const Table = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
       {loading ? (
         <div className="flex justify-center p-8">
           <Spinner />
         </div>
       ) : (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-100 border-b-2 border-gray-300">
+        <table className="min-w-[720px] w-full border-collapse text-left">
+          <thead className="bg-slate-50">
+            <tr className="border-b border-slate-200">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className="px-6 py-3 text-left text-sm font-semibold text-gray-700"
+                  className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 sm:px-6"
                 >
                   {col.label}
                 </th>
               ))}
               {actions && (
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 sm:px-6">
                   {t("components_ui_DataDisplay.text_actions")}
                 </th>
               )}
@@ -41,7 +41,7 @@ export const Table = ({
               <tr>
                 <td
                   colSpan={columns.length + (actions ? 1 : 0)}
-                  className="px-6 py-4 text-center text-gray-500"
+                  className="px-4 py-6 text-center text-sm text-slate-500 sm:px-6"
                 >
                   {t("components_ui_DataDisplay.text_no_data_available")}
                 </td>
@@ -50,13 +50,13 @@ export const Table = ({
               data.map((row, idx) => (
                 <tr
                   key={idx}
-                  className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer"
+                  className="border-b border-slate-200 transition-colors hover:bg-slate-50"
                   onClick={() => onRowClick?.(row)}
                 >
                   {columns.map((col) => (
                     <td
                       key={col.key}
-                      className="px-6 py-4 text-sm text-gray-900"
+                      className="px-4 py-3 text-sm text-slate-700 sm:px-6"
                     >
                       {row
                         ? col.render
@@ -66,8 +66,8 @@ export const Table = ({
                     </td>
                   ))}
                   {actions && (
-                    <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2">{actions(row)}</div>
+                    <td className="px-4 py-3 text-sm sm:px-6">
+                      <div className="flex flex-wrap gap-2">{actions(row)}</div>
                     </td>
                   )}
                 </tr>

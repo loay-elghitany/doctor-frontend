@@ -99,10 +99,10 @@ export const PrescriptionModal = ({
   };
 
   return (
-    <div className="modal-content space-y-4">
+    <div className="modal-content space-y-4 overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 pb-4 border-b">
-        <h3 className="text-lg font-semibold text-gray-900">
+      <div className="mb-4 flex items-center justify-between border-b border-slate-200 pb-4">
+        <h3 className="text-lg font-semibold text-slate-900">
           {selectedPrescription
             ? "تفاصيل الروشتة الطبية"
             : showForm
@@ -149,7 +149,7 @@ export const PrescriptionModal = ({
               {userRole === "doctor" && (
                 <button
                   onClick={() => setShowForm(true)}
-                  className="btn-primary text-sm"
+                  className="btn-primary min-h-[44px] text-sm"
                 >
                   إضافة روشتة طبية
                 </button>
@@ -175,7 +175,7 @@ export const PrescriptionModal = ({
               {prescriptions.map((prescription, index) => (
                 <div
                   key={prescription._id}
-                  className="bg-gray-50 p-3 rounded-md border border-gray-200 cursor-pointer hover:bg-gray-100 transition"
+                  className="cursor-pointer rounded-2xl border border-slate-200 bg-white p-4 transition hover:bg-slate-50"
                   onClick={() => {
                     setSelectedPrescription(prescription);
                     setPrintPrescriptionData(prescription);

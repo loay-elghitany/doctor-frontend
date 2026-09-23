@@ -115,7 +115,7 @@ const ImagePreviewModal = ({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="pointer-events-auto relative w-full max-h-[90vh] flex flex-col bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 overflow-hidden"
+              className="pointer-events-auto relative flex w-[95vw] max-w-6xl max-h-[90vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-2xl backdrop-blur-xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}

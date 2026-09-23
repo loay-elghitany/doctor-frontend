@@ -24,9 +24,8 @@ export const GlassCard = ({
 }) => {
   const { t } = useTranslation();
   const baseClasses = `
-    backdrop-blur-md bg-white/70 dark:bg-gray-900/70
-    border border-white/20 dark:border-gray-700/30
-    rounded-[28px] p-6 shadow-lg
+    backdrop-blur-md bg-white border border-slate-200
+    rounded-2xl p-4 shadow-sm sm:p-6
     transition-all duration-300
   `;
 
@@ -112,10 +111,10 @@ export const EmptyState = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`empty-state ${currentSize.padding}`}
+      className={`empty-state ${currentSize.padding} border border-slate-200 bg-slate-50`}
     >
       <div className="flex flex-col items-center justify-center text-center">
-        <div className="mb-6 p-4 rounded-full bg-blue-50 dark:bg-blue-900/20">
+        <div className="mb-6 rounded-full bg-blue-50 p-4">
           <Icon
             className={`w-${currentSize.icon} h-${currentSize.icon} text-blue-500`}
             style={{ width: currentSize.icon, height: currentSize.icon }}
@@ -165,7 +164,7 @@ export const PremiumSearch = ({
         onChange={onChange}
         onKeyPress={onKeyPress}
         placeholder={placeholder}
-        className="premium-search w-full pl-12 pr-4 py-3 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none"
+        className="premium-search min-h-[44px] w-full rounded-xl border border-slate-200 bg-white pl-12 pr-4 py-3 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none"
       />
 
       <div className="absolute right-4 top-1/2 -translate-y-1/2">

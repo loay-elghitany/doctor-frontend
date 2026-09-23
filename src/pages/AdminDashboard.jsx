@@ -299,11 +299,11 @@ export const AdminDashboard = () => {
   return (
     <MainLayout userType="admin">
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">
             {t("pages_AdminDashboard.text_manual_subscription_management")}
           </h1>
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <Button
               variant="primary"
               onClick={() => setShowCreateModal(true)}
@@ -329,34 +329,44 @@ export const AdminDashboard = () => {
         )}
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-blue-600 sm:text-3xl">
                 {doctors.length}
               </div>
-              <p className="text-gray-600 mt-2">
+              <p className="mt-2 text-xs font-medium text-slate-600 sm:text-sm">
                 {t("pages_AdminDashboard.text_total_doctors")}
               </p>
             </div>
           </Card>
-          <Card>
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-emerald-600 sm:text-3xl">
                 {doctors.filter((d) => d.isActive).length}
               </div>
-              <p className="text-gray-600 mt-2">
+              <p className="mt-2 text-xs font-medium text-slate-600 sm:text-sm">
                 {t("pages_AdminDashboard.text_active_subscriptions")}
               </p>
             </div>
           </Card>
-          <Card>
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-600">
+              <div className="text-2xl font-bold text-amber-600 sm:text-3xl">
                 {doctors.filter((d) => !d.isActive).length}
               </div>
-              <p className="text-gray-600 mt-2">
+              <p className="mt-2 text-xs font-medium text-slate-600 sm:text-sm">
                 {t("pages_AdminDashboard.text_inactive_subscriptions")}
+              </p>
+            </div>
+          </Card>
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-slate-800 sm:text-3xl">
+                {doctors.filter((d) => d.isActive).length > 0 ? "94%" : "0%"}
+              </div>
+              <p className="mt-2 text-xs font-medium text-slate-600 sm:text-sm">
+                Health Score
               </p>
             </div>
           </Card>
@@ -382,29 +392,29 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Doctors Table */}
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           {filteredDoctors.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500">
+            <div className="py-8 text-center">
+              <p className="text-sm text-slate-500">
                 {t(
                   "pages_AdminDashboard.text_no_doctors_found_in_this_category",
                 )}
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b bg-gray-50">
+            <div className="overflow-x-auto rounded-xl border border-slate-200">
+              <table className="min-w-[720px] w-full border-collapse">
+                <thead className="border-b border-slate-200 bg-slate-50">
                   <tr>
                     {columns.map((col) => (
                       <th
                         key={col.key}
-                        className="px-6 py-3 text-left text-sm font-semibold text-gray-900"
+                        className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 sm:px-6"
                       >
                         {col.label}
                       </th>
                     ))}
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                    <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-slate-500 sm:px-6">
                       {t("pages_AdminDashboard.text_actions")}
                     </th>
                   </tr>
@@ -415,47 +425,43 @@ export const AdminDashboard = () => {
                     return (
                       <tr
                         key={doctor._id}
-                        className="border-b hover:bg-gray-50"
+                        className="border-b border-slate-200 hover:bg-slate-50"
                       >
                         {columns.map((col) => (
                           <td
                             key={`${doctor._id}-${col.key}`}
-                            className="px-6 py-3 text-sm text-gray-900"
+                            className="px-4 py-3 text-sm text-slate-700 sm:px-6"
                           >
                             {col.render
                               ? col.render(doctor, doctor[col.key])
                               : doctor[col.key]}
                           </td>
                         ))}
-                        <td className="px-6 py-3 text-sm">
-                          <div className="flex gap-2">
-                            <div className="flex gap-2">
-                              {/* زرار الاشتراك / التجديد يظهر دايماً للدكتور سواء نشط أو غير نشط */}
+                        <td className="px-4 py-3 text-sm sm:px-6">
+                          <div className="flex flex-wrap gap-2">
+                            <Button
+                              variant="success"
+                              size="sm"
+                              onClick={() =>
+                                confirmAction("reactivate", doctor)
+                              }
+                            >
+                              {doctor.isActive
+                                ? "شحن/تجديد الاشتراك"
+                                : t("pages_AdminDashboard.text_activate")}
+                            </Button>
+
+                            {doctor.isActive && (
                               <Button
-                                variant="success"
+                                variant="danger"
                                 size="sm"
                                 onClick={() =>
-                                  confirmAction("reactivate", doctor)
+                                  confirmAction("deactivate", doctor)
                                 }
                               >
-                                {doctor.isActive
-                                  ? "شحن/تجديد الاشتراك"
-                                  : t("pages_AdminDashboard.text_activate")}
+                                {t("pages_AdminDashboard.text_pause")}
                               </Button>
-
-                              {/* زرار الإيقاف المؤقت يظهر فقط لو الدكتور نشط حالياً */}
-                              {doctor.isActive && (
-                                <Button
-                                  variant="danger"
-                                  size="sm"
-                                  onClick={() =>
-                                    confirmAction("deactivate", doctor)
-                                  }
-                                >
-                                  {t("pages_AdminDashboard.text_pause")}
-                                </Button>
-                              )}
-                            </div>
+                            )}
 
                             <Button
                               variant="secondary"

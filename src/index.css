@@ -89,7 +89,7 @@ body {
 
 :root {
   color-scheme: light;
-  --bg: #eff2f7;
+  --bg: #f8fafc;
   --surface: #ffffff;
   --surface-muted: #f8fafc;
   --text: #0f172a;
@@ -124,6 +124,39 @@ body {
 
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-color: var(--bg);
+  color: var(--text);
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  min-height: 44px;
 }
 
 ::selection {
@@ -131,8 +164,23 @@ html {
   color: #1e293b;
 }
 
-html {
-  scroll-behavior: smooth;
+.responsive-shell {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .responsive-shell {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-shell {
+    padding-inline: 2rem;
+  }
 }
 
 .card {
